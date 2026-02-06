@@ -3,7 +3,7 @@ import TryItOut from "../islands/TryItOut.tsx";
 import StatusIndicator from "../islands/StatusIndicator.tsx";
 
 export default function ApiDocumentation() {
-  const baseUrl = "https://api-codewithbotina.deno.dev"; // In a real app, this might come from env or request context
+  const baseUrl = "https://api.codewithbotina.com";
 
   return (
     <>
