@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../components/BaseLayout.astro';
+import SocialLinks from '../components/SocialLinks.astro';
+import { ArrowRight } from 'lucide-astro';
+---
+
+<BaseLayout 
+  title="About Diego Botina" 
+  description="Learn about Diego Alejandro Botina, software developer and creator of CodeWithBotina technical blog."
+>
+  <!-- Hero -->
+  <section class="bg-[var(--color-bg-subtle)] py-20 border-b border-[var(--color-border)]">
+    <div class="container-responsive text-center">
+      <div class="w-32 h-32 mx-auto bg-white rounded-full shadow-lg mb-6 overflow-hidden border-4 border-white">
+        <img 
+          src="/avatar.webp" 
+          alt="Diego Alejandro Botina"
+          class="w-full h-full object-cover"
+        />
+      </div>
+      <h1 class="text-4xl font-bold mb-4">About CodeWithBotina</h1>
+      <p class="text-xl text-[var(--color-text-secondary)] max-w-2xl mx-auto">
+        Sharing insights, tutorials, and lessons learned from real-world software development.
+      </p>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="py-16">
+    <div class="container-responsive max-w-3xl">
+      <div class="prose prose-lg mb-16">
+        <h2>Who am I?</h2>
+        <p>
+          I'm <strong>Diego Alejandro Botina</strong>, a software developer passionate about web technologies. 
+          This blog is my space to share insights, tutorials, and lessons learned from real-world development.
+        </p>
+        <p>
+          I believe in learning by teaching, and I hope these articles help others on their coding journey. 
+          I work with JavaScript, TypeScript, Deno, Astro, React, and modern web frameworks to build 
+          high-performance applications.
+        </p>
+
+        <h2>My Mission</h2>
+        <p>
+          My goal is to create clear, practical content that helps developers solve real problems. 
+          I focus on:
+        </p>
+        <ul>
+          <li>Web Development & Architecture</li>
+          <li>API Design & Best Practices</li>
+          <li>Database Optimization</li>
+          <li>Performance & Scalability</li>
+        </ul>
+      </div>
+
+      <!-- Connect -->
+      <div class="bg-[var(--color-bg-subtle)] rounded-2xl p-8 md:p-12 text-center">
+        <h2 class="text-3xl font-bold mb-6">Let's Connect!</h2>
+        <p class="text-[var(--color-text-secondary)] mb-8 max-w-xl mx-auto">
+          I'm always open to discussing new projects, ideas, or just chatting about tech. 
+          Find me on social media or check out my portfolio.
+        </p>
+        
+        <SocialLinks className="flex justify-center gap-6 mb-10 flex-wrap" iconSize={32} />
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <a href="https://portfolio.codewithbotina.com" target="_blank" class="btn-primary flex items-center justify-center gap-2">
+            View Portfolio <ArrowRight size={20} />
+          </a>
+          <a href="https://github.com/CodeWithBotinaOficial" target="_blank" class="px-6 py-3 rounded-lg border border-[var(--color-border)] bg-white hover:bg-gray-50 font-semibold transition-colors flex items-center justify-center gap-2">
+            GitHub Projects <ArrowRight size={20} />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

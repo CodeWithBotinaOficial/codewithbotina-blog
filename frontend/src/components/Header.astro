@@ -1,0 +1,66 @@
+---
+import { Menu, X, Search } from 'lucide-astro';
+
+const navLinks = [
+  { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
+  { name: 'Contact', href: '/contact' },
+];
+---
+
+<header class="sticky top-0 z-50 w-full bg-[var(--color-bg-base)]/90 backdrop-blur-md border-b border-[var(--color-border)]">
+  <div class="container-responsive h-16 flex items-center justify-between">
+    <a href="/" class="text-xl font-bold text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors">
+      CodeWithBotina
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex items-center gap-8">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-primary)] font-medium transition-colors"
+        >
+          {link.name}
+        </a>
+      ))}
+    </nav>
+
+    <!-- Mobile Menu Button -->
+    <button
+      id="mobile-menu-btn"
+      class="md:hidden p-2 text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)] rounded-lg"
+      aria-label="Toggle menu"
+    >
+      <Menu size={24} class="menu-icon" />
+      <X size={24} class="close-icon hidden" />
+    </button>
+  </div>
+
+  <!-- Mobile Navigation -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-[var(--color-border)] bg-[var(--color-bg-base)]">
+    <nav class="flex flex-col p-4 gap-4">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-primary)] font-medium py-2 transition-colors"
+        >
+          {link.name}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<script>
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = document.querySelector('.menu-icon');
+  const closeIcon = document.querySelector('.close-icon');
+
+  menuBtn?.addEventListener('click', () => {
+    mobileMenu?.classList.toggle('hidden');
+    menuIcon?.classList.toggle('hidden');
+    closeIcon?.classList.toggle('hidden');
+  });
+</script>

@@ -1,0 +1,53 @@
+---
+import { ArrowRight, Calendar, Clock } from 'lucide-astro';
+import { formatDate, calculateReadTime, truncateText, stripMarkdown } from '../lib/utils';
+import type { Post } from '../types/post';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const readTime = calculateReadTime(post.body);
+const plainExcerpt = stripMarkdown(post.excerpt || post.body);
+---
+
+<article class="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex flex-col h-full group">
+  {post.imagen_url && (
+    <div class="aspect-video overflow-hidden bg-[var(--color-bg-subtle)]">
+      <img
+        src={post.imagen_url}
+        alt={post.titulo}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+      />
+    </div>
+  )}
+
+  <div class="p-6 flex flex-col flex-1">
+    <div class="flex items-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-3">
+      <span class="flex items-center gap-1">
+        <Calendar size={14} />
+        {formatDate(post.fecha)}
+      </span>
+      <span class="flex items-center gap-1">
+        <Clock size={14} />
+        {readTime} min read
+      </span>
+    </div>
+
+    <h2 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-[var(--color-accent-primary)] transition-colors">
+      <a href={`/posts/${post.slug}`} class="before:absolute before:inset-0">
+        {post.titulo}
+      </a>
+    </h2>
+
+    <p class="text-[var(--color-text-secondary)] mb-6 line-clamp-3 flex-1">
+      {truncateText(plainExcerpt, 150)}
+    </p>
+
+    <div class="flex items-center text-[var(--color-accent-primary)] font-medium text-sm mt-auto group-hover:translate-x-1 transition-transform">
+      Read more <ArrowRight size={16} class="ml-1" />
+    </div>
+  </div>
+</article>

@@ -1,0 +1,93 @@
+---
+import { Search, X } from 'lucide-astro';
+---
+
+<div class="relative w-full max-w-xl mx-auto mb-12">
+  <div class="relative">
+    <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]" size={20} />
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Search articles..."
+      class="w-full pl-12 pr-12 py-4 rounded-full border border-[var(--color-border)] bg-white shadow-sm focus:ring-2 focus:ring-[var(--color-accent-primary)] focus:border-transparent outline-none transition-all"
+    />
+    <button
+      id="clear-search"
+      class="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hidden"
+      aria-label="Clear search"
+    >
+      <X size={20} />
+    </button>
+  </div>
+  <div id="search-results-count" class="absolute -bottom-8 left-0 text-sm text-[var(--color-text-tertiary)] hidden">
+    Showing <span id="count">0</span> articles
+  </div>
+</div>
+
+<script>
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const clearButton = document.getElementById('clear-search');
+  const resultsCount = document.getElementById('search-results-count');
+  const countSpan = document.getElementById('count');
+  const postsGrid = document.getElementById('posts-grid');
+  const noResults = document.getElementById('no-results');
+
+  let debounceTimer: number;
+
+  searchInput?.addEventListener('input', (e) => {
+    const query = (e.target as HTMLInputElement).value.toLowerCase();
+
+    // Toggle clear button
+    if (query.length > 0) {
+      clearButton?.classList.remove('hidden');
+    } else {
+      clearButton?.classList.add('hidden');
+    }
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => filterPosts(query), 300);
+  });
+
+  clearButton?.addEventListener('click', () => {
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.focus();
+      filterPosts('');
+      clearButton.classList.add('hidden');
+    }
+  });
+
+  function filterPosts(query: string) {
+    const posts = document.querySelectorAll('.post-card-wrapper');
+    let visibleCount = 0;
+
+    posts.forEach((post) => {
+      const title = post.getAttribute('data-title')?.toLowerCase() || '';
+      const excerpt = post.getAttribute('data-excerpt')?.toLowerCase() || '';
+
+      if (title.includes(query) || excerpt.includes(query)) {
+        (post as HTMLElement).style.display = 'block';
+        visibleCount++;
+      } else {
+        (post as HTMLElement).style.display = 'none';
+      }
+    });
+
+    // Update UI state
+    if (query.length > 0) {
+      resultsCount?.classList.remove('hidden');
+      if (countSpan) countSpan.textContent = visibleCount.toString();
+    } else {
+      resultsCount?.classList.add('hidden');
+    }
+
+    // Show/hide no results message
+    if (visibleCount === 0 && query.length > 0) {
+      noResults?.classList.remove('hidden');
+      postsGrid?.classList.add('hidden');
+    } else {
+      noResults?.classList.add('hidden');
+      postsGrid?.classList.remove('hidden');
+    }
+  }
+</script>

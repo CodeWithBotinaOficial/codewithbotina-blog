@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../components/BaseLayout.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { Mail, MessageSquare } from 'lucide-astro';
+import SocialLinks from '../components/SocialLinks.astro';
+---
+
+<BaseLayout 
+  title="Contact" 
+  description="Get in touch with Diego Botina. Send a message or connect via email and social media."
+>
+  <div class="bg-[var(--color-bg-subtle)] py-16 border-b border-[var(--color-border)]">
+    <div class="container-responsive text-center">
+      <h1 class="text-4xl font-bold mb-4">Get in Touch</h1>
+      <p class="text-xl text-[var(--color-text-secondary)] max-w-2xl mx-auto">
+        Have a question or want to collaborate? Send me a message!
+      </p>
+    </div>
+  </div>
+
+  <div class="container-responsive py-16">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
+      <!-- Contact Form -->
+      <div>
+        <ContactForm />
+      </div>
+
+      <!-- Contact Info -->
+      <div class="space-y-8 lg:pl-12 lg:border-l border-[var(--color-border)]">
+        <div>
+          <h2 class="text-2xl font-bold mb-6">Contact Information</h2>
+          <div class="space-y-6">
+            <a href="mailto:support@codewithbotina.com" class="flex items-center gap-4 p-4 rounded-xl bg-[var(--color-bg-subtle)] hover:bg-[var(--color-border)] transition-colors group">
+              <div class="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                <Mail class="text-[var(--color-accent-primary)]" size={24} />
+              </div>
+              <div>
+                <p class="text-sm text-[var(--color-text-tertiary)]">Email me at</p>
+                <p class="font-medium text-[var(--color-text-primary)]">support@codewithbotina.com</p>
+              </div>
+            </a>
+
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-[var(--color-bg-subtle)]">
+              <div class="bg-white p-3 rounded-full shadow-sm">
+                <MessageSquare class="text-[var(--color-accent-primary)]" size={24} />
+              </div>
+              <div>
+                <p class="text-sm text-[var(--color-text-tertiary)]">Response time</p>
+                <p class="font-medium text-[var(--color-text-primary)]">Typically within 24-48 hours</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold mb-4">Connect on Social Media</h3>
+          <p class="text-[var(--color-text-secondary)] mb-6">
+            Follow me for daily tips, tutorials, and behind-the-scenes content.
+          </p>
+          <SocialLinks className="flex flex-wrap gap-4" iconSize={28} />
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

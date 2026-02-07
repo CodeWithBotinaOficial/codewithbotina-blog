@@ -1,0 +1,22 @@
+---
+import SocialLinks from './SocialLinks.astro';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-[var(--color-bg-subtle)] border-t border-[var(--color-border)] mt-auto">
+  <div class="container-responsive py-12 flex flex-col items-center gap-8">
+    <SocialLinks />
+
+    <div class="flex gap-6 text-sm text-[var(--color-text-secondary)]">
+      <a href="/rss.xml" class="hover:text-[var(--color-accent-primary)] transition-colors">RSS Feed</a>
+      <a href="/contact" class="hover:text-[var(--color-accent-primary)] transition-colors">Contact</a>
+      <a href="/about" class="hover:text-[var(--color-accent-primary)] transition-colors">About</a>
+    </div>
+
+    <div class="text-center text-sm text-[var(--color-text-tertiary)]">
+      <p>&copy; {currentYear} CodeWithBotina. All rights reserved.</p>
+      <p class="mt-2">Built with ❤️ using Astro and Supabase</p>
+    </div>
+  </div>
+</footer>

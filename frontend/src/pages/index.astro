@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../components/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import SearchBar from '../components/SearchBar.astro';
+import { supabase } from '../lib/supabase';
+import type { Post } from '../types/post';
+
+const { data: posts, error } = await supabase
+  .from('posts')
+  .select('id, titulo, slug, body, imagen_url, fecha')
+  .order('fecha', { ascending: false });
+
+if (error) {
+  console.error('Error fetching posts:', error);
+}
+
+const allPosts = (posts || []) as Post[];
+---
+
+<BaseLayout
+  title="CodeWithBotina"
+  description="Technical insights on software development, web technologies, and programming best practices."
+>
+  <!-- Hero Section -->
+  <section class="bg-[var(--color-bg-subtle)] py-20 border-b border-[var(--color-border)]">
+    <div class="container-responsive text-center">
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-[var(--color-text-primary)]">
+        CodeWithBotina
+      </h1>
+      <p class="text-xl text-[var(--color-text-secondary)] max-w-2xl mx-auto mb-8">
+        Technical insights on software development, web technologies, and programming best practices.
+      </p>
+      <SearchBar />
+    </div>
+  </section>
+
+  <!-- Posts Grid -->
+  <section class="py-16">
+    <div class="container-responsive">
+      <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {allPosts.map((post) => (
+          <div class="post-card-wrapper" data-title={post.titulo} data-excerpt={post.body}>
+            <PostCard post={post} />
+          </div>
+        ))}
+      </div>
+
+      <!-- No Results State -->
+      <div id="no-results" class="hidden text-center py-20">
+        <p class="text-xl text-[var(--color-text-secondary)]">No articles found matching your search.</p>
+        <button
+          id="reset-search"
+          class="mt-4 text-[var(--color-accent-primary)] hover:underline"
+          onclick="document.getElementById('clear-search').click()"
+        >
+          Clear search filters
+        </button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../../components/BaseLayout.astro';
+import { supabase } from '../../lib/supabase';
+import { formatDate, calculateReadTime } from '../../lib/utils';
+import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-astro';
+import { marked } from 'marked';
+import type { Post } from '../../types/post';
+
+export async function getStaticPaths() {
+  const { data: posts } = await supabase.from('posts').select('slug');
+  return (posts || []).map((post) => ({
+    params: { slug: post.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const { data: post, error } = await supabase
+  .from('posts')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (error || !post) {
+  return Astro.redirect('/404');
+}
+
+const currentPost = post as Post;
+const content = marked.parse(currentPost.body);
+const readTime = calculateReadTime(currentPost.body);
+---
+
+<BaseLayout 
+  title={currentPost.titulo} 
+  description={currentPost.excerpt || currentPost.body.slice(0, 160)}
+  image={currentPost.imagen_url}
+  type="article"
+>
+  <article class="max-w-3xl mx-auto px-4 py-12">
+    <!-- Article Header -->
+    <header class="mb-12 text-center">
+      <div class="flex items-center justify-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-6">
+        <span class="flex items-center gap-1">
+          <Calendar size={16} />
+          {formatDate(currentPost.fecha)}
+        </span>
+        <span class="flex items-center gap-1">
+          <Clock size={16} />
+          {readTime} min read
+        </span>
+      </div>
+      
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 leading-tight">
+        {currentPost.titulo}
+      </h1>
+
+      {currentPost.imagen_url && (
+        <div class="rounded-xl overflow-hidden shadow-lg mb-8 aspect-video bg-[var(--color-bg-subtle)]">
+          <img 
+            src={currentPost.imagen_url} 
+            alt={currentPost.titulo}
+            class="w-full h-full object-cover"
+          />
+        </div>
+      )}
+    </header>
+
+    <!-- Article Content -->
+    <div class="prose prose-lg max-w-none prose-headings:text-[var(--color-text-primary)] prose-a:text-[var(--color-accent-primary)] prose-img:rounded-xl">
+      <Fragment set:html={content} />
+    </div>
+
+    <!-- Share & Navigation -->
+    <div class="mt-16 pt-8 border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-between items-center gap-6">
+      <a href="/" class="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-accent-primary)] transition-colors">
+        <ArrowLeft size={20} />
+        Back to all posts
+      </a>
+      
+      <button 
+        id="share-btn"
+        class="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-bg-subtle)] hover:bg-[var(--color-border)] transition-colors"
+        data-url={Astro.url.href}
+        data-title={currentPost.titulo}
+      >
+        <Share2 size={18} />
+        Share this post
+      </button>
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  const shareBtn = document.getElementById('share-btn');
+  
+  shareBtn?.addEventListener('click', async () => {
+    const url = shareBtn.getAttribute('data-url') || '';
+    const title = shareBtn.getAttribute('data-title') || '';
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          url: url
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback to clipboard copy
+      await navigator.clipboard.writeText(url);
+      const originalText = shareBtn.innerHTML;
+      shareBtn.innerHTML = 'Link copied!';
+      setTimeout(() => {
+        shareBtn.innerHTML = originalText;
+      }, 2000);
+    }
+  });
+</script>

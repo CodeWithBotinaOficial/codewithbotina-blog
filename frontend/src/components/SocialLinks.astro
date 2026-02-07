@@ -1,0 +1,57 @@
+---
+import { Instagram, Facebook, Linkedin, Youtube, Github, Globe } from 'lucide-astro';
+
+interface Props {
+  className?: string;
+  iconSize?: number;
+}
+
+const { className = "flex gap-4", iconSize = 24 } = Astro.props;
+
+const socialLinks = [
+  {
+    name: "Instagram",
+    url: "https://www.instagram.com/codewithbotina/",
+    icon: Instagram,
+  },
+  {
+    name: "Facebook",
+    url: "https://www.facebook.com/codewithbotina",
+    icon: Facebook,
+  },
+  {
+    name: "LinkedIn",
+    url: "https://www.linkedin.com/in/codewithbotinaoficial",
+    icon: Linkedin,
+  },
+  {
+    name: "YouTube",
+    url: "https://www.youtube.com/@CodeWithBotina",
+    icon: Youtube,
+  },
+  {
+    name: "GitHub",
+    url: "https://github.com/CodeWithBotinaOficial",
+    icon: Github,
+  },
+  {
+    name: "Portfolio",
+    url: "https://portfolio.codewithbotina.com/",
+    icon: Globe,
+  },
+];
+---
+
+<div class={className}>
+  {socialLinks.map((link) => (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`Follow on ${link.name}`}
+      class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-primary)] transition-colors duration-200"
+    >
+      <link.icon size={iconSize} />
+    </a>
+  ))}
+</div>
