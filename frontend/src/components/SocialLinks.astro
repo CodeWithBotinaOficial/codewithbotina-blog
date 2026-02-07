@@ -9,41 +9,17 @@ interface Props {
 const { className = "flex gap-4", iconSize = 24 } = Astro.props;
 
 const socialLinks = [
-  {
-    name: "Instagram",
-    url: "https://www.instagram.com/codewithbotina/",
-    icon: Instagram,
-  },
-  {
-    name: "Facebook",
-    url: "https://www.facebook.com/codewithbotina",
-    icon: Facebook,
-  },
-  {
-    name: "LinkedIn",
-    url: "https://www.linkedin.com/in/codewithbotinaoficial",
-    icon: Linkedin,
-  },
-  {
-    name: "YouTube",
-    url: "https://www.youtube.com/@CodeWithBotina",
-    icon: Youtube,
-  },
-  {
-    name: "GitHub",
-    url: "https://github.com/CodeWithBotinaOficial",
-    icon: Github,
-  },
-  {
-    name: "Portfolio",
-    url: "https://portfolio.codewithbotina.com/",
-    icon: Globe,
-  },
+  { name: "Instagram", url: import.meta.env.PUBLIC_INSTAGRAM_URL, icon: Instagram },
+  { name: "Facebook", url: import.meta.env.PUBLIC_FACEBOOK_URL, icon: Facebook },
+  { name: "LinkedIn", url: import.meta.env.PUBLIC_LINKEDIN_URL, icon: Linkedin },
+  { name: "YouTube", url: import.meta.env.PUBLIC_YOUTUBE_URL, icon: Youtube },
+  { name: "GitHub", url: import.meta.env.PUBLIC_GITHUB_URL, icon: Github },
+  { name: "Portfolio", url: import.meta.env.PUBLIC_PORTFOLIO_URL, icon: Globe },
 ];
 ---
 
 <div class={className}>
-  {socialLinks.map((link) => (
+  {socialLinks.filter(link => link.url).map((link) => (
     <a
       href={link.url}
       target="_blank"
