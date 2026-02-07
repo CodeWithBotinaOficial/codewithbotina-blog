@@ -103,7 +103,7 @@ const readTime = calculateReadTime(currentPost.body);
           url: url
         });
       } catch (err) {
-        console.log('Error sharing:', err);
+        // User cancelled share, no need to log
       }
     } else {
       // Fallback to clipboard copy

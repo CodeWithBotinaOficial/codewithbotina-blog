@@ -26,11 +26,14 @@ export function handleContactForm(form: HTMLFormElement, apiUrl: string) {
     loadingIcon?.classList.remove('hidden');
     sendIcon?.classList.add('hidden');
 
-    const formData = new FormData(form);
+    const nameInput = form.querySelector('[name="name"]') as HTMLInputElement;
+    const emailInput = form.querySelector('[name="email"]') as HTMLInputElement;
+    const messageTextarea = form.querySelector('[name="message"]') as HTMLTextAreaElement;
+
     const data = {
-      nombre: formData.get('name'),
-      correo: formData.get('email'),
-      mensaje: formData.get('message')
+      nombre: nameInput.value,
+      correo: emailInput.value,
+      mensaje: messageTextarea.value
     };
 
     try {

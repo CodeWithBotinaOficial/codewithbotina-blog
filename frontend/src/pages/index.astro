@@ -10,10 +10,6 @@ const { data: posts, error } = await supabase
   .select('id, titulo, slug, body, imagen_url, fecha')
   .order('fecha', { ascending: false });
 
-if (error) {
-  console.error('Error fetching posts:', error);
-}
-
 const allPosts = (posts || []) as Post[];
 ---
 
@@ -37,25 +33,33 @@ const allPosts = (posts || []) as Post[];
   <!-- Posts Grid -->
   <section class="py-16">
     <div class="container-responsive">
-      <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {allPosts.map((post) => (
-          <div class="post-card-wrapper" data-title={post.titulo} data-excerpt={post.body}>
-            <PostCard post={post} />
+      {error && (
+        <div class="text-center py-20">
+          <p class="text-xl text-[var(--color-error)]">Error fetching posts. Please try again later.</p>
+        </div>
+      )}
+      {!error && (
+        <>
+          <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {allPosts.map((post) => (
+              <div class="post-card-wrapper" data-title={post.titulo} data-excerpt={post.body}>
+                <PostCard post={post} />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <!-- No Results State -->
-      <div id="no-results" class="hidden text-center py-20">
-        <p class="text-xl text-[var(--color-text-secondary)]">No articles found matching your search.</p>
-        <button
-          id="reset-search"
-          class="mt-4 text-[var(--color-accent-primary)] hover:underline"
-          onclick="document.getElementById('clear-search').click()"
-        >
-          Clear search filters
-        </button>
-      </div>
+          <div id="no-results" class="hidden text-center py-20">
+            <p class="text-xl text-[var(--color-text-secondary)]">No articles found matching your search.</p>
+            <button
+              id="reset-search"
+              class="mt-4 text-[var(--color-accent-primary)] hover:underline"
+              onclick="document.getElementById('clear-search').click()"
+            >
+              Clear search filters
+            </button>
+          </div>
+        </>
+      )}
     </div>
   </section>
 </BaseLayout>

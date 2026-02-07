@@ -60,32 +60,11 @@ blog.codewithbotina.com
 frontend/
 ├── src/
 │   ├── components/       # Reusable Astro components
-│   │   ├── BaseLayout.astro
-│   │   ├── Header.astro
-│   │   ├── Footer.astro
-│   │   ├── PostCard.astro
-│   │   ├── SearchBar.astro
-│   │   ├── ContactForm.astro
-│   │   ├── SEO.astro
-│   │   └── SocialLinks.astro
 │   ├── pages/           # Route pages
-│   │   ├── index.astro
-│   │   ├── posts/[slug].astro
-│   │   ├── contact.astro
-│   │   ├── about.astro
-│   │   ├── 404.astro
-│   │   └── rss.xml.ts
 │   ├── lib/             # Utilities and configurations
-│   │   ├── supabase.ts
-│   │   └── utils.ts
 │   ├── styles/          # Global CSS
-│   │   └── global.css
 │   └── types/           # TypeScript definitions
-│       └── post.ts
 ├── public/              # Static assets
-│   ├── favicon.ico
-│   ├── avatar.webp
-│   └── robots.txt
 ├── tests/               # Test suite
 └── astro.config.mjs
 ```
@@ -96,7 +75,7 @@ frontend/
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+ installed
+- [Node.js](https://nodejs.org/) 22+ installed
 - Supabase account with project created
 - Code editor (VS Code recommended)
 
@@ -147,20 +126,16 @@ npm run test:ui
 npm run test:coverage
 ```
 
-### Test Coverage
-
-Current coverage: XX% (target: 80%+)
-
 ---
 
 ## 🚢 Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions for Cloudflare Pages (2026).
 
 **Quick Deploy:**
 1. Push to GitHub
 2. Connect repository to Cloudflare Pages
-3. Configure environment variables
+3. Configure environment variables in the Cloudflare dashboard
 4. Deploy automatically on every push to main
 
 **Live Site:** [blog.codewithbotina.com](https://blog.codewithbotina.com)
@@ -169,7 +144,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
 
 ## 🔐 Environment Variables
 
-See `.env.example` for complete list.
+See `.env.example` for a complete list and descriptions.
 
 **Required for Production:**
 - `PUBLIC_SUPABASE_URL`
@@ -193,7 +168,6 @@ See `.env.example` for complete list.
 This is a personal project, but feedback is welcome!
 
 - Email: support@codewithbotina.com
-- GitHub Issues: [link]
 
 ---
 

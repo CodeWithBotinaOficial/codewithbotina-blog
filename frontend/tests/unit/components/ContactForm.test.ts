@@ -8,18 +8,22 @@ describe('handleContactForm', () => {
       <form id="contact-form">
         <input name="name" value="Test" />
         <input name="email" value="test@example.com" />
-        <textarea name="message">Test message</textarea>
+        <textarea id="message" name="message">Test message</textarea>
         <button id="submit-btn"></button>
         <div id="form-status" class="hidden">
           <p class="status-message"></p>
         </div>
+        <span id="char-count">0</span>
+        <div class="loading-icon"></div>
+        <div class="send-icon"></div>
+        <div class="success-icon"></div>
+        <div class="error-icon"></div>
       </form>
     `);
     
     global.document = dom.window.document;
     const form = document.getElementById('contact-form') as HTMLFormElement;
     
-    // Mock fetch
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
@@ -27,24 +31,11 @@ describe('handleContactForm', () => {
       })
     ) as any;
 
-    // Mock FormData to avoid happy-dom issues
-    global.FormData = class {
-      constructor(form: HTMLFormElement) {
-        this.form = form;
-      }
-      get(name: string) {
-        const input = this.form.querySelector(`[name="${name}"]`) as HTMLInputElement;
-        return input ? input.value : null;
-      }
-    } as any;
-
     handleContactForm(form, 'https://api.example.com');
     
-    // Manually trigger submit
     const submitEvent = new dom.window.Event('submit', { bubbles: true });
-    await form.dispatchEvent(submitEvent);
+    form.dispatchEvent(submitEvent);
 
-    // Use a small timeout to allow async operations in the handler to complete
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(fetch).toHaveBeenCalledWith('https://api.example.com/api/contact', expect.any(Object));
