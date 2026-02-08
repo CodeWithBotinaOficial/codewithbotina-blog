@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../components/BaseLayout.astro';
-import SocialLinks from '../components/SocialLinks.astro';
 import { ArrowRight } from 'lucide-astro';
 ---
 
@@ -57,18 +56,15 @@ import { ArrowRight } from 'lucide-astro';
       <div class="bg-[var(--color-bg-subtle)] rounded-2xl p-8 md:p-12 text-center">
         <h2 class="text-3xl font-bold mb-6">Let's Connect!</h2>
         <p class="text-[var(--color-text-secondary)] mb-8 max-w-xl mx-auto">
-          I'm always open to discussing new projects, ideas, or just chatting about tech. 
-          Find me on social media or check out my portfolio.
+          Interested in working together or have questions? You can find me on social media or reach out via the contact form.
         </p>
         
-        <SocialLinks className="flex justify-center gap-6 mb-10 flex-wrap" iconSize={32} />
-
         <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <a href="https://portfolio.codewithbotina.com" target="_blank" class="btn-primary flex items-center justify-center gap-2">
-            View Portfolio <ArrowRight size={20} />
+          <a href="/contact" class="btn-primary flex items-center justify-center gap-2">
+            Get in Touch <ArrowRight size={20} />
           </a>
-          <a href="https://github.com/CodeWithBotinaOficial" target="_blank" class="px-6 py-3 rounded-lg border border-[var(--color-border)] bg-white hover:bg-gray-50 font-semibold transition-colors flex items-center justify-center gap-2">
-            GitHub Projects <ArrowRight size={20} />
+          <a href="https://portfolio.codewithbotina.com" target="_blank" class="px-6 py-3 rounded-lg border border-[var(--color-border)] bg-white hover:bg-gray-50 font-semibold transition-colors flex items-center justify-center gap-2">
+            View Portfolio <ArrowRight size={20} />
           </a>
         </div>
       </div>

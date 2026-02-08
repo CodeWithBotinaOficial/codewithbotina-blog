@@ -2,18 +2,20 @@
 import { Search, X } from 'lucide-astro';
 ---
 
-<div class="relative w-full max-w-xl mx-auto mb-12">
+<div class="relative w-full max-w-xl mx-auto mb-12 z-50 isolate">
   <div class="relative">
-    <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]" size={20} />
+    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] pointer-events-none z-20">
+      <Search size={20} />
+    </div>
     <input
       type="text"
       id="search-input"
       placeholder="Search articles..."
-      class="w-full pl-12 pr-12 py-4 rounded-full border border-[var(--color-border)] bg-white shadow-sm focus:ring-2 focus:ring-[var(--color-accent-primary)] focus:border-transparent outline-none transition-all"
+      class="w-full pl-12 pr-12 py-4 rounded-full border border-[var(--color-border)] bg-white shadow-sm focus:ring-2 focus:ring-[var(--color-accent-primary)] focus:border-transparent outline-none transition-all relative z-10"
     />
     <button
       id="clear-search"
-      class="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hidden"
+      class="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hidden z-20 cursor-pointer"
       aria-label="Clear search"
     >
       <X size={20} />
