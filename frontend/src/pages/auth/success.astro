@@ -1,0 +1,28 @@
+---
+import BaseLayout from "../../components/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Signed In"
+  description="Authentication successful. Finalizing your session."
+>
+  <section class="container-responsive py-16">
+    <h1>Sign-in successful</h1>
+    <p>We are finalizing your session. You will be redirected shortly.</p>
+  </section>
+
+  <script>
+    import { supabase } from "../../lib/supabase";
+    import { useAuth } from "../../hooks/useAuth";
+
+    const { refresh } = useAuth();
+
+    const finalize = async () => {
+      await supabase.auth.getSession();
+      await refresh();
+      window.location.assign("/");
+    };
+
+    finalize();
+  </script>
+</BaseLayout>

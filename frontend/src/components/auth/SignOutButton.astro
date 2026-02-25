@@ -1,0 +1,19 @@
+---
+---
+
+<button class="btn-auth" type="button" data-auth="signout">
+  Sign out
+</button>
+
+<script>
+  import { useAuth } from "../../hooks/useAuth";
+
+  const { signOut } = useAuth();
+  const button = document.querySelector('[data-auth="signout"]');
+
+  if (button) {
+    button.addEventListener("click", () => {
+      signOut();
+    });
+  }
+</script>
