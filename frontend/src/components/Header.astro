@@ -1,5 +1,6 @@
 ---
 import { Menu, X, Search } from 'lucide-astro';
+import HeaderAuth from './auth/HeaderAuth.astro';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -9,7 +10,7 @@ const navLinks = [
 ---
 
 <header class="sticky top-0 z-50 w-full bg-[var(--color-bg-base)]/90 backdrop-blur-md border-b border-[var(--color-border)]">
-  <div class="container-responsive h-16 flex items-center justify-between">
+    <div class="container-responsive h-16 flex items-center justify-between gap-6">
     <a href="/" class="text-xl font-bold text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors">
       CodeWithBotina
     </a>
@@ -25,6 +26,10 @@ const navLinks = [
         </a>
       ))}
     </nav>
+
+    <div class="hidden md:flex items-center gap-4">
+      <HeaderAuth />
+    </div>
 
     <!-- Mobile Menu Button -->
     <button
@@ -48,6 +53,9 @@ const navLinks = [
           {link.name}
         </a>
       ))}
+      <div class="pt-2 border-t border-[var(--color-border)]">
+        <HeaderAuth />
+      </div>
     </nav>
   </div>
 </header>

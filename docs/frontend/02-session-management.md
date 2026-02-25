@@ -34,6 +34,3 @@ Use session to conditionally render:
 - Invalid token: Redirect to sign-in
 - Session expired: Auto-refresh or prompt re-login
 
----
-
-**Next:** [03-protected-routes.md](./03-protected-routes.md)

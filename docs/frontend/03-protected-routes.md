@@ -40,6 +40,11 @@ In components:
 {% endif %}
 ```
 
----
+## Layout Usage
 
-**Next:** [04-testing.md](./04-testing.md)
+You can also use the global header session to toggle UI in layouts:
+
+```astro
+<HeaderAuth />
+```
+

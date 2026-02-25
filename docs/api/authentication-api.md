@@ -10,9 +10,12 @@ Base URL: `https://api.codewithbotina.com`
 
 **Description:** Redirects user to Google OAuth consent screen.
 
+**Query Parameters:**
+- `next` (optional): URL to redirect to after authentication
+
 **Request:**
 ```bash
-curl https://api.codewithbotina.com/api/auth/google
+curl "https://api.codewithbotina.com/api/auth/google?next=https%3A%2F%2Fblog.codewithbotina.com%2Fposts%2Fmy-post"
 ```
 
 **Response:** HTTP 302 Redirect to Google OAuth

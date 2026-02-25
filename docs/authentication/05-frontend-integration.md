@@ -54,6 +54,22 @@ PUBLIC_GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
 2. **Callback Handling:** Handle redirect from backend to `/auth/success`
 3. **Session Check:** On page load, check for active session
 
+## Preserving Original Page with ?next
+
+When starting login from any page/post, append the current URL:
+
+```
+/api/auth/google?next=https%3A%2F%2Fblog.codewithbotina.com%2Fposts%2Fmy-post
+```
+
+Backend should pass `next` through callback, and frontend should redirect after success.
+
+## Global Header Authentication UI
+
+Add global auth controls in the header:
+- Logged out: “Sign in with Google”
+- Logged in: avatar + name + sign out
+
 ## Verification
 
 1. Click "Sign in with Google" → Redirect to Google

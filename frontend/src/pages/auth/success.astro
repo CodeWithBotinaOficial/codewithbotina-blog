@@ -16,10 +16,16 @@ import BaseLayout from "../../components/BaseLayout.astro";
     import { useAuth } from "../../hooks/useAuth";
 
     const { refresh } = useAuth();
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next");
 
     const finalize = async () => {
       await supabase.auth.getSession();
       await refresh();
+      if (next && next.startsWith("https://blog.codewithbotina.com/")) {
+        window.location.assign(next);
+        return;
+      }
       window.location.assign("/");
     };
 

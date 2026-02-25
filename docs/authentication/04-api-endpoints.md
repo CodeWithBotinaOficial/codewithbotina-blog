@@ -6,7 +6,7 @@ Reference list of authentication endpoints used by the frontend. For full reques
 
 ## Endpoints
 
-1. `GET /api/auth/google` - Initiate Google OAuth sign-in (redirect).
+1. `GET /api/auth/google` - Initiate Google OAuth sign-in (redirect). Supports `?next=...`.
 2. `GET /api/auth/callback` - Handle OAuth callback and create session.
 3. `GET /api/auth/me` - Return the current authenticated user profile.
 4. `POST /api/auth/signout` - Sign out and clear session cookies.

@@ -19,7 +19,7 @@ export function useAuth() {
     });
 
     await supabase.auth.signOut();
-    window.location.assign("/");
+    window.location.assign(window.location.href || "/");
   };
 
   const refresh = async () => {

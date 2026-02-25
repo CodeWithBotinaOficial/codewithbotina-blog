@@ -16,12 +16,24 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ||
   "placeholder-anon-key";
 
+function isValidNext(next: string, frontendUrl: string): boolean {
+  if (!next) return false;
+  try {
+    const nextUrl = new URL(next);
+    const frontend = new URL(frontendUrl);
+    return nextUrl.origin === frontend.origin;
+  } catch (_error) {
+    return false;
+  }
+}
+
 export const handler: Handlers = {
   async GET(req) {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
+    const next = url.searchParams.get("next") ?? "";
 
     if (!code) {
       const response = errorResponse("Missing authorization code", 400);
@@ -58,9 +70,12 @@ export const handler: Handlers = {
         "https://blog.codewithbotina.com";
       const callbackPath = Deno.env.get("FRONTEND_AUTH_CALLBACK") ||
         "/auth/success";
-      const redirectUrl = new URL(callbackPath, frontendUrl).toString();
+      const redirectUrl = new URL(callbackPath, frontendUrl);
+      if (isValidNext(next, frontendUrl)) {
+        redirectUrl.searchParams.set("next", next);
+      }
 
-      headers.set("Location", redirectUrl);
+      headers.set("Location", redirectUrl.toString());
       return new Response(null, {
         status: 302,
         headers,

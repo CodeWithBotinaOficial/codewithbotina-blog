@@ -1,0 +1,14 @@
+---
+const { avatarUrl, name, isAdmin } = Astro.props;
+---
+
+<div class="auth-avatar" title={name || "User"}>
+  <img
+    src={avatarUrl || "/avatar-placeholder.png"}
+    alt={name || "User"}
+    width="48"
+    height="48"
+    class="avatar-img"
+  />
+  {isAdmin && <span class="admin-dot" title="Admin">A</span>}
+</div>

@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 describe('SignInButton', () => {
-  it('renders link to backend Google auth endpoint', async () => {
+  it('references backend Google auth endpoint', async () => {
     const filePath = resolve(
       dirname(fileURLToPath(import.meta.url)),
       '../../../src/components/auth/SignInButton.astro',

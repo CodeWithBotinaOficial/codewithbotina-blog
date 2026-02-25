@@ -1,9 +1,20 @@
 ---
 const apiUrl = import.meta.env.PUBLIC_API_URL || "https://api.codewithbotina.com";
-const redirectUrl = `${apiUrl}/api/auth/google`;
 const label = "Sign in with Google";
 ---
 
-<a href={redirectUrl} class="btn-auth">
+<button class="btn-auth" type="button" data-auth="signin">
   {label}
-</a>
+</button>
+
+<script>
+  const apiUrl = "" + (import.meta.env.PUBLIC_API_URL || "https://api.codewithbotina.com");
+  const button = document.querySelector('[data-auth="signin"]');
+
+  if (button) {
+    button.addEventListener("click", () => {
+      const next = encodeURIComponent(window.location.href);
+      window.location.assign(`${apiUrl}/api/auth/google?next=${next}`);
+    });
+  }
+</script>

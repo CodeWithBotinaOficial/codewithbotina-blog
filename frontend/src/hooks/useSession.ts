@@ -18,6 +18,8 @@ export interface AuthUser {
 export function useSession() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const isAuthenticated = Boolean(user);
+  const isAdmin = Boolean(user?.is_admin);
 
   useEffect(() => {
     let active = true;
@@ -100,5 +102,5 @@ export function useSession() {
     };
   }, []);
 
-  return { user, loading };
+  return { user, loading, isAuthenticated, isAdmin };
 }

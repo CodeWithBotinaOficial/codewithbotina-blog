@@ -81,6 +81,26 @@
     @apply inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--color-accent-light)] text-[var(--color-accent-primary)];
   }
 
+  .auth-controls {
+    @apply flex items-center gap-3;
+  }
+
+  .auth-name {
+    @apply text-sm font-semibold text-[var(--color-text-primary)];
+  }
+
+  .auth-avatar {
+    @apply relative flex items-center;
+  }
+
+  .auth-avatar .avatar-img {
+    @apply w-12 h-12 rounded-full border border-[var(--color-border)] object-cover;
+  }
+
+  .auth-avatar .admin-dot {
+    @apply absolute -bottom-1 -right-1 text-[10px] font-bold bg-[var(--color-accent-primary)] text-white rounded-full w-5 h-5 flex items-center justify-center;
+  }
+
   .input-field {
     @apply w-full px-4 py-3 rounded-lg border border-[var(--color-border)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] focus:border-transparent transition-shadow duration-200;
   }

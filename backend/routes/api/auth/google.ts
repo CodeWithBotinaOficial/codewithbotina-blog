@@ -44,6 +44,17 @@ function getClientIp(ctx: { remoteAddr: Deno.Addr }): string {
   return "unknown";
 }
 
+function isValidNext(next: string, frontendUrl: string): boolean {
+  if (!next) return false;
+  try {
+    const nextUrl = new URL(next);
+    const frontend = new URL(frontendUrl);
+    return nextUrl.origin === frontend.origin;
+  } catch (_error) {
+    return false;
+  }
+}
+
 export const handler: Handlers = {
   OPTIONS(req) {
     const origin = req.headers.get("Origin");
@@ -65,7 +76,15 @@ export const handler: Handlers = {
       return response;
     }
 
-    const redirectTo = new URL("/api/auth/callback", req.url).toString();
+    const url = new URL(req.url);
+    const next = url.searchParams.get("next") ?? "";
+    const frontendUrl = Deno.env.get("FRONTEND_URL") ||
+      "https://blog.codewithbotina.com";
+    const redirectUrl = new URL("/api/auth/callback", req.url);
+    if (isValidNext(next, frontendUrl)) {
+      redirectUrl.searchParams.set("next", next);
+    }
+    const redirectTo = redirectUrl.toString();
 
     try {
       let codeVerifier: string | null = null;
