@@ -4,6 +4,11 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $api_auth_callback from "./routes/api/auth/callback.ts";
+import * as $api_auth_google from "./routes/api/auth/google.ts";
+import * as $api_auth_me from "./routes/api/auth/me.ts";
+import * as $api_auth_refresh from "./routes/api/auth/refresh.ts";
+import * as $api_auth_signout from "./routes/api/auth/signout.ts";
 import * as $api_contact from "./routes/api/contact.ts";
 import * as $api_health from "./routes/api/health.ts";
 import * as $index from "./routes/index.tsx";
@@ -15,6 +20,11 @@ const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/api/auth/callback.ts": $api_auth_callback,
+    "./routes/api/auth/google.ts": $api_auth_google,
+    "./routes/api/auth/me.ts": $api_auth_me,
+    "./routes/api/auth/refresh.ts": $api_auth_refresh,
+    "./routes/api/auth/signout.ts": $api_auth_signout,
     "./routes/api/contact.ts": $api_contact,
     "./routes/api/health.ts": $api_health,
     "./routes/index.tsx": $index,

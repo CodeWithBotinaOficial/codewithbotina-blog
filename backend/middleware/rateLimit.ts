@@ -5,10 +5,13 @@ interface RateLimitRecord {
 
 const RATE_LIMIT = 5; // Max requests per window
 const WINDOW_MS = 60 * 1000; // 1 minute window
+const AUTH_RATE_LIMIT = 6; // Max auth attempts per window
+const AUTH_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
 
 // In-memory store (Note: In a distributed edge environment like Deno Deploy,
 // this is local to the isolate. For strict global rate limiting, use Redis/KV)
 const ipRequests = new Map<string, RateLimitRecord>();
+const authIpRequests = new Map<string, RateLimitRecord>();
 
 /**
  * Checks if the given IP address has exceeded the rate limit.
@@ -16,24 +19,33 @@ const ipRequests = new Map<string, RateLimitRecord>();
  * @returns true if rate limited, false otherwise
  */
 export function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const record = ipRequests.get(ip);
+  return isRateLimitedWithStore(ip, RATE_LIMIT, WINDOW_MS, ipRequests);
+}
 
-  // Clean up old entries periodically or lazily?
-  // Lazy cleanup on access is simpler.
+export function isAuthRateLimited(ip: string): boolean {
+  return isRateLimitedWithStore(ip, AUTH_RATE_LIMIT, AUTH_WINDOW_MS, authIpRequests);
+}
+
+function isRateLimitedWithStore(
+  ip: string,
+  limit: number,
+  windowMs: number,
+  store: Map<string, RateLimitRecord>,
+): boolean {
+  const now = Date.now();
+  const record = store.get(ip);
 
   if (!record) {
-    ipRequests.set(ip, { count: 1, startTime: now });
+    store.set(ip, { count: 1, startTime: now });
     return false;
   }
 
-  if (now - record.startTime > WINDOW_MS) {
-    // Window expired, reset
-    ipRequests.set(ip, { count: 1, startTime: now });
+  if (now - record.startTime > windowMs) {
+    store.set(ip, { count: 1, startTime: now });
     return false;
   }
 
-  if (record.count >= RATE_LIMIT) {
+  if (record.count >= limit) {
     return true;
   }
 

@@ -49,6 +49,8 @@ export default function ApiDocumentation() {
           <section id="endpoints">
             <h2>📡 Endpoints</h2>
 
+            <section id="contact-api">
+              <h2>Contact API</h2>
             <div class="endpoint-block mb-8">
               <h3>
                 <span class="endpoint-badge badge-post">POST</span>
@@ -94,6 +96,154 @@ export default function ApiDocumentation() {
 
               <TryItOut />
             </div>
+            </section>
+
+            <section id="auth-api">
+              <h2>Authentication API</h2>
+
+              <div class="card mb-6">
+                <h4>Authentication Flow (Text Diagram)</h4>
+                <pre><code>{`Client → GET /api/auth/google
+        ↘ Redirect to Google OAuth
+Google → GET /api/auth/callback?code=...
+Backend → Exchange code for session + set cookies
+Backend → Redirect to https://blog.codewithbotina.com/auth/success`}</code></pre>
+              </div>
+
+              <div class="endpoint-block mb-8">
+                <h3>
+                  <span class="endpoint-badge badge-get">GET</span>
+                  /api/auth/google
+                </h3>
+                <p>Initiates the Google OAuth flow and redirects the user.</p>
+
+                <div class="card">
+                  <h4>Request Headers</h4>
+                  <ul>
+                    <li>
+                      <code>Origin: https://blog.codewithbotina.com</code>{" "}
+                      (CORS enforced)
+                    </li>
+                  </ul>
+
+                  <h4>Response</h4>
+                  <p>HTTP 302 Redirect to Google OAuth consent screen.</p>
+                </div>
+              </div>
+
+              <div class="endpoint-block mb-8">
+                <h3>
+                  <span class="endpoint-badge badge-get">GET</span>
+                  /api/auth/callback
+                </h3>
+                <p>
+                  OAuth callback handler. Exchanges the authorization code for
+                  session tokens, sets secure cookies, and redirects to the
+                  frontend.
+                </p>
+
+                <div class="card">
+                  <h4>Request</h4>
+                  <pre><code>{`GET /api/auth/callback?code=AUTH_CODE`}</code></pre>
+
+                  <h4>Response</h4>
+                  <p>HTTP 302 Redirect to <code>https://blog.codewithbotina.com/auth/success</code></p>
+                </div>
+              </div>
+
+              <div class="endpoint-block mb-8">
+                <h3>
+                  <span class="endpoint-badge badge-get">GET</span>
+                  /api/auth/me
+                </h3>
+                <p>Returns the current authenticated user profile.</p>
+
+                <div class="card">
+                  <h4>Request Headers</h4>
+                  <ul>
+                    <li>
+                      <code>Authorization: Bearer {"{access_token}"}</code>{" "}
+                      (required)
+                    </li>
+                  </ul>
+
+                  <h4>Success Response (200 OK)</h4>
+                  <pre><code>{`{
+  "success": true,
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "diego@example.com",
+    "full_name": "Diego Alejandro Botina",
+    "avatar_url": "https://lh3.googleusercontent.com/...",
+    "google_id": "1234567890",
+    "created_at": "2026-02-01T10:00:00Z",
+    "last_login": "2026-02-07T15:30:00Z",
+    "is_admin": false
+  }
+}`}</code></pre>
+
+                  <h4>Error Response (401 Unauthorized)</h4>
+                  <pre><code>{`{
+  "success": false,
+  "error": "Unauthorized"
+}`}</code></pre>
+                </div>
+              </div>
+
+              <div class="endpoint-block mb-8">
+                <h3>
+                  <span class="endpoint-badge badge-post">POST</span>
+                  /api/auth/signout
+                </h3>
+                <p>Invalidates the session and clears auth cookies.</p>
+
+                <div class="card">
+                  <h4>Request Headers</h4>
+                  <ul>
+                    <li>
+                      <code>Authorization: Bearer {"{access_token}"}</code>{" "}
+                      (required)
+                    </li>
+                  </ul>
+
+                  <h4>Success Response (200 OK)</h4>
+                  <pre><code>{`{
+  "success": true,
+  "message": "Signed out successfully"
+}`}</code></pre>
+                </div>
+              </div>
+
+              <div class="endpoint-block mb-8">
+                <h3>
+                  <span class="endpoint-badge badge-post">POST</span>
+                  /api/auth/refresh
+                </h3>
+                <p>Refreshes an access token using a refresh token.</p>
+
+                <div class="card">
+                  <h4>Request Headers</h4>
+                  <ul>
+                    <li>
+                      <code>Content-Type: application/json</code>
+                    </li>
+                  </ul>
+
+                  <h4>Request Body</h4>
+                  <pre><code>{`{
+  "refresh_token": "v1.MR..."
+}`}</code></pre>
+
+                  <h4>Success Response (200 OK)</h4>
+                  <pre><code>{`{
+  "success": true,
+  "access_token": "eyJhbG...",
+  "refresh_token": "v1.MR...",
+  "expires_in": 3600
+}`}</code></pre>
+                </div>
+              </div>
+            </section>
           </section>
 
           <section id="errors">
