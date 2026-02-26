@@ -1,5 +1,4 @@
 import { Handlers } from "$fresh/server.ts";
-import { createClient } from "@supabase/supabase-js";
 import { getCookies } from "$std/http/cookie.ts";
 import { AuthService } from "../../../services/auth.service.ts";
 import { corsHeaders } from "../../../middleware/cors.ts";
@@ -11,11 +10,6 @@ import {
 import { AppError } from "../../../utils/errors.ts";
 import { errorResponse } from "../../../utils/responses.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
-  "https://placeholder.supabase.co";
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ||
-  "placeholder-anon-key";
 
 function isValidNext(next: string, frontendUrl: string): boolean {
   if (!next) return false;
@@ -54,23 +48,22 @@ export const handler: Handlers = {
         });
         return response;
       }
-      const storage = {
-        getItem: (key: string) =>
-          key.endsWith("-code-verifier") ? codeVerifier : null,
-        setItem: (_key: string, _value: string) => {},
-        removeItem: (_key: string) => {},
-      };
-      const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          flowType: "pkce",
-          storage,
-        },
-      });
-      const authService = new AuthService(client);
 
-      const { session } = await authService.exchangeCodeForSession(code);
+      console.log("OAuth callback:", {
+        hasCode: Boolean(code),
+        hasPkce: Boolean(codeVerifier),
+        origin,
+        next,
+      });
+      const authService = new AuthService();
+      const { session } = await authService.exchangeCodeForSessionWithVerifier(
+        code,
+        codeVerifier,
+      );
+      console.log("OAuth session created:", {
+        userId: session.user?.id,
+        expiresIn: session.expires_in,
+      });
       setAuthCookies(headers, req, session);
       clearPkceCookie(headers, req);
 

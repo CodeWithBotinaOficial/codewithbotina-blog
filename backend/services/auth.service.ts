@@ -9,6 +9,14 @@ interface ExchangeResult {
   userId: string;
 }
 
+interface PkceTokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type: string;
+  user: { id: string };
+}
+
 export class AuthService {
   private authClient: SupabaseClient;
   private repository: AuthRepository;
@@ -69,7 +77,10 @@ export class AuthService {
 
     if (error || !data.session) {
       console.error("OAuth exchange error:", error);
-      throw new AppError("Failed to exchange code for session", 401);
+      const message = error?.message
+        ? `Failed to exchange code for session: ${error.message}`
+        : "Failed to exchange code for session";
+      throw new AppError(message, 401);
     }
 
     const userId = data.session.user?.id || data.user?.id;
@@ -88,6 +99,51 @@ export class AuthService {
         token_type: data.session.token_type,
       },
       userId,
+    };
+  }
+
+  async exchangeCodeForSessionWithVerifier(
+    code: string,
+    codeVerifier: string,
+  ): Promise<ExchangeResult> {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ||
+      "https://placeholder.supabase.co";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+
+    const response = await fetch(
+      `${supabaseUrl}/auth/v1/token?grant_type=pkce`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          auth_code: code,
+          code_verifier: codeVerifier,
+        }),
+      },
+    );
+
+    const data = await response.json() as PkceTokenResponse & { error?: string };
+
+    if (!response.ok || !data?.access_token || !data?.user?.id) {
+      const message = data?.error
+        ? `Failed to exchange code for session: ${data.error}`
+        : "Failed to exchange code for session";
+      throw new AppError(message, 401);
+    }
+
+    await this.repository.updateLastLogin(data.user.id);
+
+    return {
+      session: {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_in: data.expires_in,
+        token_type: data.token_type,
+      },
+      userId: data.user.id,
     };
   }
 
