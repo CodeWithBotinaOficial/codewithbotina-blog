@@ -124,3 +124,40 @@ https://accounts.google.com/o/oauth2/v2/auth?
   prompt=select_account
   &client_id=...
 ```
+
+---
+
+## Local Development Setup
+
+To test OAuth locally, add these URLs to your Google Cloud Console:
+
+**Authorized JavaScript origins:**
+- `http://localhost:4321` (Astro frontend)
+- `http://localhost:8000` (Deno backend)
+
+**Authorized redirect URIs:**
+- `http://localhost:54321/auth/v1/callback` (local Supabase)
+
+**Local Supabase Setup:**
+
+1. Install Supabase CLI:
+```bash
+npm install -g supabase
+```
+
+2. Start local Supabase:
+```bash
+cd backend
+supabase start
+```
+
+3. Copy local credentials to `.env`:
+```bash
+# Output will show:
+API URL: http://localhost:54321
+anon key: eyJhbG...
+service_role key: eyJhbG...
+```
+
+4. Update `backend/.env` with local credentials
+5. Update `frontend/.env` with local API URL

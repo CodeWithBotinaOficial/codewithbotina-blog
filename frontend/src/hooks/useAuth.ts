@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase";
+import { getApiUrl } from "../lib/env";
 
-const API_URL = import.meta.env.PUBLIC_API_URL ||
-  "https://api.codewithbotina.com";
+const API_URL = getApiUrl();
 
 export function useAuth() {
   const signIn = () => {

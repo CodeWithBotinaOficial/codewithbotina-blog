@@ -1,5 +1,6 @@
-export const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ||
-  "https://blog.codewithbotina.com";
+import { getEnvironmentConfig } from "../lib/env.ts";
+
+export const ALLOWED_ORIGIN = getEnvironmentConfig().allowedOrigin;
 
 export function corsHeaders(origin: string | null): Headers {
   const headers = new Headers();

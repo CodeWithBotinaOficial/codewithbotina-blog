@@ -16,7 +16,8 @@ import BaseLayout from "../../components/BaseLayout.astro";
 
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next");
-    const apiUrl = "" + (import.meta.env.PUBLIC_API_URL || "https://api.codewithbotina.com");
+    import { getApiUrl } from "../../lib/env";
+    const apiUrl = getApiUrl();
 
     const finalize = async () => {
       const res = await fetch(`${apiUrl}/api/auth/refresh`, {

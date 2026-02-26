@@ -10,6 +10,7 @@ import {
 } from "../../../utils/auth.cookies.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { errorResponse } from "../../../utils/responses.ts";
+import { getEnvironmentConfig } from "../../../lib/env.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
@@ -73,8 +74,7 @@ export const handler: Handlers = {
       setAuthCookies(headers, req, session);
       clearPkceCookie(headers, req);
 
-      const frontendUrl = Deno.env.get("FRONTEND_URL") ||
-        "https://blog.codewithbotina.com";
+      const { frontendUrl } = getEnvironmentConfig();
       const callbackPath = Deno.env.get("FRONTEND_AUTH_CALLBACK") ||
         "/auth/success";
       const redirectUrl = new URL(callbackPath, frontendUrl);

@@ -6,6 +6,7 @@ import { isAuthRateLimited } from "../../../middleware/rateLimit.ts";
 import { errorResponse } from "../../../utils/responses.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { setPkceCookie } from "../../../utils/auth.cookies.ts";
+import { getEnvironmentConfig } from "../../../lib/env.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
@@ -78,8 +79,7 @@ export const handler: Handlers = {
 
     const url = new URL(req.url);
     const next = url.searchParams.get("next") ?? "";
-    const frontendUrl = Deno.env.get("FRONTEND_URL") ||
-      "https://blog.codewithbotina.com";
+    const { frontendUrl } = getEnvironmentConfig();
     const redirectUrl = new URL("/api/auth/callback", req.url);
     if (isValidNext(next, frontendUrl)) {
       redirectUrl.searchParams.set("next", next);

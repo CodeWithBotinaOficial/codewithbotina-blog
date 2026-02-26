@@ -2,6 +2,7 @@ import { useEffect } from "preact/hooks";
 import { useAuth } from "../../hooks/useAuth";
 import { useSession } from "../../hooks/useSession";
 import { initAuthListener } from "../../lib/auth";
+import { getApiUrl } from "../../lib/env";
 
 export default function HeaderAuthControls() {
   initAuthListener();
@@ -13,8 +14,7 @@ export default function HeaderAuthControls() {
     const code = params.get("code");
     if (!code) return;
 
-    const apiUrl = "" +
-      (import.meta.env.PUBLIC_API_URL || "https://api.codewithbotina.com");
+    const apiUrl = getApiUrl();
     const next = window.location.origin + window.location.pathname;
     const redirect = `${apiUrl}/api/auth/callback?code=${encodeURIComponent(code)}&next=${encodeURIComponent(next)}`;
     window.location.replace(redirect);

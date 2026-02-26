@@ -72,6 +72,17 @@ Common issues and fixes for Google OAuth + Supabase Auth.
 
 ---
 
+## Local development redirects go to production
+
+**Problem:** `localhost:4321` redirects to `https://api.codewithbotina.com`.
+
+**Fix:**
+- Set `PUBLIC_API_URL=http://localhost:8000` in `frontend/.env`.
+- Ensure your build uses `.env` (not `.env.production`).
+- Use `getApiUrl()` helper in all auth-related code.
+
+---
+
 ## PKCE / Cookie Issues
 
 **Problem:** OAuth fails or session is not created.

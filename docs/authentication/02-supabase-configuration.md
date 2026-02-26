@@ -95,6 +95,8 @@ PUBLIC_API_URL=https://api.codewithbotina.com
   - `http://localhost:4321/auth/callback` (development)
   - `https://blog.codewithbotina.com/**` (wildcard for all routes)
   - `https://api.codewithbotina.com/**` (backend OAuth callback)
+  - `http://localhost:4321/**` (local frontend)
+  - `http://localhost:8000/**` (local backend callback)
 
 **IMPORTANT:** If `redirectTo` points to the backend callback, the backend domain must be listed here. Otherwise Supabase will ignore `redirectTo` and use the Site URL instead.
 

@@ -1,5 +1,4 @@
 ---
-const apiUrl = import.meta.env.PUBLIC_API_URL || "https://api.codewithbotina.com";
 const label = "Sign in with Google";
 ---
 
@@ -8,7 +7,8 @@ const label = "Sign in with Google";
 </button>
 
 <script>
-  const apiUrl = "" + (import.meta.env.PUBLIC_API_URL || "https://api.codewithbotina.com");
+  import { getApiUrl } from "../../lib/env";
+  const apiUrl = getApiUrl();
   const button = document.querySelector('[data-auth="signin"]');
 
   if (button) {

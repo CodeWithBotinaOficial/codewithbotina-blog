@@ -5,6 +5,9 @@
 .env.development
 *.env
 
+# Allow committed production example for frontend
+!frontend/.env.production
+
 # Dependencies
 node_modules/
 npm-debug.log*
