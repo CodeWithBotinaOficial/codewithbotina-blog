@@ -1,7 +1,9 @@
 import { useAuth } from "../../hooks/useAuth";
 import { useSession } from "../../hooks/useSession";
+import { initAuthListener } from "../../lib/auth";
 
 export default function HeaderAuthControls() {
+  initAuthListener();
   const { user, loading } = useSession();
   const { signIn, signOut } = useAuth();
 
