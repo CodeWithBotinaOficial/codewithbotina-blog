@@ -46,6 +46,13 @@ export const handler: Handlers = {
     try {
       const cookies = getCookies(req.headers);
       const codeVerifier = cookies[PKCE_COOKIE_NAME] ?? null;
+      if (!codeVerifier) {
+        const response = errorResponse("Missing PKCE code verifier", 400);
+        headers.forEach((value, key) => {
+          response.headers.set(key, value);
+        });
+        return response;
+      }
       const storage = {
         getItem: (key: string) =>
           key.endsWith("-code-verifier") ? codeVerifier : null,

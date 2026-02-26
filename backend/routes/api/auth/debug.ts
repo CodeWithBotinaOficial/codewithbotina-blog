@@ -22,6 +22,7 @@ export const handler: Handlers = {
     const authHeader = req.headers.get("Authorization");
     const cookies = getCookies(req.headers);
     const accessToken = cookies["cwb_access"] ?? null;
+    const pkceToken = cookies["cwb_pkce"] ?? null;
 
     let user = null;
     let error = null;
@@ -41,6 +42,7 @@ export const handler: Handlers = {
       hasAuthHeader: Boolean(authHeader),
       hasCookies: Object.keys(cookies).length > 0,
       hasAccessCookie: Boolean(accessToken),
+      hasPkceCookie: Boolean(pkceToken),
       user,
       error,
     };

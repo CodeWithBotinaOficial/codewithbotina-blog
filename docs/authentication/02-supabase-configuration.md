@@ -94,8 +94,11 @@ PUBLIC_API_URL=https://api.codewithbotina.com
 - Redirect URLs:
   - `http://localhost:4321/auth/callback` (development)
   - `https://blog.codewithbotina.com/**` (wildcard for all routes)
+  - `https://api.codewithbotina.com/**` (backend OAuth callback)
 
-**IMPORTANT:** After Google OAuth callback, Supabase will redirect to the frontend Site URL. The frontend must retrieve the session with `supabase.auth.getSession()` after redirect.
+**IMPORTANT:** If `redirectTo` points to the backend callback, the backend domain must be listed here. Otherwise Supabase will ignore `redirectTo` and use the Site URL instead.
+
+After Google OAuth callback, Supabase redirects to the allowed URL. The frontend must retrieve the session with `supabase.auth.getSession()` after redirect.
 
 **Redirect URI Note:** Google OAuth redirect URIs must point to Supabase (`/auth/v1/callback`). Supabase then redirects to the Site URL (`blog.codewithbotina.com`) based on the configured redirect URLs.
 
