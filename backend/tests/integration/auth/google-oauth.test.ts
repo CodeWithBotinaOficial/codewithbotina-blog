@@ -10,12 +10,6 @@ const mockContext = (hostname: string) =>
   }) as FreshContext;
 
 Deno.test("Integration: GET /api/auth/google redirects to Google OAuth", async () => {
-  const _stub = stub(
-    AuthService.prototype,
-    "getGoogleAuthUrl",
-    () => Promise.resolve("https://accounts.google.com/o/oauth2/v2/auth"),
-  );
-
   const req = new Request("https://api.codewithbotina.com/api/auth/google", {
     method: "GET",
     headers: { Origin: "https://blog.codewithbotina.com" },
@@ -24,10 +18,8 @@ Deno.test("Integration: GET /api/auth/google redirects to Google OAuth", async (
   const res = await handler.GET!(req, mockContext("127.0.0.2"));
 
   assertEquals(res.status, 302);
-  assertEquals(
-    res.headers.get("Location"),
-    "https://accounts.google.com/o/oauth2/v2/auth",
-  );
+  const location = res.headers.get("Location") || "";
+  assertEquals(location.startsWith("https://placeholder.supabase.co/auth/v1/authorize"), true);
 
   restore();
 });

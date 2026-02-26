@@ -1,6 +1,5 @@
 import { Handlers } from "$fresh/server.ts";
-import { createClient } from "@supabase/supabase-js";
-import { AuthService } from "../../../services/auth.service.ts";
+import { encodeBase64Url } from "$std/encoding/base64url.ts";
 import { corsHeaders } from "../../../middleware/cors.ts";
 import { isAuthRateLimited } from "../../../middleware/rateLimit.ts";
 import { errorResponse } from "../../../utils/responses.ts";
@@ -10,32 +9,16 @@ import { getEnvironmentConfig } from "../../../lib/env.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ||
-  "placeholder-anon-key";
 
-function createPkceAuthService(
-  onVerifier: (value: string) => void,
-): AuthService {
-  const storage = {
-    getItem: (_key: string) => null,
-    setItem: (key: string, value: string) => {
-      if (key.endsWith("-code-verifier")) {
-        onVerifier(value);
-      }
-    },
-    removeItem: (_key: string) => {},
-  };
-
-  const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      flowType: "pkce",
-      storage,
-    },
-  });
-
-  return new AuthService(client);
+async function generatePkcePair() {
+  const verifierBytes = crypto.getRandomValues(new Uint8Array(32));
+  const verifier = encodeBase64Url(verifierBytes);
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(verifier),
+  );
+  const challenge = encodeBase64Url(new Uint8Array(digest));
+  return { verifier, challenge };
 }
 
 function getClientIp(ctx: { remoteAddr: Deno.Addr }): string {
@@ -87,15 +70,19 @@ export const handler: Handlers = {
     const redirectTo = redirectUrl.toString();
 
     try {
-      let codeVerifier: string | null = null;
-      const authService = createPkceAuthService((value) => {
-        codeVerifier = value;
-      });
-      const url = await authService.getGoogleAuthUrl(redirectTo);
-      if (codeVerifier) {
-        setPkceCookie(headers, req, codeVerifier);
-      }
-      headers.set("Location", url);
+      const { verifier, challenge } = await generatePkcePair();
+      setPkceCookie(headers, req, verifier);
+
+      const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
+      authUrl.searchParams.set("provider", "google");
+      authUrl.searchParams.set("redirect_to", redirectTo);
+      authUrl.searchParams.set("code_challenge", challenge);
+      authUrl.searchParams.set("code_challenge_method", "S256");
+      authUrl.searchParams.set("scopes", "openid email profile");
+      authUrl.searchParams.set("prompt", "select_account");
+      authUrl.searchParams.set("access_type", "offline");
+
+      headers.set("Location", authUrl.toString());
       return new Response(null, {
         status: 302,
         headers,
