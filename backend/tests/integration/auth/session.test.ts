@@ -22,7 +22,7 @@ Deno.test("Integration: GET /api/auth/callback sets cookies and redirects", asyn
 
   const req = new Request(
     "https://api.codewithbotina.com/api/auth/callback?code=abc",
-    { method: "GET" },
+    { method: "GET", headers: { Cookie: "cwb_pkce=verifier" } },
   );
 
   const res = await handler.GET!(req, {} as never);
