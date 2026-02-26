@@ -57,6 +57,21 @@ Common issues and fixes for Google OAuth + Supabase Auth.
 
 ---
 
+## Session not persisting after login
+
+**Symptoms:**
+- User sees `?code=...` on `blog.codewithbotina.com`
+- Header still shows "Sign in"
+
+**Fix:**
+1. Detect `code` in the frontend URL and immediately send it to `/api/auth/callback`.
+2. Backend exchanges code and sets cookies.
+3. Frontend calls `/api/auth/refresh` to set client session.
+
+**Why:** Supabase redirects to the Site URL with `code` unless the backend callback is used. The frontend must forward that code to the backend callback so cookies get set.
+
+---
+
 ## PKCE / Cookie Issues
 
 **Problem:** OAuth fails or session is not created.

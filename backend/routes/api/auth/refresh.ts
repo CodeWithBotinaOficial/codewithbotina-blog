@@ -31,7 +31,7 @@ export const handler: Handlers = {
     const refreshToken = body?.refresh_token || getRefreshToken(req);
 
     if (!refreshToken) {
-      const response = errorResponse("Missing refresh token", 400);
+      const response = errorResponse("Missing refresh token", 401);
       headers.forEach((value, key) => {
         response.headers.set(key, value);
       });

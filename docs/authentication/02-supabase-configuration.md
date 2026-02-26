@@ -97,6 +97,8 @@ PUBLIC_API_URL=https://api.codewithbotina.com
 
 **IMPORTANT:** After Google OAuth callback, Supabase will redirect to the frontend Site URL. The frontend must retrieve the session with `supabase.auth.getSession()` after redirect.
 
+**Redirect URI Note:** Google OAuth redirect URIs must point to Supabase (`/auth/v1/callback`). Supabase then redirects to the Site URL (`blog.codewithbotina.com`) based on the configured redirect URLs.
+
 ### OAuth Flow:
 1. User clicks "Sign in with Google" → Redirects to Google
 2. User selects account → Google redirects to Supabase callback
