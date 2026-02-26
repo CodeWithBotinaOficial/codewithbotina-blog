@@ -9,12 +9,21 @@ function isSecureRequest(req: Request): boolean {
   return new URL(req.url).protocol === "https:";
 }
 
+function getCookieDomain(req: Request): string | undefined {
+  const hostname = new URL(req.url).hostname;
+  if (hostname.endsWith("codewithbotina.com")) {
+    return ".codewithbotina.com";
+  }
+  return undefined;
+}
+
 export function setAuthCookies(
   headers: Headers,
   req: Request,
   session: AuthSession,
 ): void {
   const secure = isSecureRequest(req);
+  const domain = getCookieDomain(req);
   const maxAge = Math.max(session.expires_in ?? SEVEN_DAYS_SECONDS, 60);
 
   setCookie(headers, {
@@ -23,6 +32,7 @@ export function setAuthCookies(
     httpOnly: true,
     sameSite: "Lax",
     secure,
+    domain,
     path: "/",
     maxAge,
   });
@@ -33,17 +43,21 @@ export function setAuthCookies(
     httpOnly: true,
     sameSite: "Lax",
     secure,
+    domain,
     path: "/",
     maxAge: SEVEN_DAYS_SECONDS,
   });
 }
 
 export function clearAuthCookies(headers: Headers, req: Request): void {
+  const domain = getCookieDomain(req);
   deleteCookie(headers, ACCESS_COOKIE_NAME, {
+    domain,
     path: "/",
   });
 
   deleteCookie(headers, REFRESH_COOKIE_NAME, {
+    domain,
     path: "/",
   });
 }
@@ -54,6 +68,7 @@ export function setPkceCookie(
   codeVerifier: string,
 ): void {
   const secure = isSecureRequest(req);
+  const domain = getCookieDomain(req);
 
   setCookie(headers, {
     name: PKCE_COOKIE_NAME,
@@ -61,13 +76,16 @@ export function setPkceCookie(
     httpOnly: true,
     sameSite: "Lax",
     secure,
+    domain,
     path: "/",
     maxAge: 10 * 60,
   });
 }
 
 export function clearPkceCookie(headers: Headers, req: Request): void {
+  const domain = getCookieDomain(req);
   deleteCookie(headers, PKCE_COOKIE_NAME, {
+    domain,
     path: "/",
   });
 }

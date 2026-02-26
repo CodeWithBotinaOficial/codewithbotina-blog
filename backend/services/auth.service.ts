@@ -47,6 +47,10 @@ export class AuthService {
       options: {
         redirectTo,
         scopes: "openid email profile",
+        queryParams: {
+          prompt: "select_account",
+          access_type: "offline",
+        },
       },
     });
 

@@ -13,15 +13,27 @@ import BaseLayout from "../../components/BaseLayout.astro";
 
   <script>
     import { supabase } from "../../lib/supabase";
-    import { useAuth } from "../../hooks/useAuth";
 
-    const { refresh } = useAuth();
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next");
+    const apiUrl = "" + (import.meta.env.PUBLIC_API_URL || "https://api.codewithbotina.com");
 
     const finalize = async () => {
-      await supabase.auth.getSession();
-      await refresh();
+      const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const body = await res.json();
+        if (body?.access_token && body?.refresh_token) {
+          await supabase.auth.setSession({
+            access_token: body.access_token,
+            refresh_token: body.refresh_token,
+          });
+        }
+      }
+
       if (next && next.startsWith("https://blog.codewithbotina.com/")) {
         window.location.assign(next);
         return;

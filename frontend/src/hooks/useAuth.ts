@@ -24,13 +24,15 @@ export function useAuth() {
 
   const refresh = async () => {
     const { data } = await supabase.auth.getSession();
-    if (!data.session?.refresh_token) return null;
+    const payload = data.session?.refresh_token
+      ? JSON.stringify({ refresh_token: data.session.refresh_token })
+      : undefined;
 
     const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: payload ? { "Content-Type": "application/json" } : undefined,
       credentials: "include",
-      body: JSON.stringify({ refresh_token: data.session.refresh_token }),
+      body: payload,
     });
 
     if (!res.ok) return null;

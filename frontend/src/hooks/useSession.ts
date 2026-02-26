@@ -30,6 +30,22 @@ export function useSession() {
         if (!active) return;
 
         if (!data.session) {
+          const res = await fetch(`${API_URL}/api/auth/refresh`, {
+            method: "POST",
+            credentials: "include",
+          });
+
+          if (res.ok) {
+            const body = await res.json();
+            if (body?.access_token && body?.refresh_token) {
+              await supabase.auth.setSession({
+                access_token: body.access_token,
+                refresh_token: body.refresh_token,
+              });
+              return fetchUser();
+            }
+          }
+
           setUser(null);
           setLoading(false);
           return;
