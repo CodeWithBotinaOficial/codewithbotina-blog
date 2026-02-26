@@ -74,4 +74,34 @@ PUBLIC_API_URL=https://api.codewithbotina.com
 
 ---
 
+## Production Configuration (CodeWithBotina)
+
+**Current Setup (verified 2026-02-25):**
+
+### Google Cloud Console:
+- Project: CodeWithBotina Blog - Production
+- Client ID: `106801449223-uuc67njk3hqdpa87d0vncft6438dg3lm.apps.googleusercontent.com`
+- Authorized JavaScript origins:
+  - `https://blog.codewithbotina.com`
+  - `http://localhost:4321` (development)
+- Authorized redirect URIs:
+  - `https://fnxnsgtdbswvuqeuvgio.supabase.co/auth/v1/callback`
+  - `http://localhost:54321/auth/v1/callback` (local Supabase)
+
+### Supabase Dashboard:
+- Project URL: `https://fnxnsgtdbswvuqeuvgio.supabase.co`
+- Site URL: `https://blog.codewithbotina.com`
+- Redirect URLs:
+  - `http://localhost:4321/auth/callback` (development)
+  - `https://blog.codewithbotina.com/**` (wildcard for all routes)
+
+**IMPORTANT:** After Google OAuth callback, Supabase will redirect to the frontend Site URL. The frontend must retrieve the session with `supabase.auth.getSession()` after redirect.
+
+### OAuth Flow:
+1. User clicks "Sign in with Google" → Redirects to Google
+2. User selects account → Google redirects to Supabase callback
+3. Supabase exchanges code for tokens → Creates session
+4. Supabase redirects to frontend Site URL (blog.codewithbotina.com)
+5. Frontend must retrieve session from Supabase client
+
 **Next:** [03-database-schema.md](./03-database-schema.md)

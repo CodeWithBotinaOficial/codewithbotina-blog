@@ -84,3 +84,43 @@ Test the OAuth flow:
 ---
 
 **Next:** [02-supabase-configuration.md](./02-supabase-configuration.md)
+
+---
+
+## Troubleshooting
+
+### Issue: "Something went wrong" error from Google
+
+**Possible causes:**
+- OAuth client is in "Testing" mode (limited to 100 users)
+- User email is not in test users list
+- Redirect URI mismatch
+
+**Solution:**
+1. Go to Google Cloud Console → OAuth consent screen
+2. Add user email to "Test users" list
+3. Or publish app to production (requires verification)
+
+### Issue: Session not persisting after login
+
+**Debug steps:**
+1. Check browser DevTools → Application → Cookies
+   - Should see `cwb_access` cookie for `.codewithbotina.com`
+2. Check browser DevTools → Console for errors
+3. Test debug endpoint: `curl https://api.codewithbotina.com/api/auth/debug`
+4. Verify Supabase redirect URLs match Google OAuth config
+
+**Common causes:**
+- Cookie not being set by backend (check `Set-Cookie` header)
+- Cookie domain mismatch (must be `.codewithbotina.com`)
+- SameSite set incorrectly (use `Lax`)
+- Frontend not checking session on page load
+
+### Issue: Google doesn't show account picker
+
+**Solution:** Add `prompt=select_account` to OAuth URL:
+```
+https://accounts.google.com/o/oauth2/v2/auth?
+  prompt=select_account
+  &client_id=...
+```
