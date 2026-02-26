@@ -108,7 +108,8 @@ export class AuthService {
   ): Promise<ExchangeResult> {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ||
       "https://placeholder.supabase.co";
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ||
+      "placeholder-anon-key";
 
     const response = await fetch(
       `${supabaseUrl}/auth/v1/token?grant_type=pkce`,

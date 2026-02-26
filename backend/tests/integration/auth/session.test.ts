@@ -7,7 +7,7 @@ import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
 Deno.test("Integration: GET /api/auth/callback sets cookies and redirects", async () => {
   const _stub = stub(
     AuthService.prototype,
-    "exchangeCodeForSession",
+    "exchangeCodeForSessionWithVerifier",
     () =>
       Promise.resolve({
         session: {

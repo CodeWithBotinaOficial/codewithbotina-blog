@@ -56,12 +56,12 @@ export const handler: Handlers = {
         next,
       });
       const authService = new AuthService();
-      const { session } = await authService.exchangeCodeForSessionWithVerifier(
+      const { session, userId } = await authService.exchangeCodeForSessionWithVerifier(
         code,
         codeVerifier,
       );
       console.log("OAuth session created:", {
-        userId: session.user?.id,
+        userId,
         expiresIn: session.expires_in,
       });
       setAuthCookies(headers, req, session);
