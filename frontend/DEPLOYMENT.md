@@ -70,7 +70,7 @@ Ensure all tests pass with adequate coverage before deploying.
 - **Build command:** `npm run build`
 - **Build output directory:** `/dist`
 - **Root directory:** `/frontend`
- - **Output mode:** `hybrid` (set in `astro.config.mjs` for on-demand rendering)
+ - **Output mode:** `static` (Astro default) with `prerender = false` on dynamic pages
 
 **Advanced Settings:**
 - **Node.js version:** `22.x` (or latest compatible)
@@ -175,7 +175,7 @@ If a deployment fails, go to the **Deployments** tab, find the last successful b
 
 - **Build Fails:** Check Node.js version compatibility in Cloudflare settings. Ensure `package-lock.json` is up-to-date.
 - **Environment Variables Not Loading:** Ensure variables are not set to "Secret" in the Cloudflare UI. Redeploy after adding variables.
-- **404 Errors on Refresh:** Verify `output: 'hybrid'` and `@astrojs/cloudflare` adapter are configured in `astro.config.mjs`.
+- **404 Errors on Refresh:** Verify `output: 'static'`, `@astrojs/cloudflare` adapter, and `prerender = false` on dynamic pages.
 - **Stale Content:** Reduce cache TTLs in `frontend/public/_headers` if updates take too long to appear.
 
 ---

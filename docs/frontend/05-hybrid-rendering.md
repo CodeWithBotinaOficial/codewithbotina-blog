@@ -1,6 +1,6 @@
 # Hybrid Rendering Strategy
 
-This project uses Astro hybrid rendering to keep static pages fast while allowing request-time data for dynamic content.
+This project uses Astro static output with request-time rendering on specific pages (`prerender = false`) to keep static pages fast while allowing dynamic content.
 
 ## What Is Dynamic
 
@@ -13,7 +13,7 @@ These pages set:
 export const prerender = false;
 ```
 
-## Why Hybrid
+## Why This Approach
 
 - New posts appear without rebuilds
 - Reactions and comments stay fresh

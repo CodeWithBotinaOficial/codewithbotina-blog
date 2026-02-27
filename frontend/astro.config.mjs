@@ -10,7 +10,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  output: 'hybrid',
+  output: 'static',
   build: {
     inlineStylesheets: 'auto',
     assets: '_astro',
