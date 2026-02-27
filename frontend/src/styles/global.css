@@ -277,4 +277,36 @@
   .comment-loading {
     @apply text-[var(--color-text-tertiary)] mb-4;
   }
+
+  .reaction-section {
+    @apply mt-10 mb-8 bg-white border border-[var(--color-border)] rounded-xl p-4;
+  }
+
+  .reaction-counts {
+    @apply flex flex-wrap gap-4 text-sm text-[var(--color-text-tertiary)] mb-3;
+  }
+
+  .reaction-buttons {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .reaction-button {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] text-sm font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-accent-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .reaction-button.active {
+    @apply bg-[var(--color-accent-light)] border-[var(--color-accent-primary)] text-[var(--color-accent-primary)];
+  }
+
+  .reaction-signin {
+    @apply text-sm text-[var(--color-text-secondary)];
+  }
+
+  .reaction-message {
+    @apply text-sm text-[var(--color-error)];
+  }
+
+  .reaction-loading {
+    @apply text-sm text-[var(--color-text-tertiary)];
+  }
 }

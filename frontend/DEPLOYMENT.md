@@ -70,6 +70,7 @@ Ensure all tests pass with adequate coverage before deploying.
 - **Build command:** `npm run build`
 - **Build output directory:** `/dist`
 - **Root directory:** `/frontend`
+ - **Output mode:** `hybrid` (set in `astro.config.mjs` for on-demand rendering)
 
 **Advanced Settings:**
 - **Node.js version:** `22.x` (or latest compatible)
@@ -125,11 +126,31 @@ Go to your Cloudflare DNS settings. A `CNAME` record for `blog` pointing to your
 - **Test All Pages:** Navigate through the live site to ensure all pages work.
 - **Test Search:** Use the search bar to filter posts.
 - **Test Contact Form:** Submit a test message and verify you receive the email and the data is in Supabase.
+- **Test Reactions:** Like and dislike buttons should update counts immediately.
 - **Run Lighthouse Audit:** Check Performance, Accessibility, Best Practices, and SEO scores.
 
 ---
 
-## Step 5: Continuous Deployment
+## Step 5: Caching Strategy
+
+Add `frontend/public/_headers` with cache rules for dynamic pages and assets:
+
+```
+/posts/*
+  Cache-Control: public, s-maxage=300, stale-while-revalidate=600
+
+/
+  Cache-Control: public, s-maxage=60, stale-while-revalidate=300
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+```
+
+This keeps posts fresh within minutes while preserving performance.
+
+---
+
+## Step 6: Continuous Deployment
 
 Every push to the `main` branch will automatically trigger a new deployment. Monitor status in the Cloudflare Pages dashboard.
 
@@ -138,7 +159,7 @@ If a deployment fails, go to the **Deployments** tab, find the last successful b
 
 ---
 
-## Step 6: Performance & SEO
+## Step 7: Performance & SEO
 
 ### Cloudflare Settings
 - **Speed → Optimization:** Enable Auto Minify (HTML, CSS, JS) and Brotli.
@@ -154,7 +175,8 @@ If a deployment fails, go to the **Deployments** tab, find the last successful b
 
 - **Build Fails:** Check Node.js version compatibility in Cloudflare settings. Ensure `package-lock.json` is up-to-date.
 - **Environment Variables Not Loading:** Ensure variables are not set to "Secret" in the Cloudflare UI. Redeploy after adding variables.
-- **404 Errors on Refresh:** Verify `output: 'static'` is set in `astro.config.mjs`.
+- **404 Errors on Refresh:** Verify `output: 'hybrid'` and `@astrojs/cloudflare` adapter are configured in `astro.config.mjs`.
+- **Stale Content:** Reduce cache TTLs in `frontend/public/_headers` if updates take too long to appear.
 
 ---
 

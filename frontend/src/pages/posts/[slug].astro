@@ -1,20 +1,20 @@
 ---
+export const prerender = false;
+
 import BaseLayout from '../../components/BaseLayout.astro';
 import CommentSection from '../../components/comments/CommentSection.astro';
+import ReactionButtons from '../../components/reactions/ReactionButtons';
+import ReactionCounts from '../../components/reactions/ReactionCounts.astro';
 import { supabase } from '../../lib/supabase';
+import { getApiUrl } from '../../lib/env';
 import { formatDate, calculateReadTime } from '../../lib/utils';
 import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-astro';
 import { marked } from 'marked';
 import type { Post } from '../../types/post';
 
-export async function getStaticPaths() {
-  const { data: posts } = await supabase.from('posts').select('slug');
-  return (posts || []).map((post) => ({
-    params: { slug: post.slug },
-  }));
-}
-
 const { slug } = Astro.params;
+const apiUrl = getApiUrl();
+
 const { data: post, error } = await supabase
   .from('posts')
   .select('*')
@@ -23,6 +23,17 @@ const { data: post, error } = await supabase
 
 if (error || !post) {
   return Astro.redirect('/404');
+}
+
+let reactions = { likes: 0, dislikes: 0, total: 0 };
+try {
+  const reactionResponse = await fetch(`${apiUrl}/api/reactions/${post.id}`);
+  if (reactionResponse.ok) {
+    const body = await reactionResponse.json();
+    reactions = body?.data ?? reactions;
+  }
+} catch (_error) {
+  reactions = { likes: 0, dislikes: 0, total: 0 };
 }
 
 const currentPost = post as Post;
@@ -69,6 +80,23 @@ const readTime = calculateReadTime(currentPost.body);
     <div class="prose prose-lg max-w-none prose-headings:text-[var(--color-text-primary)] prose-a:text-[var(--color-accent-primary)] prose-img:rounded-xl">
       <Fragment set:html={content} />
     </div>
+
+    <!-- Reactions -->
+    <section class="reaction-section">
+      <ReactionCounts
+        likes={reactions.likes}
+        dislikes={reactions.dislikes}
+        total={reactions.total}
+      />
+      <ReactionButtons
+        postId={currentPost.id}
+        initialLikes={reactions.likes}
+        initialDislikes={reactions.dislikes}
+        userReaction={null}
+        isAuthenticated={false}
+        client:load
+      />
+    </section>
 
     <!-- Comments -->
     <CommentSection postId={currentPost.id} />

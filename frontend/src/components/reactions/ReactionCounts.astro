@@ -1,0 +1,9 @@
+---
+const { likes = 0, dislikes = 0, total = 0 } = Astro.props;
+---
+
+<div class="reaction-counts">
+  <span><strong>{likes}</strong> likes</span>
+  <span><strong>{dislikes}</strong> dislikes</span>
+  <span><strong>{total}</strong> total</span>
+</div>
