@@ -49,25 +49,52 @@ CREATE POLICY "Users can delete own reactions"
 
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 
--- Anyone can read comments
+-- Drop existing policies to recreate with pinning support
+DROP POLICY IF EXISTS "Anyone can read comments" ON comments;
+DROP POLICY IF EXISTS "Authenticated users can create comments" ON comments;
+DROP POLICY IF EXISTS "Users can update own comments" ON comments;
+DROP POLICY IF EXISTS "Users can delete own comments" ON comments;
+
+-- Anyone can read comments (public visibility)
 CREATE POLICY "Anyone can read comments"
   ON comments FOR SELECT
   USING (true);
 
--- Authenticated users can create comments
+-- Only authenticated users can create comments
 CREATE POLICY "Authenticated users can create comments"
   ON comments FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (
+    auth.uid() = user_id
+    AND is_pinned = FALSE
+  );
 
--- Users can update their own comments
-CREATE POLICY "Users can update own comments"
+-- Only comment author can update their own comment content
+CREATE POLICY "Users can update own comment content"
   ON comments FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (
+    auth.uid() = user_id
+    AND is_pinned = (SELECT is_pinned FROM comments WHERE id = comments.id)
+  );
 
--- Users can delete their own comments
+-- Only comment author can delete their own comments
 CREATE POLICY "Users can delete own comments"
   ON comments FOR DELETE
   USING (auth.uid() = user_id);
+
+-- ADMIN-ONLY: Admins can pin/unpin any comment
+CREATE POLICY "Admins can pin comments"
+  ON comments FOR UPDATE
+  USING (
+    auth.uid() IN (SELECT user_id FROM admin_users)
+  );
+
+-- ADMIN-ONLY: Admins can delete any comment (moderation)
+CREATE POLICY "Admins can delete any comment"
+  ON comments FOR DELETE
+  USING (
+    auth.uid() IN (SELECT user_id FROM admin_users)
+  );
 
 -- ============================================
 -- ADMIN_USERS TABLE POLICIES

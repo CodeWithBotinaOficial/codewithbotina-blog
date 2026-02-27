@@ -30,3 +30,13 @@ export const invalidContactData = {
     mensaje: "This is a valid test message.",
   } as ContactFormData,
 };
+
+export const validCommentData = {
+  postId: "post-123",
+  userId: "user-123",
+  content: "This is a valid comment content.",
+};
+
+export const invalidCommentData = {
+  shortContent: "Too short",
+};

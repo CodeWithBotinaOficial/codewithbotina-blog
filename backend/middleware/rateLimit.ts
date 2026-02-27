@@ -7,11 +7,14 @@ const RATE_LIMIT = 5; // Max requests per window
 const WINDOW_MS = 60 * 1000; // 1 minute window
 const AUTH_RATE_LIMIT = 6; // Max auth attempts per window
 const AUTH_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+const COMMENT_RATE_LIMIT = 10; // Max comments per user per window
+const COMMENT_WINDOW_MS = 60 * 60 * 1000; // 1 hour window
 
 // In-memory store (Note: In a distributed edge environment like Deno Deploy,
 // this is local to the isolate. For strict global rate limiting, use Redis/KV)
 const ipRequests = new Map<string, RateLimitRecord>();
 const authIpRequests = new Map<string, RateLimitRecord>();
+const userCommentRequests = new Map<string, RateLimitRecord>();
 
 /**
  * Checks if the given IP address has exceeded the rate limit.
@@ -24,6 +27,15 @@ export function isRateLimited(ip: string): boolean {
 
 export function isAuthRateLimited(ip: string): boolean {
   return isRateLimitedWithStore(ip, AUTH_RATE_LIMIT, AUTH_WINDOW_MS, authIpRequests);
+}
+
+export function isUserCommentRateLimited(userId: string): boolean {
+  return isRateLimitedWithStore(
+    userId,
+    COMMENT_RATE_LIMIT,
+    COMMENT_WINDOW_MS,
+    userCommentRequests,
+  );
 }
 
 function isRateLimitedWithStore(

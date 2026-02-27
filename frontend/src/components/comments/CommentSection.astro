@@ -1,0 +1,29 @@
+---
+import CommentList from "./CommentList";
+import CommentForm from "./CommentForm";
+import { getApiUrl } from "../../lib/env";
+
+const { postId } = Astro.props;
+const apiUrl = getApiUrl();
+
+let initialComments = [];
+try {
+  const response = await fetch(`${apiUrl}/api/comments/${postId}`);
+  if (response.ok) {
+    const body = await response.json();
+    initialComments = body?.data || [];
+  }
+} catch (_error) {
+  initialComments = [];
+}
+---
+
+<section class="comment-section">
+  <h3 class="comment-title">
+    Comments <span class="comment-count">({initialComments.length})</span>
+  </h3>
+
+  <CommentForm postId={postId} client:load />
+
+  <CommentList postId={postId} initialComments={initialComments} client:load />
+</section>

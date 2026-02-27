@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../components/BaseLayout.astro';
-import SignInButton from '../../components/auth/SignInButton.astro';
+import CommentSection from '../../components/comments/CommentSection.astro';
 import { supabase } from '../../lib/supabase';
 import { formatDate, calculateReadTime } from '../../lib/utils';
 import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-astro';
@@ -70,29 +70,8 @@ const readTime = calculateReadTime(currentPost.body);
       <Fragment set:html={content} />
     </div>
 
-    <!-- Comments (Protected) -->
-    <section id="comments" class="mt-16 pt-8 border-t border-[var(--color-border)]">
-      <h2 class="text-2xl font-bold mb-4">Comments</h2>
-      <p class="text-[var(--color-text-secondary)] mb-4">
-        Sign in to join the discussion.
-      </p>
-
-      <div data-auth-required>
-        <SignInButton />
-      </div>
-
-      <form data-auth-only class="hidden mt-6">
-        <label class="block mb-2 font-medium">Add a comment</label>
-        <textarea
-          class="input-field"
-          rows={4}
-          placeholder="Write your comment..."
-        ></textarea>
-        <button type="button" class="btn-primary mt-3">
-          Post Comment
-        </button>
-      </form>
-    </section>
+    <!-- Comments -->
+    <CommentSection postId={currentPost.id} />
 
     <!-- Share & Navigation -->
     <div class="mt-16 pt-8 border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-between items-center gap-6">
@@ -143,19 +122,4 @@ const readTime = calculateReadTime(currentPost.body);
     }
   });
 
-  const setAuthVisibility = async () => {
-    const authRequired = document.querySelector('[data-auth-required]');
-    const authOnly = document.querySelector('[data-auth-only]');
-    const { data } = await supabase.auth.getSession();
-
-    if (data.session) {
-      authRequired?.classList.add('hidden');
-      authOnly?.classList.remove('hidden');
-    } else {
-      authRequired?.classList.remove('hidden');
-      authOnly?.classList.add('hidden');
-    }
-  };
-
-  setAuthVisibility();
 </script>

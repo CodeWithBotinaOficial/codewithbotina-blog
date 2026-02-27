@@ -13,7 +13,7 @@ export function corsHeaders(origin: string | null): Headers {
     headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   }
 
-  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   headers.set("Access-Control-Allow-Headers", "Content-Type, Origin, Authorization");
   headers.set("Access-Control-Allow-Credentials", "true");
 

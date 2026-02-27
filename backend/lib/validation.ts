@@ -71,3 +71,21 @@ export function sanitizeContactFormData(
     mensaje: sanitizeInput(data.mensaje),
   };
 }
+
+export function validateCommentContent(content: string): ValidationResult {
+  const errors: Record<string, string> = {};
+  const trimmed = content.trim();
+
+  if (!trimmed) {
+    errors.content = "Comment content is required";
+  } else if (trimmed.length < 10) {
+    errors.content = "Comment must be at least 10 characters";
+  } else if (trimmed.length > 1000) {
+    errors.content = "Comment must be less than 1000 characters";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
