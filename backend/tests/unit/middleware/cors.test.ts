@@ -4,7 +4,10 @@ import { ALLOWED_ORIGIN, corsHeaders } from "../../../middleware/cors.ts";
 Deno.test("corsHeaders allows exact origin match", () => {
   const headers = corsHeaders(ALLOWED_ORIGIN);
   assertEquals(headers.get("Access-Control-Allow-Origin"), ALLOWED_ORIGIN);
-  assertEquals(headers.get("Access-Control-Allow-Methods"), "GET, POST, OPTIONS");
+  assertEquals(
+    headers.get("Access-Control-Allow-Methods"),
+    "GET, POST, PUT, DELETE, OPTIONS",
+  );
   assertEquals(
     headers.get("Access-Control-Allow-Headers"),
     "Content-Type, Origin, Authorization",

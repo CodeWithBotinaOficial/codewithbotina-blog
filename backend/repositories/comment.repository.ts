@@ -10,6 +10,20 @@ export class CommentRepository {
     this.db = dbClient;
   }
 
+  private normalizeComment(row: any): Comment {
+    const user = Array.isArray(row?.user) ? row.user[0] ?? null : row?.user ?? null;
+    return {
+      id: row.id,
+      post_id: row.post_id,
+      user_id: row.user_id,
+      content: row.content,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      is_pinned: row.is_pinned,
+      user,
+    };
+  }
+
   async getCommentsByPost(postId: string): Promise<Comment[]> {
     const { data, error } = await this.db
       .from("comments")
@@ -25,7 +39,7 @@ export class CommentRepository {
       throw new DatabaseError("Failed to fetch comments");
     }
 
-    return (data ?? []) as Comment[];
+    return (data ?? []).map((row) => this.normalizeComment(row));
   }
 
   async getCommentById(commentId: string): Promise<Comment | null> {
@@ -67,7 +81,7 @@ export class CommentRepository {
       throw new DatabaseError("Failed to create comment");
     }
 
-    return inserted as Comment;
+    return this.normalizeComment(inserted);
   }
 
   async updateComment(commentId: string, content: string): Promise<Comment> {
