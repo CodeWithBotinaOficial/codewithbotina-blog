@@ -16,6 +16,105 @@ export const handler: Handlers = {
     });
   },
 
+  async GET(req, ctx) {
+    const origin = req.headers.get("Origin");
+    const headers = corsHeaders(origin);
+    const { commentId: postId } = ctx.params;
+
+    try {
+      const result = await commentService.getPostComments(postId);
+      if (!result.success || !result.data) {
+        const statusCode = result.error instanceof AppError
+          ? result.error.statusCode
+          : 500;
+        const response = errorResponse(
+          result.error?.message || "Internal server error",
+          statusCode,
+        );
+        headers.forEach((value, key) => response.headers.set(key, value));
+        return response;
+      }
+
+      const pinnedCount = result.data.filter((comment) => comment.is_pinned)
+        .length;
+
+      headers.set("Content-Type", "application/json");
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: result.data,
+          meta: {
+            total: result.data.length,
+            pinned_count: pinnedCount,
+          },
+        }),
+        { status: 200, headers },
+      );
+    } catch (error) {
+      const statusCode = error instanceof AppError ? error.statusCode : 500;
+      const response = errorResponse(
+        error instanceof Error ? error.message : "Internal server error",
+        statusCode,
+      );
+      headers.forEach((value, key) => response.headers.set(key, value));
+      return response;
+    }
+  },
+
+  async POST(req, ctx) {
+    const origin = req.headers.get("Origin");
+    const headers = corsHeaders(origin);
+    const { commentId: postId } = ctx.params;
+
+    try {
+      const user = await requireAuth(req);
+      let body;
+      try {
+        body = await req.json();
+      } catch (_error) {
+        const response = errorResponse("Invalid JSON body", 400);
+        headers.forEach((value, key) => response.headers.set(key, value));
+        return response;
+      }
+
+      const content = typeof body?.content === "string" ? body.content : "";
+      const result = await commentService.createComment(
+        postId,
+        user.id,
+        content,
+      );
+
+      if (!result.success || !result.data) {
+        const statusCode = result.error instanceof AppError
+          ? result.error.statusCode
+          : 500;
+        const response = errorResponse(
+          result.error?.message || "Internal server error",
+          statusCode,
+        );
+        headers.forEach((value, key) => response.headers.set(key, value));
+        return response;
+      }
+
+      headers.set("Content-Type", "application/json");
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: result.data,
+        }),
+        { status: 201, headers },
+      );
+    } catch (error) {
+      const statusCode = error instanceof AppError ? error.statusCode : 500;
+      const response = errorResponse(
+        error instanceof Error ? error.message : "Internal server error",
+        statusCode,
+      );
+      headers.forEach((value, key) => response.headers.set(key, value));
+      return response;
+    }
+  },
+
   async PUT(req, ctx) {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
