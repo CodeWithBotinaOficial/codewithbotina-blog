@@ -246,7 +246,7 @@ export class PostService {
   }
 
   sanitizeMarkdown(content: string): string {
-    const html = marked.parse(content);
+    const html = marked.parse(content) as string;
     DOMPurify.sanitize(html, {
       ALLOWED_TAGS: [
         "p",
