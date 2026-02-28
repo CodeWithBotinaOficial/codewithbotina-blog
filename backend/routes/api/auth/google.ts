@@ -68,20 +68,21 @@ export const handler: Handlers = {
     if (isValidNext(next, frontendUrl)) {
       redirectUrl.searchParams.set("next", next);
     }
-    const redirectTo = redirectUrl.toString();
 
     try {
       const { verifier, challenge } = await generatePkcePair();
-      const state = crypto.randomUUID();
-      storePkceSession(state, verifier);
+      const pkceId = crypto.randomUUID();
+      storePkceSession(pkceId, verifier);
       setPkceCookie(headers, req, verifier);
+
+      redirectUrl.searchParams.set("pkce_id", pkceId);
+      const redirectTo = redirectUrl.toString();
 
       const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
       authUrl.searchParams.set("provider", "google");
       authUrl.searchParams.set("redirect_to", redirectTo);
       authUrl.searchParams.set("code_challenge", challenge);
       authUrl.searchParams.set("code_challenge_method", "S256");
-      authUrl.searchParams.set("state", state);
       authUrl.searchParams.set("scopes", "openid email profile");
       authUrl.searchParams.set("prompt", "select_account");
       authUrl.searchParams.set("access_type", "offline");

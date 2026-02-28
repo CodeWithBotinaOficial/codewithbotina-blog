@@ -29,13 +29,13 @@ if (shouldStartCleanup()) {
   startCleanup();
 }
 
-export function storePkceSession(state: string, verifier: string) {
-  pkceStore.set(state, { verifier, createdAt: Date.now() });
+export function storePkceSession(id: string, verifier: string) {
+  pkceStore.set(id, { verifier, createdAt: Date.now() });
 }
 
-export function takePkceSession(state: string): string | null {
-  const session = pkceStore.get(state);
+export function takePkceSession(id: string): string | null {
+  const session = pkceStore.get(id);
   if (!session) return null;
-  pkceStore.delete(state);
+  pkceStore.delete(id);
   return session.verifier;
 }
