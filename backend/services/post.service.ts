@@ -48,7 +48,7 @@ export class PostService {
           imagen_url: sanitized.imagen_url ?? null,
           fecha: new Date().toISOString(),
         }])
-        .select("id, titulo, slug, body, imagen_url, fecha, updated_at")
+        .select("id, titulo, slug, body, imagen_url, fecha")
         .single();
 
       if (error || !created) {
@@ -101,7 +101,7 @@ export class PostService {
           imagen_url: sanitized.imagen_url ?? null,
         })
         .eq("id", existing.id)
-        .select("id, titulo, slug, body, imagen_url, fecha, updated_at")
+        .select("id, titulo, slug, body, imagen_url, fecha")
         .single();
 
       if (error || !updated) {
@@ -336,7 +336,7 @@ export class PostService {
   private async getPostBySlug(slug: string): Promise<PostRecord | null> {
     const { data, error } = await supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, updated_at")
+      .select("id, titulo, slug, body, imagen_url, fecha")
       .eq("slug", slug)
       .maybeSingle();
 
