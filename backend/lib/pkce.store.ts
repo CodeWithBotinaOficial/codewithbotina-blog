@@ -5,6 +5,7 @@ interface PkceSession {
 
 const PKCE_TTL_MS = 10 * 60 * 1000;
 const pkceStore = new Map<string, PkceSession>();
+let cleanupTimer: number | null = null;
 
 function cleanupExpiredSessions() {
   const now = Date.now();
@@ -15,7 +16,18 @@ function cleanupExpiredSessions() {
   }
 }
 
-setInterval(cleanupExpiredSessions, 5 * 60 * 1000);
+function shouldStartCleanup(): boolean {
+  return !Deno.args.includes("build");
+}
+
+function startCleanup() {
+  if (cleanupTimer !== null) return;
+  cleanupTimer = setInterval(cleanupExpiredSessions, 5 * 60 * 1000);
+}
+
+if (shouldStartCleanup()) {
+  startCleanup();
+}
 
 export function storePkceSession(state: string, verifier: string) {
   pkceStore.set(state, { verifier, createdAt: Date.now() });
