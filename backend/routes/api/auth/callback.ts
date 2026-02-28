@@ -10,6 +10,7 @@ import {
 import { AppError } from "../../../utils/errors.ts";
 import { errorResponse } from "../../../utils/responses.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
+import { takePkceSession } from "../../../lib/pkce.store.ts";
 
 function isValidNext(next: string, frontendUrl: string): boolean {
   if (!next) return false;
@@ -29,6 +30,7 @@ export const handler: Handlers = {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
     const next = url.searchParams.get("next") ?? "";
+    const state = url.searchParams.get("state") ?? "";
 
     if (!code) {
       const response = errorResponse("Missing authorization code", 400);
@@ -40,7 +42,8 @@ export const handler: Handlers = {
 
     try {
       const cookies = getCookies(req.headers);
-      const codeVerifier = cookies[PKCE_COOKIE_NAME] ?? null;
+      const storedVerifier = state ? takePkceSession(state) : null;
+      const codeVerifier = storedVerifier ?? cookies[PKCE_COOKIE_NAME] ?? null;
       if (!codeVerifier) {
         const response = errorResponse("Missing PKCE code verifier", 400);
         headers.forEach((value, key) => {

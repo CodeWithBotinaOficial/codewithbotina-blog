@@ -6,6 +6,7 @@ import { errorResponse } from "../../../utils/responses.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { setPkceCookie } from "../../../utils/auth.cookies.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
+import { storePkceSession } from "../../../lib/pkce.store.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
@@ -71,6 +72,8 @@ export const handler: Handlers = {
 
     try {
       const { verifier, challenge } = await generatePkcePair();
+      const state = crypto.randomUUID();
+      storePkceSession(state, verifier);
       setPkceCookie(headers, req, verifier);
 
       const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
@@ -78,6 +81,7 @@ export const handler: Handlers = {
       authUrl.searchParams.set("redirect_to", redirectTo);
       authUrl.searchParams.set("code_challenge", challenge);
       authUrl.searchParams.set("code_challenge_method", "S256");
+      authUrl.searchParams.set("state", state);
       authUrl.searchParams.set("scopes", "openid email profile");
       authUrl.searchParams.set("prompt", "select_account");
       authUrl.searchParams.set("access_type", "offline");
