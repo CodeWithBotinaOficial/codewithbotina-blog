@@ -74,6 +74,12 @@ export const handler: Handlers = {
       const callbackPath = Deno.env.get("FRONTEND_AUTH_CALLBACK") ||
         "/auth/success";
       const redirectUrl = new URL(callbackPath, frontendUrl);
+      const tokenParams = new URLSearchParams({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        expires_in: String(session.expires_in ?? ""),
+      });
+      redirectUrl.hash = tokenParams.toString();
       if (isValidNext(next, frontendUrl)) {
         redirectUrl.searchParams.set("next", next);
       }

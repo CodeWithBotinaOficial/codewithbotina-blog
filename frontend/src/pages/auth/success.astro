@@ -20,18 +20,30 @@ import BaseLayout from "../../components/BaseLayout.astro";
     const apiUrl = getApiUrl();
 
     const finalize = async () => {
-      const res = await fetch(`${apiUrl}/api/auth/refresh`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
 
-      if (res.ok) {
-        const body = await res.json();
-        if (body?.access_token && body?.refresh_token) {
-          await supabase.auth.setSession({
-            access_token: body.access_token,
-            refresh_token: body.refresh_token,
-          });
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        window.history.replaceState({}, "", window.location.pathname + window.location.search);
+      } else {
+        const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const body = await res.json();
+          if (body?.access_token && body?.refresh_token) {
+            await supabase.auth.setSession({
+              access_token: body.access_token,
+              refresh_token: body.refresh_token,
+            });
+          }
         }
       }
 
