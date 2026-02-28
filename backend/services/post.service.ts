@@ -246,36 +246,41 @@ export class PostService {
   }
 
   sanitizeMarkdown(content: string): string {
-    const html = marked.parse(content) as string;
-    DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: [
-        "p",
-        "br",
-        "strong",
-        "em",
-        "u",
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "ul",
-        "ol",
-        "li",
-        "blockquote",
-        "code",
-        "pre",
-        "a",
-        "img",
-      ],
-      ALLOWED_ATTR: ["href", "src", "alt", "title", "class"],
-    });
+    try {
+      const html = marked.parse(content) as string;
+      DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [
+          "p",
+          "br",
+          "strong",
+          "em",
+          "u",
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+          "ul",
+          "ol",
+          "li",
+          "blockquote",
+          "code",
+          "pre",
+          "a",
+          "img",
+        ],
+        ALLOWED_ATTR: ["href", "src", "alt", "title", "class"],
+      });
 
-    return DOMPurify.sanitize(content, {
-      ALLOWED_TAGS: [],
-      ALLOWED_ATTR: [],
-    });
+      return DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: [],
+      });
+    } catch (error) {
+      console.error("Markdown sanitization failed, falling back to text cleanup", error);
+      return sanitizeInput(content);
+    }
   }
 
   private validateAndSanitize(data: PostCreate | PostUpdate): PostCreate {
