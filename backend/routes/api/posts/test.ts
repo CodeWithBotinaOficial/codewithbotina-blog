@@ -56,6 +56,8 @@ export const handler: Handlers = {
 
       if (authHeader) {
         const token = authHeader.replace("Bearer ", "");
+        logs.push(`Token length: ${token.length}`);
+        logs.push(`Token segments: ${token.split(".").length}`);
         try {
           const user = await authService.getUserFromToken(token);
           logs.push(`Authenticated user: ${user.email ?? user.id}`);

@@ -149,20 +149,29 @@ export class AuthService {
   }
 
   async getUserFromToken(token: string): Promise<AuthenticatedUser> {
-    const { data, error } = await this.authClient.auth.getUser(token);
+    try {
+      const { data, error } = await this.authClient.auth.getUser(token);
 
-    if (error || !data.user) {
-      console.error("Auth getUser error:", error);
-      throw new AppError("Unauthorized", 401);
+      if (error || !data.user) {
+        console.error("Auth getUser error:", error);
+        throw new AppError("Unauthorized", 401);
+      }
+
+      const profile = await this.repository.getUserById(data.user.id);
+      const isAdmin = await this.repository.isAdmin(data.user.id);
+
+      return {
+        ...(profile ?? this.mapAuthUserToProfile(data.user)),
+        is_admin: isAdmin,
+      };
+    } catch (error) {
+      const isAuthError = Boolean(
+        (error as { __isAuthError?: boolean })?.__isAuthError ||
+          (error as { name?: string })?.name === "AuthApiError",
+      );
+      console.error("Auth getUser exception:", error);
+      throw new AppError(isAuthError ? "Unauthorized" : "Failed to fetch user", isAuthError ? 401 : 500);
     }
-
-    const profile = await this.repository.getUserById(data.user.id);
-    const isAdmin = await this.repository.isAdmin(data.user.id);
-
-    return {
-      ...(profile ?? this.mapAuthUserToProfile(data.user)),
-      is_admin: isAdmin,
-    };
   }
 
   async refreshAccessToken(refreshToken: string): Promise<AuthSession> {
