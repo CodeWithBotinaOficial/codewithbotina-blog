@@ -21,7 +21,20 @@ export const handler: Handlers = {
     const headers = corsHeaders(origin);
 
     try {
+      console.log("Create post called", {
+        timestamp: new Date().toISOString(),
+        method: req.method,
+        url: req.url,
+      });
+
+      console.log("Create post auth header present:", Boolean(req.headers.get("Authorization")));
+
       const user = await requireAdmin(req);
+      console.log("Create post admin verified", {
+        userId: user.id,
+        email: user.email ?? null,
+      });
+
       let body;
       try {
         body = await req.json();
@@ -51,6 +64,11 @@ export const handler: Handlers = {
         headers.forEach((value, key) => response.headers.set(key, value));
         return response;
       }
+
+      console.log("Create post succeeded", {
+        postId: result.data.id,
+        slug: result.data.slug,
+      });
 
       const response = successResponse(
         {
