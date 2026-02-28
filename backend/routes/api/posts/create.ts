@@ -31,8 +31,16 @@ export const handler: Handlers = {
         return response;
       }
 
+      console.log("Create post request received", {
+        titulo: body?.titulo,
+        slug: body?.slug,
+        bodyLength: typeof body?.body === "string" ? body.body.length : 0,
+        hasImage: Boolean(body?.imagen_url),
+      });
+
       const result = await postService.createPost(body, user.id);
       if (!result.success || !result.data) {
+        console.error("Create post failed", result.error);
         const statusCode = result.error instanceof AppError
           ? result.error.statusCode
           : 500;

@@ -46,6 +46,7 @@ export class PostService {
           slug: sanitized.slug,
           body: sanitized.body,
           imagen_url: sanitized.imagen_url ?? null,
+          fecha: new Date().toISOString(),
         }])
         .select("id, titulo, slug, body, imagen_url, fecha, updated_at")
         .single();

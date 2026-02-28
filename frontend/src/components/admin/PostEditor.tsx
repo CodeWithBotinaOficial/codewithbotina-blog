@@ -230,7 +230,6 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
           onInput={(event) => handleSlugInput((event.currentTarget as HTMLInputElement).value)}
           onBlur={handleSlugBlur}
           placeholder="post-url-slug"
-          pattern="[a-z0-9-]+"
           required
           class="input-field"
         />
