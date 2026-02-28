@@ -1,10 +1,18 @@
-import sharp from "sharp";
 import { supabase } from "../lib/supabase.ts";
 import { AppError, ValidationError } from "../utils/errors.ts";
 
 const VALID_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const TARGET_MAX_SIZE = 500 * 1024;
+let sharpModule: (typeof import("sharp")) | null = null;
+
+async function getSharp() {
+  if (!sharpModule) {
+    const mod = await import("sharp");
+    sharpModule = mod.default ?? mod;
+  }
+  return sharpModule;
+}
 
 export class ImageService {
   async uploadImage(file: File, title: string, slug: string): Promise<{
@@ -90,6 +98,7 @@ export class ImageService {
   }
 
   async optimizeImage(file: File): Promise<Uint8Array> {
+    const sharp = await getSharp();
     const buffer = await file.arrayBuffer();
     const base = sharp(new Uint8Array(buffer)).resize(1200, 800, {
       fit: "inside",
