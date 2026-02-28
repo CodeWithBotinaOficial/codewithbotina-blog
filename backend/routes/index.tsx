@@ -246,6 +246,173 @@ Backend → Redirect to https://blog.codewithbotina.com/auth/success`}</code></p
             </section>
           </section>
 
+          <section id="post-management">
+            <h2>📝 Post Management API (Admin Only)</h2>
+            <p>
+              Admin-only endpoints for creating, updating, deleting posts, and
+              uploading featured images.
+            </p>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/posts/create
+              </h3>
+              <p>Create a new blog post.</p>
+
+              <div class="card">
+                <h4>Request Headers</h4>
+                <ul>
+                  <li>
+                    <code>Authorization: Bearer {"{access_token}"}</code>{" "}
+                    (required)
+                  </li>
+                  <li>
+                    <code>Content-Type: application/json</code>
+                  </li>
+                </ul>
+
+                <h4>Request Body</h4>
+                <pre><code>{`{
+  "titulo": "My New Post",
+  "slug": "my-new-post",
+  "body": "# Content\\n\\nMarkdown here...",
+  "imagen_url": "https://example.com/image.jpg"
+}`}</code></pre>
+
+                <h4>Success Response (201 Created)</h4>
+                <pre><code>{`{
+  "success": true,
+  "message": "Post created successfully",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "titulo": "My New Post",
+    "slug": "my-new-post",
+    "fecha": "2026-02-26T10:00:00Z"
+  }
+}`}</code></pre>
+              </div>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-put">PUT</span>
+                /api/posts/{"{slug}"}/update
+              </h3>
+              <p>Update an existing post.</p>
+
+              <div class="card">
+                <h4>Request Headers</h4>
+                <ul>
+                  <li>
+                    <code>Authorization: Bearer {"{access_token}"}</code>{" "}
+                    (required)
+                  </li>
+                  <li>
+                    <code>Content-Type: application/json</code>
+                  </li>
+                </ul>
+
+                <h4>Request Body</h4>
+                <pre><code>{`{
+  "titulo": "Updated Title",
+  "slug": "updated-title",
+  "body": "# Updated content",
+  "imagen_url": null
+}`}</code></pre>
+              </div>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-delete">DELETE</span>
+                /api/posts/{"{slug}"}/delete
+              </h3>
+              <p>
+                Fetch delete confirmation info, then delete when{" "}
+                <code>confirm=true</code> is provided.
+              </p>
+
+              <div class="card">
+                <h4>Request Headers</h4>
+                <ul>
+                  <li>
+                    <code>Authorization: Bearer {"{access_token}"}</code>{" "}
+                    (required)
+                  </li>
+                </ul>
+
+                <h4>Confirmation Info</h4>
+                <pre><code>{`DELETE /api/posts/my-post/delete
+
+Response:
+{
+  "success": true,
+  "message": "Confirmation required",
+  "data": {
+    "post_id": "uuid",
+    "titulo": "My Post",
+    "comments_count": 12,
+    "reactions_count": 30,
+    "likes_count": 22,
+    "dislikes_count": 8,
+    "requires_confirmation": true
+  }
+}`}</code></pre>
+
+                <h4>Delete Request</h4>
+                <pre><code>{`DELETE /api/posts/my-post/delete?confirm=true`}</code></pre>
+              </div>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/posts/{"{slug}"}/exists
+              </h3>
+              <p>Check if a slug already exists (for validation).</p>
+
+              <div class="card">
+                <h4>Success Response (200 OK)</h4>
+                <pre><code>{`{
+  "exists": true
+}`}</code></pre>
+              </div>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/posts/upload-image
+              </h3>
+              <p>Upload and optimize a featured image.</p>
+
+              <div class="card">
+                <h4>Request Headers</h4>
+                <ul>
+                  <li>
+                    <code>Authorization: Bearer {"{access_token}"}</code>{" "}
+                    (required)
+                  </li>
+                  <li>
+                    <code>Content-Type: multipart/form-data</code>
+                  </li>
+                </ul>
+
+                <h4>Success Response (201 Created)</h4>
+                <pre><code>{`{
+  "success": true,
+  "message": "Image uploaded successfully",
+  "data": {
+    "url": "https://.../blog-images/my-post-123456.webp",
+    "filename": "my-post-123456.webp",
+    "size": 456789
+  }
+}`}</code></pre>
+              </div>
+            </div>
+          </section>
+
           <section id="errors">
             <h2>⚠️ Error Handling</h2>
             <p>All API errors follow a standardized JSON format:</p>

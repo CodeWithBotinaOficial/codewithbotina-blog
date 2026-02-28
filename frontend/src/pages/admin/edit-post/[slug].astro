@@ -1,0 +1,41 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../../components/BaseLayout.astro';
+import PostEditor from '../../../components/admin/PostEditor';
+import { supabase } from '../../../lib/supabase';
+import { formatDate } from '../../../lib/utils';
+
+const { slug } = Astro.params;
+
+const { data: post, error } = await supabase
+  .from('posts')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (error || !post) {
+  return Astro.redirect('/404');
+}
+
+const createdAt = post.fecha ? formatDate(post.fecha) : 'Unknown';
+const updatedAt = post.updated_at ? formatDate(post.updated_at) : null;
+---
+
+<BaseLayout title={`Edit: ${post.titulo}`}>
+  <section class="container-responsive py-12">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold">Edit Post: {post.titulo}</h1>
+      <p class="mt-2 text-sm text-[var(--color-text-tertiary)]">
+        Created: {createdAt}{updatedAt ? ` • Last modified: ${updatedAt}` : ''}
+      </p>
+    </div>
+
+    <PostEditor
+      mode="edit"
+      initialData={post}
+      cancelHref={`/posts/${post.slug}`}
+      client:load
+    />
+  </section>
+</BaseLayout>

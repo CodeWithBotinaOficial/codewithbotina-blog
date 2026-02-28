@@ -4,14 +4,28 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $_middleware from "./routes/_middleware.ts";
 import * as $api_auth_callback from "./routes/api/auth/callback.ts";
 import * as $api_auth_debug from "./routes/api/auth/debug.ts";
 import * as $api_auth_google from "./routes/api/auth/google.ts";
 import * as $api_auth_me from "./routes/api/auth/me.ts";
 import * as $api_auth_refresh from "./routes/api/auth/refresh.ts";
 import * as $api_auth_signout from "./routes/api/auth/signout.ts";
+import * as $api_comments_commentId_index from "./routes/api/comments/[commentId]/index.ts";
+import * as $api_comments_commentId_pin from "./routes/api/comments/[commentId]/pin.ts";
+import * as $api_comments_commentId_unpin from "./routes/api/comments/[commentId]/unpin.ts";
 import * as $api_contact from "./routes/api/contact.ts";
 import * as $api_health from "./routes/api/health.ts";
+import * as $api_posts_slug_delete from "./routes/api/posts/[slug]/delete.ts";
+import * as $api_posts_slug_exists from "./routes/api/posts/[slug]/exists.ts";
+import * as $api_posts_slug_update from "./routes/api/posts/[slug]/update.ts";
+import * as $api_posts_create from "./routes/api/posts/create.ts";
+import * as $api_posts_upload_image from "./routes/api/posts/upload-image.ts";
+import * as $api_reactions_postId_dislike from "./routes/api/reactions/[postId]/dislike.ts";
+import * as $api_reactions_postId_index from "./routes/api/reactions/[postId]/index.ts";
+import * as $api_reactions_postId_like from "./routes/api/reactions/[postId]/like.ts";
+import * as $api_reactions_helpers from "./routes/api/reactions/_helpers.ts";
+import * as $api_reactions_user_postId_ from "./routes/api/reactions/user/[postId].ts";
 import * as $index from "./routes/index.tsx";
 import * as $StatusIndicator from "./islands/StatusIndicator.tsx";
 import * as $TryItOut from "./islands/TryItOut.tsx";
@@ -21,14 +35,28 @@ const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/_middleware.ts": $_middleware,
     "./routes/api/auth/callback.ts": $api_auth_callback,
     "./routes/api/auth/debug.ts": $api_auth_debug,
     "./routes/api/auth/google.ts": $api_auth_google,
     "./routes/api/auth/me.ts": $api_auth_me,
     "./routes/api/auth/refresh.ts": $api_auth_refresh,
     "./routes/api/auth/signout.ts": $api_auth_signout,
+    "./routes/api/comments/[commentId]/index.ts": $api_comments_commentId_index,
+    "./routes/api/comments/[commentId]/pin.ts": $api_comments_commentId_pin,
+    "./routes/api/comments/[commentId]/unpin.ts": $api_comments_commentId_unpin,
     "./routes/api/contact.ts": $api_contact,
     "./routes/api/health.ts": $api_health,
+    "./routes/api/posts/[slug]/delete.ts": $api_posts_slug_delete,
+    "./routes/api/posts/[slug]/exists.ts": $api_posts_slug_exists,
+    "./routes/api/posts/[slug]/update.ts": $api_posts_slug_update,
+    "./routes/api/posts/create.ts": $api_posts_create,
+    "./routes/api/posts/upload-image.ts": $api_posts_upload_image,
+    "./routes/api/reactions/[postId]/dislike.ts": $api_reactions_postId_dislike,
+    "./routes/api/reactions/[postId]/index.ts": $api_reactions_postId_index,
+    "./routes/api/reactions/[postId]/like.ts": $api_reactions_postId_like,
+    "./routes/api/reactions/_helpers.ts": $api_reactions_helpers,
+    "./routes/api/reactions/user/[postId].ts": $api_reactions_user_postId_,
     "./routes/index.tsx": $index,
   },
   islands: {

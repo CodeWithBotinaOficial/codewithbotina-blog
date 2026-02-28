@@ -106,6 +106,14 @@ pre code {
   background-color: #60a5fa;
   color: #1e3a8a;
 }
+.badge-put {
+  background-color: #fbbf24;
+  color: #78350f;
+}
+.badge-delete {
+  background-color: #f87171;
+  color: #7f1d1d;
+}
 
 .card {
   border: 1px solid var(--border-color);

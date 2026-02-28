@@ -4,6 +4,7 @@ export const prerender = false;
 import BaseLayout from '../components/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import SearchBar from '../components/SearchBar.astro';
+import AdminCreatePostButton from '../components/admin/AdminCreatePostButton';
 import { supabase } from '../lib/supabase';
 import type { Post } from '../types/post';
 
@@ -31,6 +32,8 @@ const allPosts = (posts || []) as Post[];
       <SearchBar />
     </div>
   </section>
+
+  <AdminCreatePostButton client:load />
 
   <!-- Posts Grid -->
   <section class="py-16">

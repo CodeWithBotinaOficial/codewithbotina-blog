@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../components/BaseLayout.astro';
+import PostEditor from '../../components/admin/PostEditor';
+---
+
+<BaseLayout title="Create New Post">
+  <section class="container-responsive py-12">
+    <h1 class="text-3xl font-bold mb-6">Create New Post</h1>
+    <PostEditor mode="create" cancelHref="/" client:load />
+  </section>
+</BaseLayout>

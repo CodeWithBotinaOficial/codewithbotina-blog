@@ -5,6 +5,7 @@ import BaseLayout from '../../components/BaseLayout.astro';
 import CommentSection from '../../components/comments/CommentSection.astro';
 import ReactionButtons from '../../components/reactions/ReactionButtons';
 import ReactionCounts from '../../components/reactions/ReactionCounts.astro';
+import AdminPostMenu from '../../components/admin/AdminPostMenu';
 import { supabase } from '../../lib/supabase';
 import { getApiUrl } from '../../lib/env';
 import { formatDate, calculateReadTime } from '../../lib/utils';
@@ -47,7 +48,10 @@ const readTime = calculateReadTime(currentPost.body);
   image={currentPost.imagen_url}
   type="article"
 >
-  <article class="max-w-3xl mx-auto px-4 py-12">
+  <article class="max-w-3xl mx-auto px-4 py-12 relative">
+    <div class="absolute right-4 top-6">
+      <AdminPostMenu slug={currentPost.slug} titulo={currentPost.titulo} client:load />
+    </div>
     <!-- Article Header -->
     <header class="mb-12 text-center">
       <div class="flex items-center justify-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-6">

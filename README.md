@@ -2,6 +2,18 @@
 
 A blazing-fast static blog built with Astro, Fresh (Deno), Supabase, and deployed on Cloudflare Pages.
 
+## ✅ Features
+
+- ✅ Google OAuth authentication
+- ✅ Comment system with admin pinning
+- ✅ Like/dislike reactions
+- ✅ **Admin post management (create, edit, delete)**
+- ✅ **WYSIWYG Markdown editor with live preview**
+- ✅ **Image upload to Supabase Storage**
+- ✅ Hybrid rendering (dynamic content without rebuilds)
+- ✅ SEO optimized
+- ✅ Fully responsive design
+
 ## 🚀 Tech Stack
 
 - **Frontend:** Astro 5 (Static Site Generation)

@@ -301,6 +301,28 @@ Health check endpoint for monitoring and uptime checks.
 curl https://api.codewithbotina.com/api/health
 ```
 
+---
+
+## Post Management API
+
+Admin-only endpoints for managing blog posts.
+
+**Authorization:**
+All endpoints require a valid access token and the user must exist in the
+`admin_users` table.
+
+**Endpoints:**
+- `POST /api/posts/create` - Create a new post
+- `PUT /api/posts/:slug/update` - Update an existing post
+- `DELETE /api/posts/:slug/delete` - Delete a post (requires `confirm=true`)
+- `GET /api/posts/:slug/exists` - Check slug uniqueness
+- `POST /api/posts/upload-image` - Upload featured image (multipart/form-data)
+
+**Delete confirmation flow:**
+1. Call `DELETE /api/posts/:slug/delete` without `confirm=true` to retrieve
+   comment/reaction counts.
+2. Call the same endpoint with `confirm=true` to delete.
+
 ## 🧪 Testing
 
 ### Run Tests

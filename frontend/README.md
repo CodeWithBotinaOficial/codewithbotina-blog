@@ -27,6 +27,40 @@
 
 ---
 
+## Admin Features
+
+### Post Management
+
+Administrators can create, edit, and delete posts directly from the frontend.
+
+**Creating Posts:**
+1. Navigate to homepage (must be logged in as admin)
+2. Click "Create New Post" button
+3. Fill in title, content (Markdown), and optional image
+4. Preview content before publishing
+5. Click "Create Post" and confirm
+
+**Editing Posts:**
+1. Navigate to post detail page (must be admin)
+2. Click three-dot menu → "Edit Post"
+3. Modify content
+4. Click "Update Post" and confirm
+
+**Deleting Posts:**
+1. Navigate to post detail page (must be admin)
+2. Click three-dot menu → "Delete Post"
+3. Confirm deletion (WARNING: Deletes all comments and reactions)
+
+### Image Uploads
+
+When creating/editing posts, you can:
+- Provide external image URL
+- Upload image from device (auto-optimized to WebP)
+
+Images are stored in Supabase Storage bucket: `blog-images`
+
+---
+
 ## 🏗️ Architecture
 
 ### Tech Stack
