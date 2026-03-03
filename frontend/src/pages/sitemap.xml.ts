@@ -12,30 +12,11 @@ function toIsoDate(value: string | null | undefined): string | null {
 }
 
 export const GET: APIRoute = async () => {
-  try {
-    const { data: posts, error } = await supabase
-      .from("posts")
-      .select("slug, fecha, updated_at")
-      .order("fecha", { ascending: false });
+  const siteUrl = getSiteUrl().replace(/\/$/, "");
 
-    if (error) {
-      throw error;
-    }
-
-    const siteUrl = getSiteUrl().replace(/\/$/, "");
-
-    const urls = (posts || []).map((post) => {
-      const lastmod = toIsoDate(post.updated_at || post.fecha);
-      return `
-  <url>
-    <loc>${siteUrl}/posts/${post.slug}</loc>
-    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-    }).join("");
-
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  const buildResponse = (urls: string) =>
+    new Response(
+      `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>${siteUrl}</loc>
@@ -43,16 +24,56 @@ export const GET: APIRoute = async () => {
     <priority>1.0</priority>
   </url>
   ${urls}
-</urlset>`;
-
-    return new Response(sitemap, {
-      headers: {
-        "Content-Type": "application/xml; charset=utf-8",
-        "Cache-Control": "public, max-age=3600",
+</urlset>`,
+      {
+        headers: {
+          "Content-Type": "application/xml; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+        },
       },
-    });
+    );
+
+  try {
+    let posts: Array<{ slug?: string | null; fecha?: string | null; updated_at?: string | null }> = [];
+
+    const { data, error } = await supabase
+      .from("posts")
+      .select("slug, fecha, updated_at")
+      .order("fecha", { ascending: false });
+
+    if (error) {
+      const message = String(error?.message || "");
+      if (message.includes("updated_at")) {
+        const fallback = await supabase
+          .from("posts")
+          .select("slug, fecha")
+          .order("fecha", { ascending: false });
+        if (fallback.error) throw fallback.error;
+        posts = fallback.data || [];
+      } else {
+        throw error;
+      }
+    } else {
+      posts = data || [];
+    }
+
+    const urls = posts.reduce((acc: string[], post) => {
+      const slug = typeof post.slug === "string" ? post.slug : "";
+      if (!slug) return acc;
+      const lastmod = toIsoDate(post.updated_at || post.fecha);
+      acc.push(`
+  <url>
+    <loc>${siteUrl}/posts/${slug}</loc>
+    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`);
+      return acc;
+    }, []).join("");
+
+    return buildResponse(urls);
   } catch (error) {
     console.error("Sitemap generation error:", error);
-    return new Response("Error generating sitemap", { status: 500 });
+    return buildResponse("");
   }
 };
