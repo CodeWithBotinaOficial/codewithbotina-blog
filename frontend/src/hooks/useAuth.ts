@@ -5,7 +5,13 @@ const API_URL = getApiUrl();
 
 export function useAuth() {
   const signIn = () => {
-    window.location.assign(`${API_URL}/api/auth/google`);
+    const next = typeof window !== "undefined"
+      ? encodeURIComponent(window.location.href)
+      : "";
+    const url = next
+      ? `${API_URL}/api/auth/google?next=${next}`
+      : `${API_URL}/api/auth/google`;
+    window.location.assign(url);
   };
 
   const signOut = async () => {
