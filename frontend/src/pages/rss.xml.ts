@@ -29,7 +29,7 @@ export const GET: APIRoute = async () => {
   try {
     const { data: posts, error } = await supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, excerpt")
+      .select("id, titulo, slug, body, imagen_url, fecha")
       .order("fecha", { ascending: false })
       .limit(MAX_ITEMS);
 
@@ -40,23 +40,31 @@ export const GET: APIRoute = async () => {
     const siteUrl = getSiteUrl().replace(/\/$/, "");
     const currentDate = new Date().toUTCString();
 
-    const items = (posts || []).map((post) => {
-      const postUrl = `${siteUrl}/posts/${post.slug}`;
-      const pubDate = post.fecha ? new Date(post.fecha).toUTCString() : currentDate;
-      const description = buildDescription(post.excerpt || post.body, 200);
-      const imageUrl = post.imagen_url ? escapeXmlAttr(post.imagen_url) : "";
+    const items = (posts || []).reduce((acc: string[], post) => {
+      const slug = typeof post.slug === "string" ? post.slug : "";
+      if (!slug) return acc;
 
-      return `
+      const title = typeof post.titulo === "string" ? post.titulo : "Untitled";
+      const body = typeof post.body === "string" ? post.body : "";
+      const postUrl = `${siteUrl}/posts/${slug}`;
+      const pubDate = post.fecha ? new Date(post.fecha).toUTCString() : currentDate;
+      const description = buildDescription(body, 200);
+      const imageUrl = typeof post.imagen_url === "string" && post.imagen_url.length > 0
+        ? escapeXmlAttr(post.imagen_url)
+        : "";
+
+      acc.push(`
     <item>
-      <title><![CDATA[${escapeCdata(post.titulo)}]]></title>
+      <title><![CDATA[${escapeCdata(title)}]]></title>
       <link>${postUrl}</link>
       <guid isPermaLink="true">${postUrl}</guid>
       <pubDate>${pubDate}</pubDate>
       <description><![CDATA[${escapeCdata(description)}]]></description>
       ${imageUrl ? `<enclosure url="${imageUrl}" type="image/jpeg"/>` : ""}
-      <content:encoded><![CDATA[${escapeCdata(post.body)}]]></content:encoded>
+      <content:encoded><![CDATA[${escapeCdata(body)}]]></content:encoded>
     </item>`;
-    }).join("");
+      return acc;
+    }, []).join("");
 
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
