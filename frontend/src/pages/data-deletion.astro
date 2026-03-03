@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../components/BaseLayout.astro';
+import { marked } from 'marked';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const policyPath = path.join(process.cwd(), '..', 'legal-docs', 'data-deletion.md');
+const markdown = fs.readFileSync(policyPath, 'utf-8');
+const html = marked.parse(markdown);
+---
+
+<BaseLayout
+  title="Eliminación de Datos"
+  description="Instrucciones para eliminar su cuenta y datos de CodeWithBotina."
+>
+  <section class="container-responsive py-12">
+    <article class="prose prose-lg max-w-none" set:html={html} />
+  </section>
+</BaseLayout>
