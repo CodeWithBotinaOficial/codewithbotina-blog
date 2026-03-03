@@ -62,7 +62,7 @@ export const GET: APIRoute = async () => {
       <description><![CDATA[${escapeCdata(description)}]]></description>
       ${imageUrl ? `<enclosure url="${imageUrl}" type="image/jpeg"/>` : ""}
       <content:encoded><![CDATA[${escapeCdata(body)}]]></content:encoded>
-    </item>`;
+    </item>`);
       return acc;
     }, []).join("");
 
