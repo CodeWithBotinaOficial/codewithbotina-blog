@@ -16,7 +16,10 @@ import type { Post } from '../../types/post';
 const { slug } = Astro.params;
 const apiUrl = getApiUrl();
 
-const { data: post, error } = await supabase
+let post: any = null;
+let postError: any = null;
+
+const joinedResult = await supabase
   .from('posts')
   .select(`
     *,
@@ -31,7 +34,24 @@ const { data: post, error } = await supabase
   .eq('slug', slug)
   .single();
 
-if (error || !post) {
+if (joinedResult.error) {
+  const message = String(joinedResult.error?.message || '');
+  if (message.includes('post_tags') || message.includes('tags')) {
+    const fallback = await supabase
+      .from('posts')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+    post = fallback.data;
+    postError = fallback.error;
+  } else {
+    postError = joinedResult.error;
+  }
+} else {
+  post = joinedResult.data;
+}
+
+if (postError || !post) {
   return Astro.redirect('/404');
 }
 
@@ -52,9 +72,11 @@ const readTime = calculateReadTime(currentPost.body);
 const siteUrl = getSiteUrl().replace(/\/$/, '');
 const canonicalUrl = `${siteUrl}/posts/${currentPost.slug}`;
 const imageUrl = currentPost.imagen_url || `${siteUrl}/og-image.png`;
-const tagList = (post?.post_tags ?? [])
-  .map((item: { tag?: { id: string; name: string; slug: string } }) => item.tag)
-  .filter(Boolean) as Array<{ id: string; name: string; slug: string }>;
+const tagList = Array.isArray(post?.post_tags)
+  ? (post.post_tags
+      .map((item: { tag?: { id: string; name: string; slug: string } }) => item.tag)
+      .filter(Boolean) as Array<{ id: string; name: string; slug: string }>)
+  : [];
 const tagNames = tagList.map((tag) => tag.name).filter(Boolean);
 const tagKeywords = tagNames.join(', ');
 
