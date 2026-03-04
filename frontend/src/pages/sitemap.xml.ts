@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { supabase } from "../lib/supabase";
-import { getSiteUrl } from "../lib/env";
+import { getApiUrl, getSiteUrl } from "../lib/env";
 
 export const prerender = false;
 
@@ -13,6 +13,7 @@ function toIsoDate(value: string | null | undefined): string | null {
 
 export const GET: APIRoute = async () => {
   const siteUrl = getSiteUrl().replace(/\/$/, "");
+  const apiUrl = getApiUrl().replace(/\/$/, "");
 
   const buildResponse = (urls: string) =>
     new Response(
@@ -80,9 +81,22 @@ export const GET: APIRoute = async () => {
 
       if (!tagError) {
         tags = tagData || [];
+      } else {
+        throw tagError;
       }
     } catch (_error) {
-      tags = [];
+      try {
+        const response = await fetch(`${apiUrl}/api/tags`);
+        if (response.ok) {
+          const payload = await response.json();
+          const list = payload?.data?.tags ?? payload?.tags ?? [];
+          tags = list;
+        } else {
+          tags = [];
+        }
+      } catch (_fetchError) {
+        tags = [];
+      }
     }
 
     const tagUrls = tags.reduce((acc: string[], tag) => {
