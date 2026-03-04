@@ -57,7 +57,7 @@ export const GET: APIRoute = async () => {
       posts = data || [];
     }
 
-    const urls = posts.reduce((acc: string[], post) => {
+    const postUrls = posts.reduce((acc: string[], post) => {
       const slug = typeof post.slug === "string" ? post.slug : "";
       if (!slug) return acc;
       const lastmod = toIsoDate(post.updated_at || post.fecha);
@@ -71,7 +71,35 @@ export const GET: APIRoute = async () => {
       return acc;
     }, []).join("");
 
-    return buildResponse(urls);
+    let tags: Array<{ slug?: string | null; updated_at?: string | null; created_at?: string | null }> = [];
+    try {
+      const { data: tagData, error: tagError } = await supabase
+        .from("tags")
+        .select("slug, updated_at, created_at")
+        .order("usage_count", { ascending: false });
+
+      if (!tagError) {
+        tags = tagData || [];
+      }
+    } catch (_error) {
+      tags = [];
+    }
+
+    const tagUrls = tags.reduce((acc: string[], tag) => {
+      const slug = typeof tag.slug === "string" ? tag.slug : "";
+      if (!slug) return acc;
+      const lastmod = toIsoDate(tag.updated_at || tag.created_at);
+      acc.push(`
+  <url>
+    <loc>${siteUrl}/tags/${slug}</loc>
+    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+      return acc;
+    }, []).join("");
+
+    return buildResponse(`${postUrls}${tagUrls}`);
   } catch (error) {
     console.error("Sitemap generation error:", error);
     return buildResponse("");

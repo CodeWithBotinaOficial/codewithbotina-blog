@@ -15,17 +15,22 @@ import * as $api_comments_commentId_index from "./routes/api/comments/[commentId
 import * as $api_comments_commentId_pin from "./routes/api/comments/[commentId]/pin.ts";
 import * as $api_comments_commentId_unpin from "./routes/api/comments/[commentId]/unpin.ts";
 import * as $api_contact from "./routes/api/contact.ts";
+import * as $api_cookies_consent from "./routes/api/cookies/consent.ts";
 import * as $api_health from "./routes/api/health.ts";
 import * as $api_posts_slug_delete from "./routes/api/posts/[slug]/delete.ts";
 import * as $api_posts_slug_exists from "./routes/api/posts/[slug]/exists.ts";
 import * as $api_posts_slug_update from "./routes/api/posts/[slug]/update.ts";
 import * as $api_posts_create from "./routes/api/posts/create.ts";
+import * as $api_posts_test from "./routes/api/posts/test.ts";
 import * as $api_posts_upload_image from "./routes/api/posts/upload-image.ts";
 import * as $api_reactions_postId_dislike from "./routes/api/reactions/[postId]/dislike.ts";
 import * as $api_reactions_postId_index from "./routes/api/reactions/[postId]/index.ts";
 import * as $api_reactions_postId_like from "./routes/api/reactions/[postId]/like.ts";
 import * as $api_reactions_helpers from "./routes/api/reactions/_helpers.ts";
 import * as $api_reactions_user_postId_ from "./routes/api/reactions/user/[postId].ts";
+import * as $api_tags_autocomplete from "./routes/api/tags/autocomplete.ts";
+import * as $api_tags_create from "./routes/api/tags/create.ts";
+import * as $api_tags_suggest from "./routes/api/tags/suggest.ts";
 import * as $index from "./routes/index.tsx";
 import * as $StatusIndicator from "./islands/StatusIndicator.tsx";
 import * as $TryItOut from "./islands/TryItOut.tsx";
@@ -46,17 +51,22 @@ const manifest = {
     "./routes/api/comments/[commentId]/pin.ts": $api_comments_commentId_pin,
     "./routes/api/comments/[commentId]/unpin.ts": $api_comments_commentId_unpin,
     "./routes/api/contact.ts": $api_contact,
+    "./routes/api/cookies/consent.ts": $api_cookies_consent,
     "./routes/api/health.ts": $api_health,
     "./routes/api/posts/[slug]/delete.ts": $api_posts_slug_delete,
     "./routes/api/posts/[slug]/exists.ts": $api_posts_slug_exists,
     "./routes/api/posts/[slug]/update.ts": $api_posts_slug_update,
     "./routes/api/posts/create.ts": $api_posts_create,
+    "./routes/api/posts/test.ts": $api_posts_test,
     "./routes/api/posts/upload-image.ts": $api_posts_upload_image,
     "./routes/api/reactions/[postId]/dislike.ts": $api_reactions_postId_dislike,
     "./routes/api/reactions/[postId]/index.ts": $api_reactions_postId_index,
     "./routes/api/reactions/[postId]/like.ts": $api_reactions_postId_like,
     "./routes/api/reactions/_helpers.ts": $api_reactions_helpers,
     "./routes/api/reactions/user/[postId].ts": $api_reactions_user_postId_,
+    "./routes/api/tags/autocomplete.ts": $api_tags_autocomplete,
+    "./routes/api/tags/create.ts": $api_tags_create,
+    "./routes/api/tags/suggest.ts": $api_tags_suggest,
     "./routes/index.tsx": $index,
   },
   islands: {

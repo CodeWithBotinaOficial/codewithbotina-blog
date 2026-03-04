@@ -13,6 +13,7 @@ export interface PostCreate {
   slug: string;
   body: string;
   imagen_url?: string | null;
+  tag_ids?: string[];
 }
 
 export interface PostUpdate {
@@ -20,6 +21,7 @@ export interface PostUpdate {
   slug: string;
   body: string;
   imagen_url?: string | null;
+  tag_ids?: string[];
 }
 
 export interface DeleteResult {

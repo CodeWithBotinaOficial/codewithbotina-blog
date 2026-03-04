@@ -10,7 +10,17 @@ const { slug } = Astro.params;
 
 const { data: post, error } = await supabase
   .from('posts')
-  .select('*')
+  .select(`
+    *,
+    post_tags (
+      tag:tags (
+        id,
+        name,
+        slug,
+        usage_count
+      )
+    )
+  `)
   .eq('slug', slug)
   .single();
 
@@ -20,6 +30,10 @@ if (error || !post) {
 
 const createdAt = post.fecha ? formatDate(post.fecha) : 'Unknown';
 const updatedAt = post.updated_at ? formatDate(post.updated_at) : null;
+const tags = (post.post_tags ?? [])
+  .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
+  .filter(Boolean);
+const initialData = { ...post, tags };
 ---
 
 <BaseLayout title={`Edit: ${post.titulo}`}>
@@ -33,7 +47,7 @@ const updatedAt = post.updated_at ? formatDate(post.updated_at) : null;
 
     <PostEditor
       mode="edit"
-      initialData={post}
+      initialData={initialData}
       cancelHref={`/posts/${post.slug}`}
       client:load
     />

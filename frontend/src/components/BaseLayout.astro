@@ -2,6 +2,7 @@
 import Header from './Header.astro';
 import Footer from './Footer.astro';
 import SEO from './SEO.astro';
+import CookieConsent from './CookieConsent.tsx';
 import '../styles/global.css';
 
 interface Props {
@@ -53,5 +54,6 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
       <slot />
     </main>
     <Footer />
+    <CookieConsent client:load />
   </body>
 </html>

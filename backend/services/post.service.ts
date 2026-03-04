@@ -56,6 +56,11 @@ export class PostService {
         throw new DatabaseError("Failed to create post");
       }
 
+      const tagIds = this.normalizeTagIds(data.tag_ids);
+      if (tagIds.length > 0) {
+        await this.safeInsertPostTags(created.id, tagIds);
+      }
+
       return { success: true, data: created as PostRecord };
     } catch (error) {
       return {
@@ -107,6 +112,11 @@ export class PostService {
       if (error || !updated) {
         console.error("Supabase error:", error);
         throw new DatabaseError("Failed to update post");
+      }
+
+      if (Array.isArray(data.tag_ids)) {
+        const tagIds = this.normalizeTagIds(data.tag_ids);
+        await this.safeReplacePostTags(existing.id, tagIds);
       }
 
       return { success: true, data: updated as PostRecord };
@@ -331,6 +341,52 @@ export class PostService {
       body,
       imagen_url,
     };
+  }
+
+  private normalizeTagIds(tagIds?: string[] | null): string[] {
+    if (!Array.isArray(tagIds)) return [];
+    const unique = new Set<string>();
+    for (const tagId of tagIds) {
+      if (typeof tagId !== "string") continue;
+      const trimmed = tagId.trim();
+      if (!trimmed) continue;
+      if (!this.isValidUuid(trimmed)) continue;
+      unique.add(trimmed);
+    }
+    return Array.from(unique);
+  }
+
+  private isValidUuid(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      .test(value);
+  }
+
+  private async safeInsertPostTags(postId: string, tagIds: string[]) {
+    if (tagIds.length === 0) return;
+    const payload = tagIds.map((tagId) => ({
+      post_id: postId,
+      tag_id: tagId,
+    }));
+
+    const { error } = await supabase.from("post_tags").insert(payload);
+    if (error) {
+      console.error("Failed to insert post tags:", error);
+    }
+  }
+
+  private async safeReplacePostTags(postId: string, tagIds: string[]) {
+    const { error: deleteError } = await supabase
+      .from("post_tags")
+      .delete()
+      .eq("post_id", postId);
+
+    if (deleteError) {
+      console.error("Failed to clear post tags:", deleteError);
+      return;
+    }
+
+    if (tagIds.length === 0) return;
+    await this.safeInsertPostTags(postId, tagIds);
   }
 
   private async getPostBySlug(slug: string): Promise<PostRecord | null> {

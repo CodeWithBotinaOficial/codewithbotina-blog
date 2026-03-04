@@ -3,12 +3,14 @@ import { getApiUrl } from "../../lib/env";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 import MarkdownPreview from "./MarkdownPreview";
+import TagSelector, { TagOption } from "./TagSelector";
 
 interface EditorData {
   titulo: string;
   slug: string;
   body: string;
   imagen_url?: string | null;
+  tags?: TagOption[];
 }
 
 interface Props {
@@ -25,6 +27,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
   const [slug, setSlug] = useState(initialData?.slug ?? "");
   const [body, setBody] = useState(initialData?.body ?? "");
   const [imageUrl, setImageUrl] = useState(initialData?.imagen_url ?? "");
+  const [tags, setTags] = useState<TagOption[]>(initialData?.tags ?? []);
 
   const [previewMode, setPreviewMode] = useState(false);
   const [imageMode, setImageMode] = useState<"url" | "upload">("url");
@@ -178,6 +181,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
           slug: trimmedSlug,
           body: trimmedBody,
           imagen_url: finalImageUrl || null,
+          tag_ids: tags.map((tag) => tag.id),
         }),
       });
 
@@ -288,6 +292,13 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
         </div>
         {errors.body ? <p class="text-sm text-[var(--color-error)]">{errors.body}</p> : null}
       </div>
+
+      <TagSelector
+        title={title}
+        body={body}
+        selectedTags={tags}
+        onChange={setTags}
+      />
 
       <div class="space-y-3">
         <label class="text-sm font-semibold">Featured Image (Optional)</label>

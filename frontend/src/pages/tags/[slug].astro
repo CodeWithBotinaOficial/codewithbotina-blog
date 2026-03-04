@@ -1,0 +1,108 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../components/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { supabase } from '../../lib/supabase';
+import { getSiteUrl } from '../../lib/env';
+import type { Post } from '../../types/post';
+
+const { slug } = Astro.params;
+
+const { data: tag, error: tagError } = await supabase
+  .from('tags')
+  .select('id, name, slug, description')
+  .eq('slug', slug)
+  .single();
+
+if (tagError || !tag) {
+  return Astro.redirect('/404');
+}
+
+const { data: postTags, error: postTagsError } = await supabase
+  .from('post_tags')
+  .select(`
+    post:posts (
+      id,
+      titulo,
+      slug,
+      body,
+      imagen_url,
+      fecha
+    )
+  `)
+  .eq('tag_id', tag.id)
+  .order('created_at', { ascending: false });
+
+if (postTagsError) {
+  return Astro.redirect('/404');
+}
+
+const posts = (postTags ?? [])
+  .map((item: { post?: Post }) => item.post)
+  .filter(Boolean) as Post[];
+
+const siteUrl = getSiteUrl().replace(/\/$/, '');
+const canonicalUrl = `${siteUrl}/tags/${tag.slug}`;
+const pageTitle = `#${tag.name}`;
+const metaDescription = tag.description
+  ? `${tag.description} (${posts.length} publicaciones).`
+  : `Explora ${posts.length} publicaciones sobre ${tag.name} en CodeWithBotina.`;
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: pageTitle,
+  description: metaDescription,
+  url: canonicalUrl,
+  about: {
+    "@type": "Thing",
+    name: tag.name,
+  },
+  mainEntity: {
+    "@type": "ItemList",
+    numberOfItems: posts.length,
+    itemListElement: posts.map((post, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${siteUrl}/posts/${post.slug}`,
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={metaDescription}
+  canonical={canonicalUrl}
+>
+  <Fragment slot="head">
+    <script type="application/ld+json">
+      {JSON.stringify(structuredData)}
+    </script>
+  </Fragment>
+
+  <section class="container-responsive py-12">
+    <div class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2">#{tag.name}</h1>
+      {tag.description && (
+        <p class="text-[var(--color-text-secondary)] max-w-2xl">{tag.description}</p>
+      )}
+      <p class="text-sm text-[var(--color-text-tertiary)] mt-2">
+        {posts.length} {posts.length === 1 ? 'publicación' : 'publicaciones'}
+      </p>
+    </div>
+
+    {posts.length === 0 ? (
+      <div class="text-center py-12 text-[var(--color-text-secondary)]">
+        No hay publicaciones con esta etiqueta todavía.
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {posts.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+    )}
+  </section>
+</BaseLayout>
