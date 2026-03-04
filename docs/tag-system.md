@@ -130,6 +130,7 @@ Request body:
 - JSON-LD `keywords` populated with tag names.
 - Tag landing pages at `/tags/[slug]`.
 - Sitemap includes tag pages.
+- Post pages display tag chips that link to `/tags/{slug}`.
 
 ## Best Practices
 

@@ -94,6 +94,7 @@ Current configuration allows crawling and points to `/sitemap.xml`.
 - Tags are stored in a many-to-many schema (`tags`, `post_tags`).
 - Each tag has a landing page at `/tags/{slug}` with structured data.
 - Tags are included in post meta keywords and Open Graph `article:tag`.
+- Post pages render tag chips that link to `/tags/{slug}` for internal linking.
 
 ## 9. Indexing Workflow
 
@@ -117,4 +118,3 @@ Recommended checks:
 - Posts: `frontend/src/pages/posts/[slug].astro`
 - Tag pages: `frontend/src/pages/tags/[slug].astro`
 - Robots: `frontend/public/robots.txt`
-
