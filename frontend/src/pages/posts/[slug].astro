@@ -35,18 +35,13 @@ const joinedResult = await supabase
   .single();
 
 if (joinedResult.error) {
-  const message = String(joinedResult.error?.message || '');
-  if (message.includes('post_tags') || message.includes('tags')) {
-    const fallback = await supabase
-      .from('posts')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-    post = fallback.data;
-    postError = fallback.error;
-  } else {
-    postError = joinedResult.error;
-  }
+  const fallback = await supabase
+    .from('posts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+  post = fallback.data;
+  postError = fallback.error;
 } else {
   post = joinedResult.data;
 }
