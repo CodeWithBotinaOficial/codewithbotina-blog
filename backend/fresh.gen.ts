@@ -19,6 +19,7 @@ import * as $api_cookies_consent from "./routes/api/cookies/consent.ts";
 import * as $api_health from "./routes/api/health.ts";
 import * as $api_posts_slug_delete from "./routes/api/posts/[slug]/delete.ts";
 import * as $api_posts_slug_exists from "./routes/api/posts/[slug]/exists.ts";
+import * as $api_posts_slug_tags from "./routes/api/posts/[slug]/tags.ts";
 import * as $api_posts_slug_update from "./routes/api/posts/[slug]/update.ts";
 import * as $api_posts_create from "./routes/api/posts/create.ts";
 import * as $api_posts_test from "./routes/api/posts/test.ts";
@@ -57,6 +58,7 @@ const manifest = {
     "./routes/api/health.ts": $api_health,
     "./routes/api/posts/[slug]/delete.ts": $api_posts_slug_delete,
     "./routes/api/posts/[slug]/exists.ts": $api_posts_slug_exists,
+    "./routes/api/posts/[slug]/tags.ts": $api_posts_slug_tags,
     "./routes/api/posts/[slug]/update.ts": $api_posts_slug_update,
     "./routes/api/posts/create.ts": $api_posts_create,
     "./routes/api/posts/test.ts": $api_posts_test,

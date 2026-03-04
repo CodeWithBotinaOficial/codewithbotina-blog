@@ -131,6 +131,7 @@ Request body:
 - Tag landing pages at `/tags/[slug]`.
 - Sitemap includes tag pages.
 - Post pages display tag chips that link to `/tags/{slug}`.
+- Post pages fall back to the backend tags API if public tag reads are blocked.
 
 ## Best Practices
 

@@ -95,6 +95,7 @@ Current configuration allows crawling and points to `/sitemap.xml`.
 - Each tag has a landing page at `/tags/{slug}` with structured data.
 - Tags are included in post meta keywords and Open Graph `article:tag`.
 - Post pages render tag chips that link to `/tags/{slug}` for internal linking.
+- If public tag reads are blocked by RLS, post pages use the backend tags API as a fallback.
 
 ## 9. Indexing Workflow
 
