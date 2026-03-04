@@ -8,7 +8,10 @@ import { formatDate } from '../../../lib/utils';
 
 const { slug } = Astro.params;
 
-const { data: post, error } = await supabase
+let post: any = null;
+let postError: any = null;
+
+const joinedResult = await supabase
   .from('posts')
   .select(`
     *,
@@ -24,15 +27,29 @@ const { data: post, error } = await supabase
   .eq('slug', slug)
   .single();
 
-if (error || !post) {
+if (joinedResult.error) {
+  const fallback = await supabase
+    .from('posts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+  post = fallback.data;
+  postError = fallback.error;
+} else {
+  post = joinedResult.data;
+}
+
+if (postError || !post) {
   return Astro.redirect('/404');
 }
 
 const createdAt = post.fecha ? formatDate(post.fecha) : 'Unknown';
 const updatedAt = post.updated_at ? formatDate(post.updated_at) : null;
-const tags = (post.post_tags ?? [])
-  .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
-  .filter(Boolean);
+const tags = Array.isArray(post?.post_tags)
+  ? (post.post_tags
+      .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
+      .filter(Boolean))
+  : [];
 const initialData = { ...post, tags };
 ---
 
