@@ -42,7 +42,11 @@ export const handler: Handlers = {
         return response;
       }
 
-      const { data: postTags, error: postTagsError } = await supabase
+      let postTags:
+        | Array<{ post?: unknown }>
+        | null = null;
+
+      const withUpdated = await supabase
         .from("post_tags")
         .select(`
           post:posts (
@@ -58,10 +62,29 @@ export const handler: Handlers = {
         .eq("tag_id", tag.id)
         .order("created_at", { ascending: false });
 
-      if (postTagsError) {
-        const response = errorResponse("Failed to fetch tag posts", 500);
-        headers.forEach((value, key) => response.headers.set(key, value));
-        return response;
+      if (withUpdated.error) {
+        const message = String(withUpdated.error?.message || "");
+        if (message.includes("updated_at")) {
+          const withoutUpdated = await supabase
+            .from("post_tags")
+            .select(`
+              post:posts (
+                id,
+                titulo,
+                slug,
+                body,
+                imagen_url,
+                fecha
+              )
+            `)
+            .eq("tag_id", tag.id)
+            .order("created_at", { ascending: false });
+          postTags = withoutUpdated.data ?? [];
+        } else {
+          postTags = [];
+        }
+      } else {
+        postTags = withUpdated.data ?? [];
       }
 
       const posts = (postTags ?? [])
