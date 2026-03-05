@@ -1,0 +1,58 @@
+import { useEffect } from "preact/hooks";
+import type { ComponentChildren } from "preact";
+import { X } from "lucide-react";
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: ComponentChildren;
+  footer?: ComponentChildren;
+}
+
+export default function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = isOpen ? "hidden" : "unset";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+      data-modal-backdrop
+    >
+      <div
+        class="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
+          <h2 class="text-lg font-semibold text-[var(--color-text-primary)]">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            class="rounded-full p-2 text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-subtle)]"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div class="px-5 py-4 text-sm text-[var(--color-text-secondary)]">
+          {children}
+        </div>
+        {footer ? (
+          <div class="flex flex-wrap justify-end gap-3 border-t border-[var(--color-border)] px-5 py-4">
+            {footer}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}

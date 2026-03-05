@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { getApiUrl } from "../../lib/env";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
+import ConfirmDialog from "../ui/ConfirmDialog";
+import Toast from "../ui/Toast";
+import { useToast } from "../../hooks/useToast";
 
 interface Props {
   slug: string;
@@ -21,6 +25,7 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
     dislikes_count: number;
   } | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -78,7 +83,7 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
       setShowDialog(true);
     } catch (error) {
       console.error(error);
-      alert("Failed to load delete confirmation. Please try again.");
+      showToast("Failed to load delete confirmation. Please try again.", "error");
     } finally {
       setIsDeleting(false);
     }
@@ -106,11 +111,13 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
         throw new Error("Failed to delete post");
       }
 
-      alert("Post deleted successfully");
-      window.location.href = "/";
+      showToast("Post deleted successfully.", "success");
+      window.setTimeout(() => {
+        window.location.href = "/";
+      }, 600);
     } catch (error) {
       console.error(error);
-      alert("Failed to delete post. Please try again.");
+      showToast("Failed to delete post. Please try again.", "error");
     } finally {
       setIsDeleting(false);
       setShowDialog(false);
@@ -121,74 +128,53 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
     <div class="relative ml-auto" ref={menuRef}>
       <button
         type="button"
-        class="rounded-full border border-[var(--color-border)] bg-white px-3 py-2 text-xl shadow-sm transition hover:bg-[var(--color-bg-subtle)]"
+        class="rounded-full border border-[var(--color-border)] bg-white p-2 shadow-sm transition hover:bg-[var(--color-bg-subtle)]"
         aria-label="Admin actions"
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        ⋮
+        <MoreVertical className="h-5 w-5 text-[var(--color-text-secondary)]" />
       </button>
 
       {isOpen ? (
         <div class="absolute right-0 mt-2 w-44 rounded-xl border border-[var(--color-border)] bg-white shadow-lg">
           <a
             href={`/admin/edit-post/${slug}`}
-            class="block px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)]"
+            class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)]"
           >
-            ✏️ Edit Post
+            <Pencil className="h-4 w-4" />
+            Edit Post
           </a>
           <button
             type="button"
-            class="block w-full px-4 py-2 text-left text-sm text-[var(--color-error)] hover:bg-[var(--color-bg-subtle)]"
+            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[var(--color-error)] hover:bg-[var(--color-bg-subtle)]"
             onClick={handleDeleteClick}
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting..." : "🗑️ Delete Post"}
+            <Trash2 className="h-4 w-4" />
+            {isDeleting ? "Deleting..." : "Delete Post"}
           </button>
         </div>
       ) : null}
 
-      {showDialog && deleteInfo ? (
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div class="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-            <h2 class="text-xl font-bold text-[var(--color-error)]">
-              ⚠️ Delete Post?
-            </h2>
-            <p class="mt-4 text-sm text-[var(--color-text-secondary)]">
-              This action cannot be undone. Deleting this post will permanently remove:
-            </p>
-            <ul class="mt-3 space-y-1 text-sm text-[var(--color-text-secondary)]">
-              <li>- The post content</li>
-              <li>- All comments ({deleteInfo.comments_count} comments)</li>
-              <li>
-                - All reactions ({deleteInfo.likes_count} likes,{" "}
-                {deleteInfo.dislikes_count} dislikes)
-              </li>
-              <li>- Associated images</li>
-            </ul>
-            <p class="mt-4 text-sm font-semibold">
-              Are you sure you want to delete "{titulo}"?
-            </p>
-            <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                class="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] hover:border-[var(--color-text-primary)]"
-                onClick={() => setShowDialog(false)}
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                class="rounded-lg bg-[var(--color-error)] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b71c1c]"
-                onClick={confirmDelete}
-                disabled={isDeleting}
-              >
-                {isDeleting ? "Deleting..." : "Delete Permanently"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ConfirmDialog
+        isOpen={showDialog}
+        onClose={() => setShowDialog(false)}
+        onConfirm={confirmDelete}
+        title="Delete post?"
+        message={`This will permanently remove \"${titulo}\" and delete ${deleteInfo?.comments_count ?? 0} comments, ${deleteInfo?.likes_count ?? 0} likes, and ${deleteInfo?.dislikes_count ?? 0} dislikes.`}
+        confirmText={isDeleting ? "Deleting..." : "Delete"}
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
     </div>
   );
 }

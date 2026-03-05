@@ -4,6 +4,9 @@ import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 import MarkdownPreview from "./MarkdownPreview";
 import TagSelector, { TagOption } from "./TagSelector";
+import ConfirmDialog from "../ui/ConfirmDialog";
+import Toast from "../ui/Toast";
+import { useToast } from "../../hooks/useToast";
 
 interface EditorData {
   titulo: string;
@@ -34,9 +37,11 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageTitle, setImageTitle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [slugTouched, setSlugTouched] = useState(false);
   const [slugChecking, setSlugChecking] = useState(false);
+  const { toasts, showToast, removeToast } = useToast();
 
   const initialSlug = useMemo(() => initialData?.slug ?? "", [initialData?.slug]);
 
@@ -145,14 +150,16 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
       return;
     }
 
-    const confirmed = window.confirm(
-      mode === "create"
-        ? "Are you sure you want to publish this post? Please verify all content is correct."
-        : "Are you sure you want to update this post?",
-    );
+    setShowConfirm(true);
+  };
 
-    if (!confirmed) return;
+  const submitPost = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
+
+    const trimmedTitle = title.trim();
+    const trimmedSlug = slug.trim();
+    const trimmedBody = body.trim();
 
     try {
       const { data } = await supabase.auth.getSession();
@@ -191,10 +198,13 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
 
       const payload = await response.json();
       const nextSlug = payload?.data?.slug ?? trimmedSlug;
-      window.location.href = `/posts/${nextSlug}`;
+      showToast("Post saved successfully.", "success");
+      window.setTimeout(() => {
+        window.location.href = `/posts/${nextSlug}`;
+      }, 500);
     } catch (error) {
       console.error(error);
-      alert("Failed to save post. Please try again.");
+      showToast("Failed to save post. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -384,6 +394,30 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
           Cancel
         </a>
       </div>
+
+      <ConfirmDialog
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={submitPost}
+        title={mode === "create" ? "Publish post" : "Update post"}
+        message={
+          mode === "create"
+            ? "Are you sure you want to publish this post? Please verify all content is correct."
+            : "Are you sure you want to update this post?"
+        }
+        confirmText={mode === "create" ? "Publish" : "Update"}
+        cancelText="Cancel"
+        variant="info"
+      />
+
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
     </form>
   );
 }

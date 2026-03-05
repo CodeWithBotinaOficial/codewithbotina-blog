@@ -1,3 +1,4 @@
+import { PlusCircle } from "lucide-react";
 import { useSession } from "../../hooks/useSession";
 
 export default function AdminCreatePostButton() {
@@ -11,7 +12,8 @@ export default function AdminCreatePostButton() {
         href="/admin/create-post"
         class="inline-flex items-center gap-2 rounded-lg bg-[var(--color-accent-primary)] px-6 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-accent-hover)]"
       >
-        ➕ Create New Post
+        <PlusCircle className="h-5 w-5" />
+        Create New Post
       </a>
     </div>
   );
