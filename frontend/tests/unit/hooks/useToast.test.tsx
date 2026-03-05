@@ -38,12 +38,13 @@ describe("useToast hook", () => {
     document.body.removeChild(container);
   });
 
-  it("adds a toast when showToast is called", () => {
+  it("adds a toast when showToast is called", async () => {
     render(<ToastHarness />, container);
 
     const addButton = container.querySelector("#add-toast") as HTMLButtonElement;
     addButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(container.querySelector("#toast-count")?.textContent).toBe("1");
     expect(container.querySelector("#toast-type")?.textContent).toBe("success");
     expect(container.querySelector("#toast-message")?.textContent).toBe("Test message");

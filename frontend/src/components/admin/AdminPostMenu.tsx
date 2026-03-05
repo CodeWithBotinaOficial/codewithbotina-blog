@@ -161,7 +161,7 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
         onClose={() => setShowDialog(false)}
         onConfirm={confirmDelete}
         title="Delete post?"
-        message={`This will permanently remove \"${titulo}\" and delete ${deleteInfo?.comments_count ?? 0} comments, ${deleteInfo?.likes_count ?? 0} likes, and ${deleteInfo?.dislikes_count ?? 0} dislikes.`}
+        message={`This will permanently remove "${titulo}" and delete ${deleteInfo?.comments_count ?? 0} comments, ${deleteInfo?.likes_count ?? 0} likes, and ${deleteInfo?.dislikes_count ?? 0} dislikes.`}
         confirmText={isDeleting ? "Deleting..." : "Delete"}
         cancelText="Cancel"
         variant="danger"

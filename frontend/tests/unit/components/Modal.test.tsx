@@ -66,7 +66,7 @@ describe("Modal component", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("locks body scroll when open", () => {
+  it("locks body scroll when open", async () => {
     render(
       <Modal isOpen={true} onClose={() => {}} title="Test Modal">
         <p>Modal content</p>
@@ -74,6 +74,7 @@ describe("Modal component", () => {
       container,
     );
 
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(document.body.style.overflow).toBe("hidden");
   });
 });

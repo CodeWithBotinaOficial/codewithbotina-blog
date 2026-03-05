@@ -58,16 +58,6 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
     setSlug(generateSlug(title));
   }, [title, mode, slugTouched]);
 
-  if (sessionLoading) {
-    return (
-      <div class="py-12 text-center text-[var(--color-text-secondary)]">
-        Checking admin access...
-      </div>
-    );
-  }
-
-  if (!isAdmin) return null;
-
   useEffect(() => {
     const trimmed = slug.trim();
     if (!trimmed) return;
@@ -93,6 +83,16 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
 
     return () => clearTimeout(timer);
   }, [slug, initialSlug]);
+
+  if (sessionLoading) {
+    return (
+      <div class="py-12 text-center text-[var(--color-text-secondary)]">
+        Checking admin access...
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
