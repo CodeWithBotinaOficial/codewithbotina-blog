@@ -1,6 +1,6 @@
 import { useLayoutEffect } from "preact/hooks";
 import type { ComponentChildren } from "preact";
-import { X } from "lucide-react";
+import { X } from "lucide-preact";
 
 interface ModalProps {
   isOpen: boolean;

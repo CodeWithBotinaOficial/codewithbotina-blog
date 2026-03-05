@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, X } from "lucide-preact";
 
 export type ToastType = "success" | "error" | "info";
 

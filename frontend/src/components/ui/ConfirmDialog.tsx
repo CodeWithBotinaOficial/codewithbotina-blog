@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-preact";
 import Modal from "./Modal";
 
 interface ConfirmDialogProps {

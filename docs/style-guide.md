@@ -86,6 +86,14 @@ Danger:
 />
 ```
 
+### Icons
+
+We use `lucide-preact` for icons across the UI.
+
+```tsx
+import { Pencil, Trash2 } from "lucide-preact";
+```
+
 ## Accessibility
 
 - All interactive elements must be keyboard accessible.

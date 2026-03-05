@@ -1,4 +1,4 @@
-import { PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
 
 export default function AdminCreatePostButton() {

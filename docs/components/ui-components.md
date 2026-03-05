@@ -107,7 +107,12 @@ function MyComponent() {
 
 ## Icon Usage
 
-We use **Lucide** for all icons.
+We use **Lucide Preact** for all icons.
+
+### Installation
+```bash
+npm install lucide-preact
+```
 
 ### Recommended icons
 - Admin actions: `Pencil`, `Trash2`, `PlusCircle`, `MoreVertical`.
