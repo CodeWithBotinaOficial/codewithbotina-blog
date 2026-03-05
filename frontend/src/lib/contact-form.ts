@@ -54,7 +54,7 @@ export function handleContactForm(form: HTMLFormElement, apiUrl: string) {
       form.reset();
       charCount.textContent = '0';
 
-    } catch (error) {
+  } catch (_error) {
       statusDiv?.classList.remove('hidden', 'bg-green-50', 'text-green-800');
       statusDiv?.classList.add('bg-red-50', 'text-red-800');
       errorIcon?.classList.remove('hidden');
