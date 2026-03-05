@@ -1,6 +1,13 @@
 ---
-import BaseLayout from '../components/BaseLayout.astro';
-import { ArrowRight } from 'lucide-astro';
+import BaseLayout from "../components/BaseLayout.astro";
+import { ArrowRight } from "lucide-astro";
+import { marked } from "marked";
+import fs from "node:fs";
+import path from "node:path";
+
+const aboutPath = path.join(process.cwd(), "..", "content", "about.md");
+const markdown = fs.readFileSync(aboutPath, "utf-8");
+const html = marked.parse(markdown);
 ---
 
 <BaseLayout 
@@ -27,30 +34,7 @@ import { ArrowRight } from 'lucide-astro';
   <!-- Content -->
   <section class="py-16">
     <div class="container-responsive max-w-3xl">
-      <div class="prose prose-lg mb-16">
-        <h2>Who am I?</h2>
-        <p>
-          I'm <strong>Diego Alejandro Botina</strong>, a software developer passionate about web technologies. 
-          This blog is my space to share insights, tutorials, and lessons learned from real-world development.
-        </p>
-        <p>
-          I believe in learning by teaching, and I hope these articles help others on their coding journey. 
-          I work with JavaScript, TypeScript, Deno, Astro, React, and modern web frameworks to build 
-          high-performance applications.
-        </p>
-
-        <h2>My Mission</h2>
-        <p>
-          My goal is to create clear, practical content that helps developers solve real problems. 
-          I focus on:
-        </p>
-        <ul>
-          <li>Web Development & Architecture</li>
-          <li>API Design & Best Practices</li>
-          <li>Database Optimization</li>
-          <li>Performance & Scalability</li>
-        </ul>
-      </div>
+      <article class="prose prose-lg mb-16" set:html={html} />
 
       <!-- Connect -->
       <div class="bg-[var(--color-bg-subtle)] rounded-2xl p-8 md:p-12 text-center">
