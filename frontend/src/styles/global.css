@@ -25,6 +25,10 @@
     line-height: 1.7;
   }
 
+  body {
+    font-family: var(--font-sans);
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -109,6 +113,7 @@
   /* Markdown Content Styles */
   .prose {
     @apply text-[var(--color-text-secondary)];
+    font-family: var(--font-sans);
   }
 
   .prose h1 {
