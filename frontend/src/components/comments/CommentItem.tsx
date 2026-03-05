@@ -6,7 +6,7 @@ interface Props {
   currentUserId: string | null;
   isAdmin: boolean;
   onDelete: () => void;
-  onUpdate: (content: string) => Promise<Comment | null>;
+  onUpdate: (_content: string) => Promise<Comment | null>;
   onTogglePin: () => void;
 }
 

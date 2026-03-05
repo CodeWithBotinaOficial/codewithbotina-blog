@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { handleSearch } from '../../../src/lib/search';
 import { JSDOM } from 'jsdom';
 

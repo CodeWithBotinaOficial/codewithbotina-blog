@@ -1,4 +1,4 @@
-import { useEffect } from "preact/hooks";
+import { useLayoutEffect } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 import { X } from "lucide-react";
 
@@ -11,7 +11,7 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === "undefined") return;
     document.body.style.overflow = isOpen ? "hidden" : "unset";
     return () => {

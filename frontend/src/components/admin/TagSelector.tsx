@@ -13,7 +13,7 @@ interface Props {
   title: string;
   body: string;
   selectedTags: TagOption[];
-  onChange: (tags: TagOption[]) => void;
+  onChange: (_tags: TagOption[]) => void;
 }
 
 const API_URL = getApiUrl();

@@ -37,7 +37,7 @@ function getSessionId(): string {
 
 function applyConsent(preferences: CookiePreferences) {
   if (typeof window === "undefined") return;
-  const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+  const gtag = (window as unknown as { gtag?: (..._args: unknown[]) => void }).gtag;
   if (typeof gtag !== "function") return;
 
   gtag("consent", "update", {
