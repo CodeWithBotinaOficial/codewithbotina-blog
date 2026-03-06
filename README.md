@@ -1,6 +1,6 @@
 # CodeWithBotina Blog
 
-A blazing-fast static blog built with Astro, Fresh (Deno), Supabase, and deployed on Cloudflare Pages.
+A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and deployed on Cloudflare Pages.
 
 ## ✅ Features
 
@@ -8,11 +8,15 @@ A blazing-fast static blog built with Astro, Fresh (Deno), Supabase, and deploye
 - ✅ Comment system with admin pinning
 - ✅ Like/dislike reactions
 - ✅ **Admin post management (create, edit, delete)**
+- ✅ **Localized admin editor (English/Spanish)**
+- ✅ **AI-powered tag suggestions + tag autocomplete**
+- ✅ **Tag landing pages + tag-based sitemap entries**
+- ✅ **Cookie consent (GDPR/CCPA) with consent tracking**
 - ✅ **WYSIWYG Markdown editor with live preview**
 - ✅ **Image upload to Supabase Storage**
 - ✅ Hybrid rendering (dynamic content without rebuilds)
-- ✅ SEO optimized
-- ✅ Bilingual i18n (English/Spanish) with language detection and hreflang SEO
+- ✅ SEO optimized (JSON-LD, Open Graph, keywords, RSS, sitemaps)
+- ✅ Bilingual i18n (English/Spanish) with language detection + hreflang
 - ✅ Fully responsive design
 
 ## 🚀 Tech Stack
@@ -64,13 +68,15 @@ cd codewithbotina-blog
 ```bash
 cd frontend
 npm install
-3. Configure environment variables:
 ```
 
+3. Configure environment variables:
 ```bash
 # frontend/.env
 PUBLIC_SUPABASE_URL=your_supabase_url
 PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+PUBLIC_API_URL=http://localhost:8000
+PUBLIC_SITE_URL=http://localhost:4321
 
 # backend/.env
 SUPABASE_URL=your_supabase_url
@@ -78,6 +84,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 RESEND_API_KEY=your_resend_key
 RESEND_FROM_EMAIL=noreply@codewithbotina.com
 RESEND_TO_EMAIL=support@codewithbotina.com
+ALLOWED_ORIGIN=http://localhost:4321
 ```
 
 4. Run development servers:

@@ -19,10 +19,13 @@
 - 🔍 Real-time client-side search
 - 📝 Markdown-based content with syntax highlighting
 - 📧 Contact form with backend API integration
-- 🔐 SEO optimized (meta tags, Open Graph, Schema.org)
+- 🏷️ Intelligent tag system with tag pages
+- 🍪 Cookie consent banner (GDPR/CCPA)
+- 🌐 Bilingual i18n (English/Spanish) with language detection
+- 🔐 SEO optimized (meta tags, Open Graph, Schema.org, hreflang)
+- 🧭 Language-specific RSS feeds and sitemaps
 - 📱 Fully responsive and accessible (WCAG AA)
 - 🌍 Edge-deployed on Cloudflare Pages (global CDN)
-- 📊 RSS feed for subscriptions
 - ⚡ Lighthouse score > 95 in all categories
 
 ---
@@ -36,14 +39,14 @@ Administrators can create, edit, and delete posts directly from the frontend.
 **Creating Posts:**
 1. Navigate to homepage (must be logged in as admin)
 2. Click "Create New Post" button
-3. Fill in title, content (Markdown), and optional image
+3. Fill in title, content (Markdown), language, tags, and optional image
 4. Preview content before publishing
 5. Click "Create Post" and confirm
 
 **Editing Posts:**
 1. Navigate to post detail page (must be admin)
 2. Click three-dot menu → "Edit Post"
-3. Modify content
+3. Modify content, language, tags, or image
 4. Click "Update Post" and confirm
 
 **Deleting Posts:**
@@ -58,6 +61,21 @@ When creating/editing posts, you can:
 - Upload image from device (auto-optimized to WebP)
 
 Images are stored in Supabase Storage bucket: `blog-images`
+
+### Tags & SEO
+
+- Add 3–7 tags per post for better discoverability
+- Tag landing pages at `/{lang}/tags/{slug}`
+- Tags are injected into meta keywords and JSON-LD
+
+### Admin Language Support
+
+Admin editor supports English and Spanish routes:
+
+- `/en/admin/create-post`
+- `/es/admin/create-post`
+- `/en/admin/edit-post/[slug]`
+- `/es/admin/edit-post/[slug]`
 
 ---
 
@@ -78,12 +96,18 @@ Images are stored in Supabase Storage bucket: `blog-images`
 
 ```
 blog.codewithbotina.com
-├── / (Home - Post listing with search)
-├── /posts/[slug] (Post detail with Markdown rendering)
-├── /contact (Contact form)
-├── /about (About the author)
-├── /404 (Custom error page)
-└── /rss.xml (RSS feed)
+├── /en/ (English home)
+├── /es/ (Spanish home)
+├── /{lang}/posts/[slug] (Post detail with Markdown rendering)
+├── /{lang}/tags (All tags)
+├── /{lang}/tags/[slug] (Tag landing page)
+├── /{lang}/contact (Contact form)
+├── /{lang}/about (About the author)
+├── /{lang}/admin/create-post (Admin)
+├── /{lang}/admin/edit-post/[slug] (Admin)
+├── /{lang}/rss.xml (Language RSS feed)
+├── /{lang}/sitemap.xml (Language sitemap)
+└── /sitemap.xml (Sitemap index)
 ```
 
 ---

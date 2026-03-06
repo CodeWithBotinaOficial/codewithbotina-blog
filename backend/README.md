@@ -16,6 +16,13 @@
 
 - 📬 Contact form submission handling with validation
 - 📧 Email notifications via Resend
+- 📝 Post creation, update, delete, and slug validation
+- 🏷️ Tag system (suggest, autocomplete, create, tag → posts)
+- 💬 Comments with admin pinning and moderation
+- 👍👎 Reactions (like/dislike) with user tracking
+- 🔐 Auth endpoints (Google OAuth, session refresh, sign-out)
+- 🍪 Cookie consent tracking endpoint
+- 🖼️ Image upload endpoint for Supabase Storage
 - 💾 PostgreSQL data persistence via Supabase
 - 🔒 CORS protection and origin validation
 - ⏱️ Rate limiting to prevent abuse
@@ -88,8 +95,14 @@ backend/
 │   ├── _app.tsx            # Fresh app wrapper
 │   ├── _404.tsx            # 404 error page
 │   └── api/
-│       ├── contact.ts      # POST /api/contact endpoint
-│       └── health.ts       # GET /api/health endpoint
+│       ├── auth/                  # Google OAuth, session, signout
+│       ├── posts/                 # create/update/delete/exists/tags
+│       ├── tags/                  # suggest/autocomplete/create
+│       ├── comments/              # create/update/delete/pin
+│       ├── reactions/             # like/dislike counters
+│       ├── cookies/consent.ts     # consent tracking
+│       ├── contact.ts             # POST /api/contact endpoint
+│       └── health.ts              # GET /api/health endpoint
 │
 ├── islands/                 # Interactive Preact components
 │   ├── TryItOut.tsx        # API testing form (documentation page)
@@ -245,6 +258,23 @@ Origin: https://blog.codewithbotina.com
 }
 ```
 
+### Additional Endpoints (Summary)
+
+- **Auth:** `GET /api/auth/google`, `GET /api/auth/callback`, `GET /api/auth/me`,
+  `POST /api/auth/refresh`, `POST /api/auth/signout`
+- **Posts:** `POST /api/posts/create`, `PUT /api/posts/:slug/update`,
+  `DELETE /api/posts/:slug/delete`, `GET /api/posts/:slug/exists`,
+  `POST /api/posts/upload-image`
+- **Tags:** `GET /api/tags`, `GET /api/tags/:slug`, `POST /api/tags/suggest`,
+  `GET /api/tags/autocomplete`, `POST /api/tags/create`,
+  `GET /api/posts/:slug/tags`
+- **Comments:** `POST /api/comments`, `PUT /api/comments/:commentId`,
+  `DELETE /api/comments/:commentId`, `POST /api/comments/:commentId/pin`,
+  `POST /api/comments/:commentId/unpin`
+- **Reactions:** `GET /api/reactions/:postId`, `POST /api/reactions/:postId/like`,
+  `POST /api/reactions/:postId/dislike`, `GET /api/reactions/user/:postId`
+- **Cookies:** `POST /api/cookies/consent`
+
 **Example (cURL):**
 
 ```bash
@@ -317,6 +347,12 @@ All endpoints require a valid access token and the user must exist in the
 - `DELETE /api/posts/:slug/delete` - Delete a post (requires `confirm=true`)
 - `GET /api/posts/:slug/exists` - Check slug uniqueness
 - `POST /api/posts/upload-image` - Upload featured image (multipart/form-data)
+- `GET /api/posts/:slug/tags` - Fetch tags for a post
+
+**Payload notes:**
+- `language` is required for bilingual posts (`en`/`es`).
+- `tag_ids` accepts an array of tag UUIDs and drives the many-to-many
+  `post_tags` junction table.
 
 **Delete confirmation flow:**
 1. Call `DELETE /api/posts/:slug/delete` without `confirm=true` to retrieve
