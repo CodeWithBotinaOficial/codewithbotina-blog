@@ -15,8 +15,11 @@ export interface PostEditorLabels {
   bodyPlaceholder: string;
   characterCount: string;
   featuredImageLabel: string;
+  imageUrlLabel: string;
   imageUrlOption: string;
   imageUploadOption: string;
+  imageFileLabel: string;
+  imageTitleLabel: string;
   imageUrlPlaceholder: string;
   imageTitlePlaceholder: string;
   imageHelp: string;
@@ -80,8 +83,11 @@ export function getPostEditorLabels(language: SupportedLanguage): PostEditorLabe
     bodyPlaceholder: t(language, "editor.bodyPlaceholder", "admin"),
     characterCount: t(language, "editor.characterCount", "admin"),
     featuredImageLabel: t(language, "editor.featuredImageLabel", "admin"),
+    imageUrlLabel: t(language, "editor.imageUrlLabel", "admin"),
     imageUrlOption: t(language, "editor.imageUrlOption", "admin"),
     imageUploadOption: t(language, "editor.imageUploadOption", "admin"),
+    imageFileLabel: t(language, "editor.imageFileLabel", "admin"),
+    imageTitleLabel: t(language, "editor.imageTitleLabel", "admin"),
     imageUrlPlaceholder: t(language, "editor.imageUrlPlaceholder", "admin"),
     imageTitlePlaceholder: t(language, "editor.imageTitlePlaceholder", "admin"),
     imageHelp: t(language, "editor.imageHelp", "admin"),

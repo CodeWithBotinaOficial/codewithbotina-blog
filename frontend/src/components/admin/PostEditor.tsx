@@ -46,8 +46,11 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     bodyPlaceholder: "Write your post content in Markdown...",
     characterCount: "{{count}} characters (min {{min}}, max {{max}})",
     featuredImageLabel: "Featured image (optional)",
+    imageUrlLabel: "Image URL",
     imageUrlOption: "External URL",
     imageUploadOption: "Upload image",
+    imageFileLabel: "Image file",
+    imageTitleLabel: "Image title",
     imageUrlPlaceholder: "https://example.com/image.jpg",
     imageTitlePlaceholder: "Image title (for alt text)",
     imageHelp: "Max 5MB, JPG/PNG/WebP only. Uploads are optimized to WebP.",
@@ -292,9 +295,11 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   return (
     <form onSubmit={handleSubmit} class="space-y-8">
       <div class="space-y-2">
-        <label class="text-sm font-semibold">{copy.titleLabel} *</label>
+        <label class="text-sm font-semibold" htmlFor="post-title">{copy.titleLabel} *</label>
         <input
           type="text"
+          id="post-title"
+          name="title"
           value={title}
           onInput={(event) => setTitle((event.currentTarget as HTMLInputElement).value)}
           placeholder={copy.titlePlaceholder}
@@ -306,9 +311,11 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-semibold">{copy.slugLabel} *</label>
+        <label class="text-sm font-semibold" htmlFor="post-slug">{copy.slugLabel} *</label>
         <input
           type="text"
+          id="post-slug"
+          name="slug"
           value={slug}
           onInput={(event) => handleSlugInput((event.currentTarget as HTMLInputElement).value)}
           onBlur={handleSlugBlur}
@@ -324,8 +331,10 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-semibold">{copy.languageLabel} *</label>
+        <label class="text-sm font-semibold" htmlFor="post-language">{copy.languageLabel} *</label>
         <select
+          id="post-language"
+          name="language"
           value={language}
           onChange={(event) => setLanguage((event.currentTarget as HTMLSelectElement).value)}
           class="input-field"
@@ -341,7 +350,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
       <div class="space-y-2">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <label class="text-sm font-semibold">{copy.contentLabel} *</label>
+          <label class="text-sm font-semibold" htmlFor="post-body">{copy.contentLabel} *</label>
           <div class="flex gap-2">
             <button
               type="button"
@@ -376,6 +385,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
             rows={18}
             maxLength={50000}
             required
+            id="post-body"
+            name="body"
             class="input-field min-h-[360px]"
           />
         ) : (
@@ -403,6 +414,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
             <input
               type="radio"
               name="imageMode"
+              id="image-mode-url"
               checked={imageMode === "url"}
               onChange={() => setImageMode("url")}
             />
@@ -412,6 +424,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
             <input
               type="radio"
               name="imageMode"
+              id="image-mode-upload"
               checked={imageMode === "upload"}
               onChange={() => setImageMode("upload")}
             />
@@ -421,8 +434,13 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
         {imageMode === "url" ? (
           <div class="space-y-2">
+            <label class="text-sm font-semibold" htmlFor="post-image-url">
+              {copy.imageUrlLabel}
+            </label>
             <input
               type="url"
+              id="post-image-url"
+              name="imageUrl"
               value={imageUrl}
               onInput={(event) => setImageUrl((event.currentTarget as HTMLInputElement).value)}
               placeholder={copy.imageUrlPlaceholder}
@@ -434,15 +452,25 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
           </div>
         ) : (
           <div class="space-y-2">
+            <label class="text-sm font-semibold" htmlFor="post-image-file">
+              {copy.imageFileLabel}
+            </label>
             <input
               type="file"
+              id="post-image-file"
+              name="imageFile"
               accept="image/jpeg,image/png,image/webp"
               onChange={(event) =>
                 setImageFile((event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
               class="input-field"
             />
+            <label class="text-sm font-semibold" htmlFor="post-image-title">
+              {copy.imageTitleLabel}
+            </label>
             <input
               type="text"
+              id="post-image-title"
+              name="imageTitle"
               value={imageTitle}
               onInput={(event) => setImageTitle((event.currentTarget as HTMLInputElement).value)}
               placeholder={copy.imageTitlePlaceholder}

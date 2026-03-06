@@ -56,6 +56,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
   );
   const showCreate = canShowDropdown && !hasExactMatch && !alreadySelected;
   const shouldRenderDropdown = canShowDropdown && (autocomplete.length > 0 || showCreate);
+  const inputId = "post-tags";
 
   useEffect(() => {
     if (title.trim().length < 10 || body.trim().length < 50) {
@@ -188,7 +189,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
 
   return (
     <div class="space-y-3">
-      <label class="text-sm font-semibold">{copy.title}</label>
+      <label class="text-sm font-semibold" htmlFor={inputId}>{copy.title}</label>
 
       <div class="flex flex-wrap gap-2">
         {selectedTags.length === 0 ? (
@@ -215,6 +216,8 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
       <div class="relative">
         <input
           type="text"
+          id={inputId}
+          name="tags"
           value={inputValue}
           onInput={(event) => setInputValue((event.currentTarget as HTMLInputElement).value)}
           onKeyDown={handleKeyDown}
