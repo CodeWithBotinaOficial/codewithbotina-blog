@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { supabase } from "../../lib/supabase";
 import { getApiUrl } from "../../lib/env";
+import type { TagSelectorLabels } from "../../lib/admin-editor";
 
 export interface TagOption {
   id: string;
@@ -14,11 +15,30 @@ interface Props {
   body: string;
   selectedTags: TagOption[];
   onChange: (_tags: TagOption[]) => void;
+  labels?: TagSelectorLabels;
 }
 
 const API_URL = getApiUrl();
 
-export default function TagSelector({ title, body, selectedTags, onChange }: Props) {
+export default function TagSelector({ title, body, selectedTags, onChange, labels }: Props) {
+  const copy: TagSelectorLabels = labels ?? {
+    title: "Tags (SEO)",
+    emptyHint: "Add 3-7 tags to improve search visibility.",
+    inputPlaceholder: "Search or create a tag",
+    noResults: "No tags found.",
+    createLabel: "Create \"{{tag}}\"",
+    suggestionsTitle: "Suggested tags",
+    loadingSuggestions: "Loading suggestions...",
+    suggestionsError: "Unable to load tag suggestions.",
+    postsCount: "{{count}} posts",
+    removeLabel: "Remove {{tag}}",
+  };
+
+  const formatTemplate = (template: string, data: Record<string, string | number>) => {
+    return Object.entries(data).reduce((acc, [key, value]) => {
+      return acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), String(value));
+    }, template);
+  };
   const [suggestions, setSuggestions] = useState<TagOption[]>([]);
   const [autocomplete, setAutocomplete] = useState<TagOption[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -66,7 +86,7 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
         setSuggestions(list);
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
-          setErrorMessage("Unable to load tag suggestions.");
+          setErrorMessage(copy.suggestionsError);
         }
       } finally {
         setLoadingSuggestions(false);
@@ -168,13 +188,11 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
 
   return (
     <div class="space-y-3">
-      <label class="text-sm font-semibold">Tags (SEO)</label>
+      <label class="text-sm font-semibold">{copy.title}</label>
 
       <div class="flex flex-wrap gap-2">
         {selectedTags.length === 0 ? (
-          <span class="text-xs text-[var(--color-text-tertiary)]">
-            Add 3-7 tags to improve search visibility.
-          </span>
+          <span class="text-xs text-[var(--color-text-tertiary)]">{copy.emptyHint}</span>
         ) : null}
         {selectedTags.map((tag) => (
           <span
@@ -186,7 +204,7 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
               type="button"
               onClick={() => removeTag(tag.id)}
               class="text-[var(--color-accent-primary)] hover:text-[var(--color-accent-hover)]"
-              aria-label={`Remove ${tag.name}`}
+              aria-label={formatTemplate(copy.removeLabel, { tag: tag.name })}
             >
               ×
             </button>
@@ -200,7 +218,7 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
           value={inputValue}
           onInput={(event) => setInputValue((event.currentTarget as HTMLInputElement).value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search or create a tag"
+          placeholder={copy.inputPlaceholder}
           class="input-field"
         />
 
@@ -216,13 +234,13 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
                 >
                   <span>{tag.name}</span>
                   <span class="text-xs text-[var(--color-text-tertiary)]">
-                    {tag.usage_count ?? 0} posts
+                    {formatTemplate(copy.postsCount, { count: tag.usage_count ?? 0 })}
                   </span>
                 </button>
               ))
             ) : (
               <div class="px-4 py-2 text-xs text-[var(--color-text-tertiary)]">
-                No tags found.
+                {copy.noResults}
               </div>
             )}
             {showCreate ? (
@@ -231,7 +249,7 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
                 onClick={createNewTag}
                 class="w-full px-4 py-2 text-left border-t border-[var(--color-border)] text-[var(--color-accent-primary)] hover:bg-[var(--color-bg-subtle)]"
               >
-                Create "{trimmedInput}"
+                {formatTemplate(copy.createLabel, { tag: trimmedInput })}
               </button>
             ) : null}
           </div>
@@ -239,7 +257,7 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
       </div>
 
       {loadingSuggestions ? (
-        <p class="text-xs text-[var(--color-text-tertiary)]">Loading suggestions...</p>
+        <p class="text-xs text-[var(--color-text-tertiary)]">{copy.loadingSuggestions}</p>
       ) : null}
 
       {errorMessage ? (
@@ -248,7 +266,7 @@ export default function TagSelector({ title, body, selectedTags, onChange }: Pro
 
       {suggestions.length > 0 && (
         <div class="space-y-2">
-          <p class="text-xs text-[var(--color-text-tertiary)]">Suggested tags</p>
+          <p class="text-xs text-[var(--color-text-tertiary)]">{copy.suggestionsTitle}</p>
           <div class="flex flex-wrap gap-2">
             {suggestions.map((tag) => {
               const selected = selectedIds.has(tag.id);

@@ -1,89 +1,20 @@
 ---
 export const prerender = false;
 
-import BaseLayout from "../../../components/BaseLayout.astro";
-import PostEditor from "../../../components/admin/PostEditor";
-import { supabase } from "../../../lib/supabase";
-import { formatDate } from "../../../lib/utils";
-import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from "../../../lib/i18n";
+import { DEFAULT_LANGUAGE, detectLanguage, isSupportedLanguage, type SupportedLanguage } from "../../../lib/i18n";
 
 const { slug } = Astro.params;
 const langParam = Astro.url.searchParams.get("lang");
 const language = isSupportedLanguage(langParam ?? "")
   ? (langParam as SupportedLanguage)
-  : null;
-const currentLanguage = language ?? DEFAULT_LANGUAGE;
+  : detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language"));
+const resolvedLanguage = isSupportedLanguage(language ?? "")
+  ? language
+  : DEFAULT_LANGUAGE;
 
-let post: any = null;
-let postError: any = null;
-
-let joinedQuery = supabase
-  .from("posts")
-  .select(`
-    *,
-    post_tags (
-      tag:tags (
-        id,
-        name,
-        slug,
-        usage_count
-      )
-    )
-  `)
-  .eq("slug", slug);
-
-if (language) {
-  joinedQuery = joinedQuery.eq("language", language);
+if (!slug) {
+  return Astro.redirect(`/${resolvedLanguage}/404`);
 }
 
-const joinedResult = await joinedQuery.single();
-
-if (joinedResult.error) {
-  let fallbackQuery = supabase
-    .from("posts")
-    .select("*")
-    .eq("slug", slug);
-
-  if (language) {
-    fallbackQuery = fallbackQuery.eq("language", language);
-  }
-
-  const fallback = await fallbackQuery.single();
-  post = fallback.data;
-  postError = fallback.error;
-} else {
-  post = joinedResult.data;
-}
-
-if (postError || !post) {
-  return Astro.redirect(`/${currentLanguage}/404`);
-}
-
-const createdAt = post.fecha ? formatDate(post.fecha) : "Unknown";
-const updatedAt = post.updated_at ? formatDate(post.updated_at) : null;
-const tags = Array.isArray(post?.post_tags)
-  ? (post.post_tags
-      .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
-      .filter(Boolean))
-  : [];
-const initialLanguage = post.language ?? language ?? DEFAULT_LANGUAGE;
-const initialData = { ...post, tags, language: initialLanguage };
+return Astro.redirect(`/${resolvedLanguage}/admin/edit-post/${slug}`);
 ---
-
-<BaseLayout title={`Edit: ${post.titulo}`} currentLanguage={currentLanguage} currentPath={Astro.url.pathname}>
-  <section class="container-responsive py-12">
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold">Edit Post: {post.titulo}</h1>
-      <p class="mt-2 text-sm text-[var(--color-text-tertiary)]">
-        Created: {createdAt}{updatedAt ? ` • Last modified: ${updatedAt}` : ""}
-      </p>
-    </div>
-
-    <PostEditor
-      mode="edit"
-      initialData={initialData}
-      cancelHref={`/${initialLanguage}/posts/${post.slug}`}
-      client:load
-    />
-  </section>
-</BaseLayout>

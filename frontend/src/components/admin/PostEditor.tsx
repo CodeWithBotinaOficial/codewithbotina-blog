@@ -3,11 +3,13 @@ import { getApiUrl } from "../../lib/env";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 import MarkdownPreview from "./MarkdownPreview";
-import TagSelector, { TagOption } from "./TagSelector";
+import TagSelector from "./TagSelector";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Toast from "../ui/Toast";
 import { useToast } from "../../hooks/useToast";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../../lib/i18n";
+import type { TagOption } from "./TagSelector";
+import type { PostEditorLabels, TagSelectorLabels } from "../../lib/admin-editor";
 
 interface EditorData {
   titulo: string;
@@ -22,11 +24,70 @@ interface Props {
   mode: "create" | "edit";
   initialData?: EditorData;
   cancelHref?: string;
+  labels?: PostEditorLabels;
+  tagLabels?: TagSelectorLabels;
 }
 
 const API_URL = getApiUrl();
 
-export default function PostEditor({ mode, initialData, cancelHref }: Props) {
+export default function PostEditor({ mode, initialData, cancelHref, labels, tagLabels }: Props) {
+  const copy: PostEditorLabels = labels ?? {
+    accessChecking: "Checking admin access...",
+    titleLabel: "Title",
+    titlePlaceholder: "Enter post title...",
+    slugLabel: "Slug",
+    slugPlaceholder: "post-url-slug",
+    slugHint: "Auto-generated from title, but editable",
+    slugChecking: "Checking...",
+    languageLabel: "Language",
+    contentLabel: "Content (Markdown)",
+    rawTab: "Raw Markdown",
+    previewTab: "Preview",
+    bodyPlaceholder: "Write your post content in Markdown...",
+    characterCount: "{{count}} characters (min {{min}}, max {{max}})",
+    featuredImageLabel: "Featured image (optional)",
+    imageUrlOption: "External URL",
+    imageUploadOption: "Upload image",
+    imageUrlPlaceholder: "https://example.com/image.jpg",
+    imageTitlePlaceholder: "Image title (for alt text)",
+    imageHelp: "Max 5MB, JPG/PNG/WebP only. Uploads are optimized to WebP.",
+    submitCreate: "Create post",
+    submitUpdate: "Update post",
+    submitting: "Saving...",
+    cancel: "Cancel",
+    confirmCreateTitle: "Publish post",
+    confirmCreateMessage:
+      "Are you sure you want to publish this post? Please verify all content is correct.",
+    confirmUpdateTitle: "Update post",
+    confirmUpdateMessage: "Are you sure you want to update this post?",
+    confirmCreateAction: "Publish",
+    confirmUpdateAction: "Update",
+    toastSuccessCreate: "Post created successfully!",
+    toastSuccessUpdate: "Post updated successfully!",
+    toastError: "Failed to save post. Please try again.",
+    errors: {
+      titleRequired: "Title is required",
+      titleTooLong: "Title must be less than 200 characters",
+      slugRequired: "Slug is required",
+      slugInvalid: "Slug must be lowercase letters, numbers, and hyphens only",
+      slugExists: "This slug already exists",
+      slugCheckFailed: "Unable to validate slug. Try again.",
+      languageInvalid: "Please select a valid language",
+      bodyTooShort: "Content must be at least 100 characters",
+      bodyTooLong: "Content must be less than 50,000 characters",
+      imageUrlInvalid: "Image URL must be valid",
+      imageFileRequired: "Please select an image to upload",
+      imageFileType: "Image must be JPG, PNG, or WebP",
+      imageFileSize: "Image must be under 5MB",
+      imageTitleRequired: "Image title is required for uploads",
+    },
+  };
+
+  const formatTemplate = (template: string, data: Record<string, string | number>) => {
+    return Object.entries(data).reduce((acc, [key, value]) => {
+      return acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), String(value));
+    }, template);
+  };
   const { loading: sessionLoading, isAdmin } = useSession();
   const [title, setTitle] = useState(initialData?.titulo ?? "");
   const [slug, setSlug] = useState(initialData?.slug ?? "");
@@ -72,12 +133,12 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
         const exists = await checkSlugExists(trimmed, language);
         setErrors((prev) => ({
           ...prev,
-          slug: exists ? "This slug already exists" : "",
+          slug: exists ? copy.errors.slugExists : "",
         }));
       } catch (_error) {
         setErrors((prev) => ({
           ...prev,
-          slug: "Unable to validate slug. Try again.",
+          slug: copy.errors.slugCheckFailed,
         }));
       } finally {
         setSlugChecking(false);
@@ -90,7 +151,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
   if (sessionLoading) {
     return (
       <div class="py-12 text-center text-[var(--color-text-secondary)]">
-        Checking admin access...
+        {copy.accessChecking}
       </div>
     );
   }
@@ -105,46 +166,46 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
     const trimmedBody = body.trim();
 
     if (!trimmedTitle || trimmedTitle.length < 1) {
-      newErrors.title = "Title is required";
+      newErrors.title = copy.errors.titleRequired;
     } else if (trimmedTitle.length > 200) {
-      newErrors.title = "Title must be less than 200 characters";
+      newErrors.title = copy.errors.titleTooLong;
     }
 
     if (!trimmedSlug) {
-      newErrors.slug = "Slug is required";
+      newErrors.slug = copy.errors.slugRequired;
     } else if (!/^[a-z0-9-]+$/.test(trimmedSlug)) {
-      newErrors.slug = "Slug must be lowercase letters, numbers, and hyphens only";
+      newErrors.slug = copy.errors.slugInvalid;
     }
 
     if (!SUPPORTED_LANGUAGES.includes(language as "en" | "es")) {
-      newErrors.language = "Please select a valid language";
+      newErrors.language = copy.errors.languageInvalid;
     }
 
     if (!trimmedBody || trimmedBody.length < 100) {
-      newErrors.body = "Content must be at least 100 characters";
+      newErrors.body = copy.errors.bodyTooShort;
     } else if (trimmedBody.length > 50000) {
-      newErrors.body = "Content must be less than 50,000 characters";
+      newErrors.body = copy.errors.bodyTooLong;
     }
 
     if (imageMode === "url" && imageUrl) {
       try {
         new URL(imageUrl);
       } catch (_error) {
-        newErrors.imageUrl = "Image URL must be valid";
+        newErrors.imageUrl = copy.errors.imageUrlInvalid;
       }
     }
 
     if (imageMode === "upload") {
       if (!imageFile) {
-        newErrors.imageFile = "Please select an image to upload";
+        newErrors.imageFile = copy.errors.imageFileRequired;
       } else if (!["image/jpeg", "image/png", "image/webp"].includes(imageFile.type)) {
-        newErrors.imageFile = "Image must be JPG, PNG, or WebP";
+        newErrors.imageFile = copy.errors.imageFileType;
       } else if (imageFile.size > 5 * 1024 * 1024) {
-        newErrors.imageFile = "Image must be under 5MB";
+        newErrors.imageFile = copy.errors.imageFileSize;
       }
 
       if (!imageTitle.trim()) {
-        newErrors.imageTitle = "Image title is required for uploads";
+        newErrors.imageTitle = copy.errors.imageTitleRequired;
       }
     }
 
@@ -206,13 +267,13 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
 
       const payload = await response.json();
       const nextSlug = payload?.data?.slug ?? trimmedSlug;
-      showToast("Post saved successfully.", "success");
+      showToast(mode === "create" ? copy.toastSuccessCreate : copy.toastSuccessUpdate, "success");
       window.setTimeout(() => {
         window.location.href = `/${language}/posts/${nextSlug}`;
       }, 500);
     } catch (error) {
       console.error(error);
-      showToast("Failed to save post. Please try again.", "error");
+      showToast(copy.toastError, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -231,12 +292,12 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
   return (
     <form onSubmit={handleSubmit} class="space-y-8">
       <div class="space-y-2">
-        <label class="text-sm font-semibold">Title *</label>
+        <label class="text-sm font-semibold">{copy.titleLabel} *</label>
         <input
           type="text"
           value={title}
           onInput={(event) => setTitle((event.currentTarget as HTMLInputElement).value)}
-          placeholder="Enter post title..."
+          placeholder={copy.titlePlaceholder}
           maxLength={200}
           required
           class="input-field"
@@ -245,25 +306,25 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-semibold">Slug *</label>
+        <label class="text-sm font-semibold">{copy.slugLabel} *</label>
         <input
           type="text"
           value={slug}
           onInput={(event) => handleSlugInput((event.currentTarget as HTMLInputElement).value)}
           onBlur={handleSlugBlur}
-          placeholder="post-url-slug"
+          placeholder={copy.slugPlaceholder}
           required
           class="input-field"
         />
         <div class="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
-          <span>Auto-generated from title, but editable</span>
-          {slugChecking ? <span>Checking...</span> : null}
+          <span>{copy.slugHint}</span>
+          {slugChecking ? <span>{copy.slugChecking}</span> : null}
         </div>
         {errors.slug ? <p class="text-sm text-[var(--color-error)]">{errors.slug}</p> : null}
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-semibold">Language *</label>
+        <label class="text-sm font-semibold">{copy.languageLabel} *</label>
         <select
           value={language}
           onChange={(event) => setLanguage((event.currentTarget as HTMLSelectElement).value)}
@@ -280,7 +341,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
 
       <div class="space-y-2">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <label class="text-sm font-semibold">Content * (Markdown)</label>
+          <label class="text-sm font-semibold">{copy.contentLabel} *</label>
           <div class="flex gap-2">
             <button
               type="button"
@@ -291,7 +352,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
               }`}
               onClick={() => setPreviewMode(false)}
             >
-              Raw Markdown
+              {copy.rawTab}
             </button>
             <button
               type="button"
@@ -302,7 +363,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
               }`}
               onClick={() => setPreviewMode(true)}
             >
-              Preview
+              {copy.previewTab}
             </button>
           </div>
         </div>
@@ -311,7 +372,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
           <textarea
             value={body}
             onInput={(event) => setBody((event.currentTarget as HTMLTextAreaElement).value)}
-            placeholder="Write your post content in Markdown..."
+            placeholder={copy.bodyPlaceholder}
             rows={18}
             maxLength={50000}
             required
@@ -322,7 +383,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
         )}
 
         <div class="text-xs text-[var(--color-text-tertiary)]">
-          {body.length} characters (min 100, max 50,000)
+          {formatTemplate(copy.characterCount, { count: body.length, min: 100, max: 50000 })}
         </div>
         {errors.body ? <p class="text-sm text-[var(--color-error)]">{errors.body}</p> : null}
       </div>
@@ -332,10 +393,11 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
         body={body}
         selectedTags={tags}
         onChange={setTags}
+        labels={tagLabels}
       />
 
       <div class="space-y-3">
-        <label class="text-sm font-semibold">Featured Image (Optional)</label>
+        <label class="text-sm font-semibold">{copy.featuredImageLabel}</label>
         <div class="flex flex-wrap gap-4">
           <label class="flex items-center gap-2 text-sm">
             <input
@@ -344,7 +406,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
               checked={imageMode === "url"}
               onChange={() => setImageMode("url")}
             />
-            External URL
+            {copy.imageUrlOption}
           </label>
           <label class="flex items-center gap-2 text-sm">
             <input
@@ -353,7 +415,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
               checked={imageMode === "upload"}
               onChange={() => setImageMode("upload")}
             />
-            Upload Image
+            {copy.imageUploadOption}
           </label>
         </div>
 
@@ -363,7 +425,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
               type="url"
               value={imageUrl}
               onInput={(event) => setImageUrl((event.currentTarget as HTMLInputElement).value)}
-              placeholder="https://example.com/image.jpg"
+              placeholder={copy.imageUrlPlaceholder}
               class="input-field"
             />
             {errors.imageUrl ? (
@@ -383,11 +445,11 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
               type="text"
               value={imageTitle}
               onInput={(event) => setImageTitle((event.currentTarget as HTMLInputElement).value)}
-              placeholder="Image title (for alt text)"
+              placeholder={copy.imageTitlePlaceholder}
               class="input-field"
             />
             <p class="text-xs text-[var(--color-text-tertiary)]">
-              Max 5MB, JPG/PNG/WebP only. Uploads are optimized to WebP.
+              {copy.imageHelp}
             </p>
             {errors.imageFile ? (
               <p class="text-sm text-[var(--color-error)]">{errors.imageFile}</p>
@@ -406,16 +468,16 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
           class="btn-primary w-full sm:w-auto"
         >
           {isSubmitting
-            ? "Saving..."
+            ? copy.submitting
             : mode === "create"
-            ? "Create Post"
-            : "Update Post"}
+            ? copy.submitCreate
+            : copy.submitUpdate}
         </button>
         <a
           href={cancelHref ?? "/"}
           class="rounded-lg border border-[var(--color-border)] px-6 py-3 text-center font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary)]"
         >
-          Cancel
+          {copy.cancel}
         </a>
       </div>
 
@@ -423,14 +485,14 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={submitPost}
-        title={mode === "create" ? "Publish post" : "Update post"}
+        title={mode === "create" ? copy.confirmCreateTitle : copy.confirmUpdateTitle}
         message={
           mode === "create"
-            ? "Are you sure you want to publish this post? Please verify all content is correct."
-            : "Are you sure you want to update this post?"
+            ? copy.confirmCreateMessage
+            : copy.confirmUpdateMessage
         }
-        confirmText={mode === "create" ? "Publish" : "Update"}
-        cancelText="Cancel"
+        confirmText={mode === "create" ? copy.confirmCreateAction : copy.confirmUpdateAction}
+        cancelText={copy.cancel}
         variant="info"
       />
 

@@ -1,0 +1,34 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../components/BaseLayout.astro";
+import PostEditor from "../../../components/admin/PostEditor";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, t, type SupportedLanguage } from "../../../lib/i18n";
+import { getPostEditorLabels, getTagSelectorLabels } from "../../../lib/admin-editor";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const editorLabels = getPostEditorLabels(language);
+const tagLabels = getTagSelectorLabels(language);
+const pageTitle = t(language, "createPost", "admin");
+const initialData = { language };
+---
+
+<BaseLayout title={pageTitle} currentLanguage={language} currentPath={Astro.url.pathname}>
+  <section class="container-responsive py-12">
+    <h1 class="text-3xl font-bold mb-6">{pageTitle}</h1>
+    <PostEditor
+      mode="create"
+      initialData={initialData}
+      cancelHref={`/${language}/`}
+      labels={editorLabels}
+      tagLabels={tagLabels}
+      client:load
+    />
+  </section>
+</BaseLayout>

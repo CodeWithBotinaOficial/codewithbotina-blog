@@ -12,7 +12,7 @@ export default function AdminCreatePostButton({ language, label }: Props) {
   if (loading || !isAdmin) return null;
 
   const href = language
-    ? `/admin/create-post?lang=${encodeURIComponent(language)}`
+    ? `/${language}/admin/create-post`
     : "/admin/create-post";
 
   return (

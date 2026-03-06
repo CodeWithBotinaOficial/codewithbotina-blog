@@ -175,7 +175,7 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
       {isOpen ? (
         <div class="absolute right-0 mt-2 w-44 rounded-xl border border-[var(--color-border)] bg-white shadow-lg">
           <a
-            href={`/admin/edit-post/${slug}${language ? `?lang=${encodeURIComponent(language)}` : ""}`}
+            href={language ? `/${language}/admin/edit-post/${slug}` : `/admin/edit-post/${slug}`}
             class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)]"
           >
             <Pencil className="h-4 w-4" />
