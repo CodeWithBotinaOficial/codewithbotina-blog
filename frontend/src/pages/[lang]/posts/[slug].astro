@@ -81,11 +81,48 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
-let tagList = Array.isArray(post?.post_tags)
+type TagInfo = { id?: string; name: string; slug: string };
+
+function slugifyTag(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+function normalizeTags(raw: Array<Partial<TagInfo>>): TagInfo[] {
+  const map = new Map<string, TagInfo>();
+  raw.forEach((tag) => {
+    const name = typeof tag.name === "string" ? tag.name.trim() : "";
+    if (!name) return;
+    const slug = typeof tag.slug === "string" && tag.slug.trim()
+      ? tag.slug.trim()
+      : slugifyTag(name);
+    const key = slug || name.toLowerCase();
+    if (map.has(key)) return;
+    map.set(key, { id: tag.id, name, slug });
+  });
+  return Array.from(map.values());
+}
+
+const joinedTags = Array.isArray(post?.post_tags)
   ? (post.post_tags
       .map((item: { tag?: { id: string; name: string; slug: string } }) => item.tag)
       .filter(Boolean) as Array<{ id: string; name: string; slug: string }>)
   : [];
+
+const legacyTagsRaw = (post as { tags?: unknown }).tags;
+const legacyTags = Array.isArray(legacyTagsRaw)
+  ? legacyTagsRaw
+    .map((tag) => (typeof tag === "string" ? { name: tag } : tag))
+    .filter((tag): tag is Partial<TagInfo> => Boolean(tag))
+  : [];
+
+let tagList = normalizeTags([...joinedTags, ...legacyTags]);
 
 if (tagList.length === 0 && slug) {
   try {
@@ -94,7 +131,7 @@ if (tagList.length === 0 && slug) {
       const payload = await response.json();
       const fallbackTags = payload?.data?.tags ?? payload?.tags ?? [];
       if (Array.isArray(fallbackTags)) {
-        tagList = fallbackTags;
+        tagList = normalizeTags([...tagList, ...fallbackTags]);
       }
     }
   } catch (_error) {
