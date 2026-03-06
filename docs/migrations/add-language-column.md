@@ -12,9 +12,12 @@ Migration script:
 
 ## What the Script Does
 
-1. Creates a backup table: `posts_backup`.
-2. Sets all existing posts to Spanish (`es`).
-3. Provides a verification query to count posts per language.
+1. Adds the `language` column to `posts` if it does not exist.
+2. Adds the `valid_language` CHECK constraint.
+3. Adds `idx_posts_language` and `idx_posts_language_fecha` indexes.
+4. Creates a backup table: `posts_backup`.
+5. Sets all existing posts to Spanish (`es`).
+6. Provides a verification query to count posts per language.
 
 ## Backup Strategy
 
@@ -43,3 +46,5 @@ The database enforces supported values with:
 ```
 CHECK (language IN ('es', 'en', 'fr', 'de', 'pt', 'ja', 'zh'))
 ```
+
+If you previously ran only the update step and saw “column language does not exist”, re-run the full script after applying the column addition above.
