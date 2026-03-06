@@ -21,6 +21,18 @@ interface Props {
 const API_URL = getApiUrl();
 
 export default function CommentForm({ postId, labels }: Props) {
+  const copy = labels ?? {
+    signIn: "Sign in",
+    signInSuffix: "to leave a comment.",
+    loading: "Loading session...",
+    placeholder: "Leave a comment...",
+    submit: "Post comment",
+    submitting: "Posting...",
+    authError: "You must be signed in to comment.",
+    postError: "Failed to post comment.",
+    postErrorRetry: "Failed to post comment. Please try again.",
+  };
+
   const { user, loading } = useSession();
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,14 +135,3 @@ export default function CommentForm({ postId, labels }: Props) {
     </form>
   );
 }
-  const copy = labels ?? {
-    signIn: "Sign in",
-    signInSuffix: "to leave a comment.",
-    loading: "Loading session...",
-    placeholder: "Leave a comment...",
-    submit: "Post comment",
-    submitting: "Posting...",
-    authError: "You must be signed in to comment.",
-    postError: "Failed to post comment.",
-    postErrorRetry: "Failed to post comment. Please try again.",
-  };
