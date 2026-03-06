@@ -58,6 +58,20 @@ export default function CommentList({
   labels,
   dateLocale,
 }: Props) {
+  const copy = labels ?? {
+    empty: "No comments yet. Be the first to comment.",
+    edit: "Edit",
+    delete: "Delete",
+    save: "Save",
+    saving: "Saving...",
+    cancel: "Cancel",
+    pin: "Pin",
+    unpin: "Unpin",
+    pinned: "Pinned",
+    anonymous: "Anonymous",
+    updateError: "Failed to update comment.",
+  };
+
   const [comments, setComments] = useState<Comment[]>(initialComments || []);
   const { user, isAdmin: sessionIsAdmin } = useSession();
   const effectiveUserId = currentUserId ?? user?.id ?? null;
@@ -179,16 +193,3 @@ export default function CommentList({
     </div>
   );
 }
-  const copy = labels ?? {
-    empty: "No comments yet. Be the first to comment.",
-    edit: "Edit",
-    delete: "Delete",
-    save: "Save",
-    saving: "Saving...",
-    cancel: "Cancel",
-    pin: "Pin",
-    unpin: "Unpin",
-    pinned: "Pinned",
-    anonymous: "Anonymous",
-    updateError: "Failed to update comment.",
-  };
