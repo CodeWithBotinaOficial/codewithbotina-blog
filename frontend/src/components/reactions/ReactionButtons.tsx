@@ -27,6 +27,13 @@ export default function ReactionButtons({
   isAuthenticated,
   labels,
 }: Props) {
+  const copy = labels ?? {
+    signIn: "Sign in",
+    signInSuffix: "to react.",
+    loading: "Loading reactions...",
+    error: "Failed to update reaction. Please try again.",
+  };
+
   const { user, loading, isAuthenticated: sessionAuth } = useSession();
   const [likes, setLikes] = useState(initialLikes);
   const [dislikes, setDislikes] = useState(initialDislikes);
@@ -185,9 +192,3 @@ export default function ReactionButtons({
     </div>
   );
 }
-  const copy = labels ?? {
-    signIn: "Sign in",
-    signInSuffix: "to react.",
-    loading: "Loading reactions...",
-    error: "Failed to update reaction. Please try again.",
-  };
