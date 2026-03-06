@@ -17,7 +17,7 @@ function escapeXmlAttr(value: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
+    .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 }
 
@@ -69,7 +69,7 @@ export const GET: APIRoute = async ({ params }) => {
       <guid isPermaLink="true">${postUrl}</guid>
       <pubDate>${pubDate}</pubDate>
       <description><![CDATA[${escapeCdata(description)}]]></description>
-      ${imageUrl ? `<enclosure url=\"${imageUrl}\" type=\"image/jpeg\"/>` : ""}
+      ${imageUrl ? `<enclosure url="${imageUrl}" type="image/jpeg"/>` : ""}
       <content:encoded><![CDATA[${escapeCdata(body)}]]></content:encoded>
     </item>`);
       return acc;

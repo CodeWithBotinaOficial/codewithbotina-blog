@@ -73,7 +73,7 @@ export const GET: APIRoute = async ({ params }) => {
       .order("usage_count", { ascending: false });
     if (tagError) throw tagError;
     tags = tagData || [];
-  } catch (error) {
+  } catch (_error) {
     try {
       const response = await fetch(`${apiUrl}/api/tags`);
       if (response.ok) {

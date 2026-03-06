@@ -8,7 +8,7 @@ interface Props {
   onDelete: () => void;
   onUpdate: (_content: string) => Promise<Comment | null>;
   onTogglePin: () => void;
-  labels: {
+  labels?: {
     edit: string;
     delete: string;
     save: string;
@@ -42,6 +42,19 @@ export default function CommentItem({
   labels,
   dateLocale,
 }: Props) {
+  const copy = labels ?? {
+    edit: "Edit",
+    delete: "Delete",
+    save: "Save",
+    saving: "Saving...",
+    cancel: "Cancel",
+    pin: "Pin",
+    unpin: "Unpin",
+    pinned: "Pinned",
+    anonymous: "Anonymous",
+    updateError: "Failed to update comment.",
+  };
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [isSaving, setIsSaving] = useState(false);
@@ -62,7 +75,7 @@ export default function CommentItem({
     if (updated) {
       setIsEditing(false);
     } else {
-      setError(labels.updateError);
+      setError(copy.updateError);
     }
     setIsSaving(false);
   };
@@ -73,20 +86,20 @@ export default function CommentItem({
         <div class="comment-author">
           <img
             src={comment.user?.avatar_url || "/avatar-placeholder.png"}
-            alt={comment.user?.full_name || labels.anonymous}
+            alt={comment.user?.full_name || copy.anonymous}
             class="comment-avatar"
             width={40}
             height={40}
             loading="lazy"
           />
           <div>
-            <p class="comment-name">{comment.user?.full_name || labels.anonymous}</p>
+            <p class="comment-name">{comment.user?.full_name || copy.anonymous}</p>
             <p class="comment-date">{formatDate(comment.created_at, dateLocale)}</p>
           </div>
         </div>
 
         {comment.is_pinned ? (
-          <span class="comment-pinned-badge">{labels.pinned}</span>
+          <span class="comment-pinned-badge">{copy.pinned}</span>
         ) : null}
       </header>
 
@@ -114,7 +127,7 @@ export default function CommentItem({
                 onClick={handleSave}
                 disabled={!isValid || isSaving}
               >
-                {isSaving ? labels.saving : labels.save}
+                {isSaving ? copy.saving : copy.save}
               </button>
               <button
                 type="button"
@@ -125,7 +138,7 @@ export default function CommentItem({
                   setError("");
                 }}
               >
-                {labels.cancel}
+                {copy.cancel}
               </button>
             </>
           ) : (
@@ -134,20 +147,20 @@ export default function CommentItem({
               class="comment-action"
               onClick={() => setIsEditing(true)}
             >
-              {labels.edit}
+              {copy.edit}
             </button>
           )
         ) : null}
 
         {canDelete ? (
           <button type="button" class="comment-action danger" onClick={onDelete}>
-            {labels.delete}
+            {copy.delete}
           </button>
         ) : null}
 
         {canPin ? (
           <button type="button" class="comment-action" onClick={onTogglePin}>
-            {comment.is_pinned ? labels.unpin : labels.pin}
+            {comment.is_pinned ? copy.unpin : copy.pin}
           </button>
         ) : null}
       </div>
