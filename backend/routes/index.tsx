@@ -411,6 +411,186 @@ Response:
 }`}</code></pre>
               </div>
             </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/posts/{"{slug}"}/tags
+              </h3>
+              <p>Fetch tags attached to a post.</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/posts/test
+              </h3>
+              <p>
+                Diagnostic endpoint that validates Supabase connectivity and
+                admin authentication.
+              </p>
+            </div>
+          </section>
+
+          <section id="tags-api">
+            <h2>🏷️ Tags API</h2>
+            <p>Tag discovery, creation, and tag-based post lookup.</p>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/tags
+              </h3>
+              <p>List all tags ordered by usage count.</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/tags/{"{slug}"}
+              </h3>
+              <p>Fetch tag details and posts for a tag.</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/tags/suggest
+              </h3>
+              <p>Generate tag suggestions based on title and body.</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/tags/autocomplete
+              </h3>
+              <p>Autocomplete tag names by query string.</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/tags/create
+              </h3>
+              <p>Create a new tag (admin only).</p>
+            </div>
+          </section>
+
+          <section id="comments-api">
+            <h2>💬 Comments API</h2>
+            <p>Comment listing, creation, editing, and moderation.</p>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/comments/{"{postId}"}
+              </h3>
+              <p>List comments for a post.</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/comments/{"{postId}"}
+              </h3>
+              <p>Create a new comment (authenticated users).</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-put">PUT</span>
+                /api/comments/{"{commentId}"}
+              </h3>
+              <p>Update an existing comment (author only).</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-delete">DELETE</span>
+                /api/comments/{"{commentId}"}
+              </h3>
+              <p>Delete a comment (author or admin).</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/comments/{"{commentId}"}/pin
+              </h3>
+              <p>Pin a comment (admin only).</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/comments/{"{commentId}"}/unpin
+              </h3>
+              <p>Unpin a comment (admin only).</p>
+            </div>
+          </section>
+
+          <section id="reactions-api">
+            <h2>👍👎 Reactions API</h2>
+            <p>Like/dislike tracking for posts.</p>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/reactions/{"{postId}"}
+              </h3>
+              <p>Get reaction counts for a post.</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/reactions/{"{postId}"}/like
+              </h3>
+              <p>Toggle a like reaction (authenticated users).</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/reactions/{"{postId}"}/dislike
+              </h3>
+              <p>Toggle a dislike reaction (authenticated users).</p>
+            </div>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/reactions/user/{"{postId}"}
+              </h3>
+              <p>Fetch the current user's reaction for a post.</p>
+            </div>
+          </section>
+
+          <section id="cookies-api">
+            <h2>🍪 Cookie Consent API</h2>
+            <p>Store GDPR/CCPA consent preferences.</p>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-post">POST</span>
+                /api/cookies/consent
+              </h3>
+              <p>Persist cookie consent for a user or anonymous session.</p>
+            </div>
+          </section>
+
+          <section id="health-api">
+            <h2>🏥 Health API</h2>
+            <p>Service health checks for monitoring.</p>
+
+            <div class="endpoint-block mb-8">
+              <h3>
+                <span class="endpoint-badge badge-get">GET</span>
+                /api/health
+              </h3>
+              <p>Returns service status and timestamp.</p>
+            </div>
           </section>
 
           <section id="errors">

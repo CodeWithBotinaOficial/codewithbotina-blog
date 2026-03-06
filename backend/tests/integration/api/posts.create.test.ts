@@ -1,0 +1,65 @@
+import { assertEquals } from "https://deno.land/std@0.216.0/assert/mod.ts";
+import { handler } from "../../../routes/api/posts/create.ts";
+import { AuthService } from "../../../services/auth.service.ts";
+import { PostService } from "../../../services/post.service.ts";
+import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
+import { FreshContext } from "$fresh/server.ts";
+
+Deno.test("Integration: POST /api/posts/create returns 201", async () => {
+  const adminUser = {
+    id: "admin-id",
+    email: "admin@example.com",
+    full_name: "Admin",
+    avatar_url: null,
+    google_id: null,
+    created_at: new Date().toISOString(),
+    last_login: new Date().toISOString(),
+    is_admin: true,
+  };
+  const _authStub = stub(
+    AuthService.prototype,
+    "getUserFromToken",
+    () => Promise.resolve(adminUser),
+  );
+  const _serviceStub = stub(
+    PostService.prototype,
+    "createPost",
+    () =>
+      Promise.resolve({
+        success: true,
+        data: {
+          id: "post-1",
+          titulo: "Hello",
+          slug: "hello",
+          body: "Content",
+          imagen_url: null,
+          fecha: new Date().toISOString(),
+          language: "es",
+        },
+      }),
+  );
+
+  const req = new Request("http://localhost/api/posts/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin": "http://localhost:8000",
+      "Authorization": "Bearer token",
+    },
+    body: JSON.stringify({
+      titulo: "Hello",
+      slug: "hello",
+      body: "Content",
+      language: "es",
+    }),
+  });
+
+  const res = await handler.POST!(req, {} as unknown as FreshContext);
+  const body = await res.json();
+
+  assertEquals(res.status, 201);
+  assertEquals(body.success, true);
+  assertEquals(body.data.slug, "hello");
+
+  restore();
+});
