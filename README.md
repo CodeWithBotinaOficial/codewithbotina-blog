@@ -12,6 +12,7 @@ A blazing-fast static blog built with Astro, Fresh (Deno), Supabase, and deploye
 - ✅ **Image upload to Supabase Storage**
 - ✅ Hybrid rendering (dynamic content without rebuilds)
 - ✅ SEO optimized
+- ✅ Bilingual i18n (English/Spanish) with language detection and hreflang SEO
 - ✅ Fully responsive design
 
 ## 🚀 Tech Stack

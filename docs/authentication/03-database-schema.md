@@ -9,6 +9,7 @@ Tables to create:
 2. `post_reactions` - Likes and dislikes on posts
 3. `comments` - User comments on posts
 4. `admin_users` - Admin access control
+5. `posts` - Blog content (includes language for i18n)
 
 ## ER Diagram (Text-based)
 
@@ -17,7 +18,7 @@ auth.users (Supabase built-in)
     ↓
   users (public) ← post_reactions
     ↓                 ↓
-  comments         posts
+  comments         posts (language)
     ↓
 admin_users
 ```
@@ -114,6 +115,22 @@ Then apply Row Level Security: `docs/database/policies.sql`
 **Access:**
 - Only admins can read the admin list
 - Manually insert admin users (SQL)
+
+---
+
+### 5. `posts` Table (i18n Support)
+
+**Purpose:** Store blog content and enable language-specific filtering.
+
+**Language column:**
+- `language`: VARCHAR(5), default `'es'`
+- Constraint: `CHECK (language IN ('es', 'en', 'fr', 'de', 'pt', 'ja', 'zh'))`
+
+**Indexes:**
+- `idx_posts_language`
+- `idx_posts_language_fecha` (language + fecha)
+
+**Usage note:** Listing queries should filter by language to avoid mixed-language content.
 
 ---
 
