@@ -1,6 +1,6 @@
 # CodeWithBotina Terms of Service
 
-**Last updated:** [CURRENT_DATE]
+**Last updated:** March 3, 2026
 
 ## 1. Acceptance of the Terms
 
@@ -143,6 +143,6 @@ If any provision of these terms is invalid, the remaining provisions remain in e
 ---
 
 **Version:** 1.0  
-**Effective date:** [CURRENT_DATE]
+**Effective date:** March 5, 2026
 
 By using CodeWithBotina, you confirm that you have read, understood, and accepted these terms.

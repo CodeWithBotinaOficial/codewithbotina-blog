@@ -1,6 +1,6 @@
 # CodeWithBotina Privacy Policy
 
-**Last updated:** [CURRENT_DATE]
+**Last updated:** March 3, 2026
 
 ## 1. Introduction
 
@@ -120,7 +120,7 @@ Your data may be transferred and processed outside Colombia, including in the Un
 We may update this policy. Material changes will be announced via email or a prominent notice on the site.
 
 **Current version:** 1.0  
-**Last updated:** [CURRENT_DATE]
+**Last updated:** March 5, 2026
 
 ## 10. Contact
 

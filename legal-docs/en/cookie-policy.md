@@ -1,6 +1,6 @@
 # CodeWithBotina Cookie Policy
 
-**Last updated:** [CURRENT_DATE]
+**Last updated:** March 3, 2026
 
 ## What are cookies?
 
@@ -86,7 +86,7 @@ You have the right to accept or reject non-essential cookies, change your prefer
 
 We may update this policy. Significant changes will be notified on the website or via email.
 
-**Last review:** [CURRENT_DATE]  
+**Last review:** March 5, 2026
 **Version:** 1.0
 
 ## Contact
