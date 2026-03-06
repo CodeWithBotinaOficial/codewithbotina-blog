@@ -5,11 +5,22 @@ import { useSession } from "../../hooks/useSession";
 
 interface Props {
   postId: string;
+  labels?: {
+    signIn: string;
+    signInSuffix: string;
+    loading: string;
+    placeholder: string;
+    submit: string;
+    submitting: string;
+    authError: string;
+    postError: string;
+    postErrorRetry: string;
+  };
 }
 
 const API_URL = getApiUrl();
 
-export default function CommentForm({ postId }: Props) {
+export default function CommentForm({ postId, labels }: Props) {
   const { user, loading } = useSession();
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +39,7 @@ export default function CommentForm({ postId }: Props) {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) {
-        setError("You must be signed in to comment.");
+        setError(copy.authError);
         return;
       }
 
@@ -43,7 +54,7 @@ export default function CommentForm({ postId }: Props) {
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
-        setError(body?.error || "Failed to post comment.");
+        setError(body?.error || copy.postError);
         return;
       }
 
@@ -56,14 +67,14 @@ export default function CommentForm({ postId }: Props) {
 
       setContent("");
     } catch (_error) {
-      setError("Failed to post comment. Please try again.");
+      setError(copy.postErrorRetry);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (loading) {
-    return <p class="comment-loading">Loading session...</p>;
+    return <p class="comment-loading">{copy.loading}</p>;
   }
 
   if (!user) {
@@ -71,7 +82,7 @@ export default function CommentForm({ postId }: Props) {
     const authUrl = `${API_URL}/api/auth/google?next=${encodeURIComponent(next)}`;
     return (
       <p class="comment-signin">
-        <a href={authUrl}>Sign in</a> to leave a comment.
+        <a href={authUrl}>{copy.signIn}</a> {copy.signInSuffix}
       </p>
     );
   }
@@ -92,7 +103,7 @@ export default function CommentForm({ postId }: Props) {
           value={content}
           onInput={(event) =>
             setContent((event.target as HTMLTextAreaElement).value)}
-          placeholder="Leave a comment..."
+          placeholder={copy.placeholder}
           maxLength={1000}
           rows={3}
         />
@@ -104,7 +115,7 @@ export default function CommentForm({ postId }: Props) {
             class="comment-submit"
             disabled={!isValid || isSubmitting}
           >
-            {isSubmitting ? "Posting..." : "Post Comment"}
+            {isSubmitting ? copy.submitting : copy.submit}
           </button>
         </div>
         {error ? <p class="comment-error">{error}</p> : null}
@@ -112,3 +123,14 @@ export default function CommentForm({ postId }: Props) {
     </form>
   );
 }
+  const copy = labels ?? {
+    signIn: "Sign in",
+    signInSuffix: "to leave a comment.",
+    loading: "Loading session...",
+    placeholder: "Leave a comment...",
+    submit: "Post comment",
+    submitting: "Posting...",
+    authError: "You must be signed in to comment.",
+    postError: "Failed to post comment.",
+    postErrorRetry: "Failed to post comment. Please try again.",
+  };

@@ -9,6 +9,12 @@ interface Props {
   initialDislikes: number;
   userReaction: "like" | "dislike" | null;
   isAuthenticated: boolean;
+  labels?: {
+    signIn: string;
+    signInSuffix: string;
+    loading: string;
+    error: string;
+  };
 }
 
 const API_URL = getApiUrl();
@@ -19,6 +25,7 @@ export default function ReactionButtons({
   initialDislikes,
   userReaction,
   isAuthenticated,
+  labels,
 }: Props) {
   const { user, loading, isAuthenticated: sessionAuth } = useSession();
   const [likes, setLikes] = useState(initialLikes);
@@ -59,7 +66,7 @@ export default function ReactionButtons({
 
   const handleReaction = async (type: "like" | "dislike") => {
     if (!authenticated || !user) {
-      setMessage("Sign in to react.");
+      setMessage(`${copy.signIn} ${copy.signInSuffix}`.trim());
       return;
     }
 
@@ -135,14 +142,14 @@ export default function ReactionButtons({
       setLikes(previousLikes);
       setDislikes(previousDislikes);
       setCurrentReaction(previousReaction);
-      setMessage("Failed to update reaction. Please try again.");
+      setMessage(copy.error);
     } finally {
       setIsLoading(false);
     }
   };
 
   if (loading) {
-    return <p class="reaction-loading">Loading reactions...</p>;
+    return <p class="reaction-loading">{copy.loading}</p>;
   }
 
   return (
@@ -168,9 +175,9 @@ export default function ReactionButtons({
       {!authenticated ? (
         <p class="reaction-signin">
           <a href={`${API_URL}/api/auth/google?next=${encodeURIComponent(nextUrl)}`}>
-            Sign in
+            {copy.signIn}
           </a>{" "}
-          to react.
+          {copy.signInSuffix}
         </p>
       ) : null}
 
@@ -178,3 +185,9 @@ export default function ReactionButtons({
     </div>
   );
 }
+  const copy = labels ?? {
+    signIn: "Sign in",
+    signInSuffix: "to react.",
+    loading: "Loading reactions...",
+    error: "Failed to update reaction. Please try again.",
+  };

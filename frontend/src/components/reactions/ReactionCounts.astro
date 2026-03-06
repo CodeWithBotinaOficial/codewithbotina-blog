@@ -1,9 +1,17 @@
 ---
-const { likes = 0, dislikes = 0, total = 0 } = Astro.props;
+interface Labels {
+  likes: string;
+  dislikes: string;
+  total: string;
+}
+
+const { likes = 0, dislikes = 0, total = 0, labels } = Astro.props;
+const fallback: Labels = { likes: "likes", dislikes: "dislikes", total: "total" };
+const copy: Labels = labels ?? fallback;
 ---
 
 <div class="reaction-counts">
-  <span><strong>{likes}</strong> likes</span>
-  <span><strong>{dislikes}</strong> dislikes</span>
-  <span><strong>{total}</strong> total</span>
+  <span><strong>{likes}</strong> {copy.likes}</span>
+  <span><strong>{dislikes}</strong> {copy.dislikes}</span>
+  <span><strong>{total}</strong> {copy.total}</span>
 </div>

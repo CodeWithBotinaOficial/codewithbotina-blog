@@ -1,5 +1,18 @@
 ---
 import HeaderAuthControls from "./HeaderAuthControls.tsx";
+import { t, type SupportedLanguage } from "../../lib/i18n";
+
+interface Props {
+  currentLanguage: SupportedLanguage;
+}
+
+const { currentLanguage } = Astro.props;
+
+const labels = {
+  signIn: t(currentLanguage, "signInWithGoogle", "auth"),
+  signOut: t(currentLanguage, "signOut", "auth"),
+  loading: t(currentLanguage, "loading", "auth"),
+};
 ---
 
-<HeaderAuthControls client:load />
+<HeaderAuthControls labels={labels} client:load />

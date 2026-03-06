@@ -10,11 +10,24 @@ import { useToast } from "../../hooks/useToast";
 interface Props {
   slug: string;
   titulo: string;
+  language?: string;
+  labels?: {
+    edit: string;
+    delete: string;
+    deleting: string;
+    deleteSuccess: string;
+    deleteError: string;
+    deleteLoadError: string;
+    deleteConfirmTitle: string;
+    deleteConfirmMessage: string;
+    confirmText: string;
+    cancelText: string;
+  };
 }
 
 const API_URL = getApiUrl();
 
-export default function AdminPostMenu({ slug, titulo }: Props) {
+export default function AdminPostMenu({ slug, titulo, language, labels }: Props) {
   const { isAdmin, loading } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -41,6 +54,28 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
 
   if (loading || !isAdmin) return null;
 
+  const defaultLabels = {
+    edit: "Edit Post",
+    delete: "Delete Post",
+    deleting: "Deleting...",
+    deleteSuccess: "Post deleted successfully.",
+    deleteError: "Failed to delete post. Please try again.",
+    deleteLoadError: "Failed to load delete confirmation. Please try again.",
+    deleteConfirmTitle: "Delete post?",
+    deleteConfirmMessage:
+      "This will permanently remove \"{{title}}\" and delete {{comments}} comments, {{likes}} likes, and {{dislikes}} dislikes.",
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  };
+
+  const mergedLabels = { ...defaultLabels, ...(labels ?? {}) };
+
+  const formatTemplate = (template: string, data: Record<string, string | number>) => {
+    return Object.entries(data).reduce((acc, [key, value]) => {
+      return acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), String(value));
+    }, template);
+  };
+
   const getAccessToken = async () => {
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token || null;
@@ -50,8 +85,9 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
     const token = await getAccessToken();
     if (!token) throw new Error("Missing access token");
 
+    const query = language ? `?language=${encodeURIComponent(language)}` : "";
     const response = await fetch(
-      `${API_URL}/api/posts/${slug}/delete`,
+      `${API_URL}/api/posts/${slug}/delete${query}`,
       {
         method: "DELETE",
         headers: {
@@ -83,7 +119,7 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
       setShowDialog(true);
     } catch (error) {
       console.error(error);
-      showToast("Failed to load delete confirmation. Please try again.", "error");
+      showToast(mergedLabels.deleteLoadError, "error");
     } finally {
       setIsDeleting(false);
     }
@@ -97,8 +133,9 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
       const token = await getAccessToken();
       if (!token) throw new Error("Missing access token");
 
+      const query = language ? `?language=${encodeURIComponent(language)}&confirm=true` : "?confirm=true";
       const response = await fetch(
-        `${API_URL}/api/posts/${slug}/delete?confirm=true`,
+        `${API_URL}/api/posts/${slug}/delete${query}`,
         {
           method: "DELETE",
           headers: {
@@ -111,13 +148,13 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
         throw new Error("Failed to delete post");
       }
 
-      showToast("Post deleted successfully.", "success");
+      showToast(mergedLabels.deleteSuccess, "success");
       window.setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = language ? `/${language}/` : "/";
       }, 600);
     } catch (error) {
       console.error(error);
-      showToast("Failed to delete post. Please try again.", "error");
+      showToast(mergedLabels.deleteError, "error");
     } finally {
       setIsDeleting(false);
       setShowDialog(false);
@@ -138,11 +175,11 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
       {isOpen ? (
         <div class="absolute right-0 mt-2 w-44 rounded-xl border border-[var(--color-border)] bg-white shadow-lg">
           <a
-            href={`/admin/edit-post/${slug}`}
+            href={`/admin/edit-post/${slug}${language ? `?lang=${encodeURIComponent(language)}` : ""}`}
             class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)]"
           >
             <Pencil className="h-4 w-4" />
-            Edit Post
+            {mergedLabels.edit}
           </a>
           <button
             type="button"
@@ -151,7 +188,7 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
             disabled={isDeleting}
           >
             <Trash2 className="h-4 w-4" />
-            {isDeleting ? "Deleting..." : "Delete Post"}
+            {isDeleting ? mergedLabels.deleting : mergedLabels.delete}
           </button>
         </div>
       ) : null}
@@ -160,10 +197,15 @@ export default function AdminPostMenu({ slug, titulo }: Props) {
         isOpen={showDialog}
         onClose={() => setShowDialog(false)}
         onConfirm={confirmDelete}
-        title="Delete post?"
-        message={`This will permanently remove "${titulo}" and delete ${deleteInfo?.comments_count ?? 0} comments, ${deleteInfo?.likes_count ?? 0} likes, and ${deleteInfo?.dislikes_count ?? 0} dislikes.`}
-        confirmText={isDeleting ? "Deleting..." : "Delete"}
-        cancelText="Cancel"
+        title={mergedLabels.deleteConfirmTitle}
+        message={formatTemplate(mergedLabels.deleteConfirmMessage, {
+          title: titulo,
+          comments: deleteInfo?.comments_count ?? 0,
+          likes: deleteInfo?.likes_count ?? 0,
+          dislikes: deleteInfo?.dislikes_count ?? 0,
+        })}
+        confirmText={isDeleting ? mergedLabels.deleting : mergedLabels.confirmText}
+        cancelText={mergedLabels.cancelText}
         variant="danger"
       />
 

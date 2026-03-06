@@ -20,13 +20,15 @@ export const handler: Handlers = {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
     const { slug } = ctx.params;
-    const confirm = new URL(req.url).searchParams.get("confirm") === "true";
+    const params = new URL(req.url).searchParams;
+    const confirm = params.get("confirm") === "true";
+    const language = params.get("language") ?? undefined;
 
     try {
       const user = await requireAdmin(req);
 
       if (!confirm) {
-        const info = await postService.getDeleteInfo(slug);
+        const info = await postService.getDeleteInfo(slug, language);
         const response = successResponse(
           {
             post_id: info.post_id,
@@ -45,7 +47,7 @@ export const handler: Handlers = {
         return response;
       }
 
-      const result = await postService.deletePost(slug, user.id);
+      const result = await postService.deletePost(slug, user.id, language);
       if (!result.success || !result.data) {
         const statusCode = result.error instanceof AppError
           ? result.error.statusCode

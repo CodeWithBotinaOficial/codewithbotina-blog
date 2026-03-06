@@ -3,7 +3,7 @@ import { marked } from "marked";
 import { supabase } from "../lib/supabase.ts";
 import { sanitizeInput } from "../lib/validation.ts";
 import { ServiceResult } from "../types/api.types.ts";
-import { DeleteInfo, DeleteResult, PostCreate, PostRecord, PostUpdate } from "../types/post.types.ts";
+import { DeleteInfo, DeleteResult, PostCreate, PostLanguage, PostRecord, PostUpdate } from "../types/post.types.ts";
 import { AppError, DatabaseError, ValidationError } from "../utils/errors.ts";
 import { AuthService } from "./auth.service.ts";
 import { ImageService } from "./image.service.ts";
@@ -11,6 +11,15 @@ import { ImageService } from "./image.service.ts";
 export class PostService {
   private authService: AuthService;
   private imageService: ImageService;
+  private supportedLanguages: Set<PostLanguage> = new Set([
+    "en",
+    "es",
+    "fr",
+    "de",
+    "pt",
+    "ja",
+    "zh",
+  ]);
 
   constructor(
     authService: AuthService = new AuthService(),
@@ -30,8 +39,8 @@ export class PostService {
         return { success: false, error: new AppError("Forbidden", 403) };
       }
 
-      const sanitized = this.validateAndSanitize(data);
-      const unique = await this.isSlugUnique(sanitized.slug);
+      const sanitized = this.validateAndSanitize(data, "es");
+      const unique = await this.isSlugUnique(sanitized.slug, undefined, sanitized.language);
       if (!unique) {
         return {
           success: false,
@@ -47,8 +56,9 @@ export class PostService {
           body: sanitized.body,
           imagen_url: sanitized.imagen_url ?? null,
           fecha: new Date().toISOString(),
+          language: sanitized.language,
         }])
-        .select("id, titulo, slug, body, imagen_url, fecha")
+        .select("id, titulo, slug, body, imagen_url, fecha, language")
         .single();
 
       if (error || !created) {
@@ -81,14 +91,18 @@ export class PostService {
         return { success: false, error: new AppError("Forbidden", 403) };
       }
 
-      const existing = await this.getPostBySlug(slug);
+      const preferredLanguage = this.normalizeLanguage(data.language) ?? undefined;
+      let existing = await this.getPostBySlug(slug, preferredLanguage);
+      if (!existing && !preferredLanguage) {
+        existing = await this.getPostBySlug(slug);
+      }
       if (!existing) {
         return { success: false, error: new AppError("Post not found", 404) };
       }
 
-      const sanitized = this.validateAndSanitize(data);
+      const sanitized = this.validateAndSanitize(data, existing.language);
       if (sanitized.slug !== existing.slug) {
-        const unique = await this.isSlugUnique(sanitized.slug, existing.id);
+        const unique = await this.isSlugUnique(sanitized.slug, existing.id, sanitized.language);
         if (!unique) {
           return {
             success: false,
@@ -104,9 +118,10 @@ export class PostService {
           slug: sanitized.slug,
           body: sanitized.body,
           imagen_url: sanitized.imagen_url ?? null,
+          language: sanitized.language,
         })
         .eq("id", existing.id)
-        .select("id, titulo, slug, body, imagen_url, fecha")
+        .select("id, titulo, slug, body, imagen_url, fecha, language")
         .single();
 
       if (error || !updated) {
@@ -131,6 +146,7 @@ export class PostService {
   async deletePost(
     slug: string,
     userId: string,
+    language?: string,
   ): Promise<ServiceResult<DeleteResult>> {
     try {
       const isAdmin = await this.authService.isAdmin(userId);
@@ -138,12 +154,13 @@ export class PostService {
         return { success: false, error: new AppError("Forbidden", 403) };
       }
 
-      const existing = await this.getPostBySlug(slug);
+      const normalizedLanguage = this.normalizeLanguage(language) ?? undefined;
+      const existing = await this.getPostBySlug(slug, normalizedLanguage);
       if (!existing) {
         return { success: false, error: new AppError("Post not found", 404) };
       }
 
-      const info = await this.getDeleteInfo(slug);
+      const info = await this.getDeleteInfo(slug, normalizedLanguage);
 
       const { error } = await supabase
         .from("posts")
@@ -180,8 +197,8 @@ export class PostService {
     }
   }
 
-  async getDeleteInfo(slug: string): Promise<DeleteInfo> {
-    const post = await this.getPostBySlug(slug);
+  async getDeleteInfo(slug: string, language?: string): Promise<DeleteInfo> {
+    const post = await this.getPostBySlug(slug, language);
     if (!post) {
       throw new AppError("Post not found", 404);
     }
@@ -225,11 +242,20 @@ export class PostService {
     };
   }
 
-  async isSlugUnique(slug: string, excludeId?: string): Promise<boolean> {
+  async isSlugUnique(
+    slug: string,
+    excludeId?: string,
+    language?: string,
+  ): Promise<boolean> {
     let query = supabase
       .from("posts")
       .select("id")
       .eq("slug", slug);
+
+    const normalizedLanguage = this.normalizeLanguage(language);
+    if (normalizedLanguage) {
+      query = query.eq("language", normalizedLanguage);
+    }
 
     if (excludeId) {
       query = query.neq("id", excludeId);
@@ -293,7 +319,10 @@ export class PostService {
     }
   }
 
-  private validateAndSanitize(data: PostCreate | PostUpdate): PostCreate {
+  private validateAndSanitize(
+    data: PostCreate | PostUpdate,
+    fallbackLanguage: PostLanguage,
+  ): PostCreate {
     const errors: Record<string, string> = {};
 
     const titulo = sanitizeInput(data.titulo ?? "");
@@ -335,11 +364,21 @@ export class PostService {
       );
     }
 
+    let language = fallbackLanguage;
+    if (typeof data.language === "string" && data.language.trim()) {
+      const normalized = this.normalizeLanguage(data.language);
+      if (!normalized) {
+        throw new ValidationError("Language is not supported");
+      }
+      language = normalized;
+    }
+
     return {
       titulo,
       slug,
       body,
       imagen_url,
+      language,
     };
   }
 
@@ -389,12 +428,21 @@ export class PostService {
     await this.safeInsertPostTags(postId, tagIds);
   }
 
-  private async getPostBySlug(slug: string): Promise<PostRecord | null> {
-    const { data, error } = await supabase
+  private async getPostBySlug(
+    slug: string,
+    language?: string,
+  ): Promise<PostRecord | null> {
+    let query = supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha")
-      .eq("slug", slug)
-      .maybeSingle();
+      .select("id, titulo, slug, body, imagen_url, fecha, language")
+      .eq("slug", slug);
+
+    const normalizedLanguage = this.normalizeLanguage(language);
+    if (normalizedLanguage) {
+      query = query.eq("language", normalizedLanguage);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
       console.error("Supabase error:", error);
@@ -402,5 +450,14 @@ export class PostService {
     }
 
     return data as PostRecord | null;
+  }
+
+  private normalizeLanguage(value?: string | null): PostLanguage | null {
+    if (!value) return null;
+    const normalized = value.trim().toLowerCase();
+    if (this.supportedLanguages.has(normalized as PostLanguage)) {
+      return normalized as PostLanguage;
+    }
+    return null;
   }
 }

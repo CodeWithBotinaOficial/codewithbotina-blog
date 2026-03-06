@@ -7,6 +7,7 @@ import TagSelector, { TagOption } from "./TagSelector";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Toast from "../ui/Toast";
 import { useToast } from "../../hooks/useToast";
+import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../../lib/i18n";
 
 interface EditorData {
   titulo: string;
@@ -14,6 +15,7 @@ interface EditorData {
   body: string;
   imagen_url?: string | null;
   tags?: TagOption[];
+  language?: string;
 }
 
 interface Props {
@@ -31,6 +33,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
   const [body, setBody] = useState(initialData?.body ?? "");
   const [imageUrl, setImageUrl] = useState(initialData?.imagen_url ?? "");
   const [tags, setTags] = useState<TagOption[]>(initialData?.tags ?? []);
+  const [language, setLanguage] = useState(initialData?.language ?? "es");
 
   const [previewMode, setPreviewMode] = useState(false);
   const [imageMode, setImageMode] = useState<"url" | "upload">("url");
@@ -66,7 +69,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
     const timer = setTimeout(async () => {
       try {
         setSlugChecking(true);
-        const exists = await checkSlugExists(trimmed);
+        const exists = await checkSlugExists(trimmed, language);
         setErrors((prev) => ({
           ...prev,
           slug: exists ? "This slug already exists" : "",
@@ -82,7 +85,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [slug, initialSlug]);
+  }, [slug, initialSlug, language]);
 
   if (sessionLoading) {
     return (
@@ -111,6 +114,10 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
       newErrors.slug = "Slug is required";
     } else if (!/^[a-z0-9-]+$/.test(trimmedSlug)) {
       newErrors.slug = "Slug must be lowercase letters, numbers, and hyphens only";
+    }
+
+    if (!SUPPORTED_LANGUAGES.includes(language as "en" | "es")) {
+      newErrors.language = "Please select a valid language";
     }
 
     if (!trimmedBody || trimmedBody.length < 100) {
@@ -188,6 +195,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
           slug: trimmedSlug,
           body: trimmedBody,
           imagen_url: finalImageUrl || null,
+          language,
           tag_ids: tags.map((tag) => tag.id),
         }),
       });
@@ -200,7 +208,7 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
       const nextSlug = payload?.data?.slug ?? trimmedSlug;
       showToast("Post saved successfully.", "success");
       window.setTimeout(() => {
-        window.location.href = `/posts/${nextSlug}`;
+        window.location.href = `/${language}/posts/${nextSlug}`;
       }, 500);
     } catch (error) {
       console.error(error);
@@ -252,6 +260,22 @@ export default function PostEditor({ mode, initialData, cancelHref }: Props) {
           {slugChecking ? <span>Checking...</span> : null}
         </div>
         {errors.slug ? <p class="text-sm text-[var(--color-error)]">{errors.slug}</p> : null}
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-semibold">Language *</label>
+        <select
+          value={language}
+          onChange={(event) => setLanguage((event.currentTarget as HTMLSelectElement).value)}
+          class="input-field"
+        >
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <option key={lang} value={lang}>
+              {LANGUAGE_NAMES[lang]}
+            </option>
+          ))}
+        </select>
+        {errors.language ? <p class="text-sm text-[var(--color-error)]">{errors.language}</p> : null}
       </div>
 
       <div class="space-y-2">
@@ -433,8 +457,8 @@ function generateSlug(title: string): string {
     .replace(/-+/g, "-");
 }
 
-async function checkSlugExists(slug: string): Promise<boolean> {
-  const response = await fetch(`${API_URL}/api/posts/${slug}/exists`);
+async function checkSlugExists(slug: string, language: string): Promise<boolean> {
+  const response = await fetch(`${API_URL}/api/posts/${slug}/exists?language=${encodeURIComponent(language)}`);
   if (!response.ok) {
     throw new Error("Slug check failed");
   }

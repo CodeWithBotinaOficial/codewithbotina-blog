@@ -1,18 +1,24 @@
 ---
 export const prerender = false;
 
-import BaseLayout from '../../../components/BaseLayout.astro';
-import PostEditor from '../../../components/admin/PostEditor';
-import { supabase } from '../../../lib/supabase';
-import { formatDate } from '../../../lib/utils';
+import BaseLayout from "../../../components/BaseLayout.astro";
+import PostEditor from "../../../components/admin/PostEditor";
+import { supabase } from "../../../lib/supabase";
+import { formatDate } from "../../../lib/utils";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from "../../../lib/i18n";
 
 const { slug } = Astro.params;
+const langParam = Astro.url.searchParams.get("lang");
+const language = isSupportedLanguage(langParam ?? "")
+  ? (langParam as SupportedLanguage)
+  : null;
+const currentLanguage = language ?? DEFAULT_LANGUAGE;
 
 let post: any = null;
 let postError: any = null;
 
-const joinedResult = await supabase
-  .from('posts')
+let joinedQuery = supabase
+  .from("posts")
   .select(`
     *,
     post_tags (
@@ -24,15 +30,25 @@ const joinedResult = await supabase
       )
     )
   `)
-  .eq('slug', slug)
-  .single();
+  .eq("slug", slug);
+
+if (language) {
+  joinedQuery = joinedQuery.eq("language", language);
+}
+
+const joinedResult = await joinedQuery.single();
 
 if (joinedResult.error) {
-  const fallback = await supabase
-    .from('posts')
-    .select('*')
-    .eq('slug', slug)
-    .single();
+  let fallbackQuery = supabase
+    .from("posts")
+    .select("*")
+    .eq("slug", slug);
+
+  if (language) {
+    fallbackQuery = fallbackQuery.eq("language", language);
+  }
+
+  const fallback = await fallbackQuery.single();
   post = fallback.data;
   postError = fallback.error;
 } else {
@@ -40,32 +56,33 @@ if (joinedResult.error) {
 }
 
 if (postError || !post) {
-  return Astro.redirect('/404');
+  return Astro.redirect(`/${currentLanguage}/404`);
 }
 
-const createdAt = post.fecha ? formatDate(post.fecha) : 'Unknown';
+const createdAt = post.fecha ? formatDate(post.fecha) : "Unknown";
 const updatedAt = post.updated_at ? formatDate(post.updated_at) : null;
 const tags = Array.isArray(post?.post_tags)
   ? (post.post_tags
       .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
       .filter(Boolean))
   : [];
-const initialData = { ...post, tags };
+const initialLanguage = post.language ?? language ?? DEFAULT_LANGUAGE;
+const initialData = { ...post, tags, language: initialLanguage };
 ---
 
-<BaseLayout title={`Edit: ${post.titulo}`}>
+<BaseLayout title={`Edit: ${post.titulo}`} currentLanguage={currentLanguage} currentPath={Astro.url.pathname}>
   <section class="container-responsive py-12">
     <div class="mb-6">
       <h1 class="text-3xl font-bold">Edit Post: {post.titulo}</h1>
       <p class="mt-2 text-sm text-[var(--color-text-tertiary)]">
-        Created: {createdAt}{updatedAt ? ` • Last modified: ${updatedAt}` : ''}
+        Created: {createdAt}{updatedAt ? ` • Last modified: ${updatedAt}` : ""}
       </p>
     </div>
 
     <PostEditor
       mode="edit"
       initialData={initialData}
-      cancelHref={`/posts/${post.slug}`}
+      cancelHref={`/${initialLanguage}/posts/${post.slug}`}
       client:load
     />
   </section>

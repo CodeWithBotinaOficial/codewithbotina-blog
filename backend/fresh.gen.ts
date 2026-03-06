@@ -29,7 +29,7 @@ import * as $api_reactions_postId_index from "./routes/api/reactions/[postId]/in
 import * as $api_reactions_postId_like from "./routes/api/reactions/[postId]/like.ts";
 import * as $api_reactions_helpers from "./routes/api/reactions/_helpers.ts";
 import * as $api_reactions_user_postId_ from "./routes/api/reactions/user/[postId].ts";
-import * as $api_tags_slug from "./routes/api/tags/[slug].ts";
+import * as $api_tags_slug_ from "./routes/api/tags/[slug].ts";
 import * as $api_tags_autocomplete from "./routes/api/tags/autocomplete.ts";
 import * as $api_tags_create from "./routes/api/tags/create.ts";
 import * as $api_tags_index from "./routes/api/tags/index.ts";
@@ -68,7 +68,7 @@ const manifest = {
     "./routes/api/reactions/[postId]/like.ts": $api_reactions_postId_like,
     "./routes/api/reactions/_helpers.ts": $api_reactions_helpers,
     "./routes/api/reactions/user/[postId].ts": $api_reactions_user_postId_,
-    "./routes/api/tags/[slug].ts": $api_tags_slug,
+    "./routes/api/tags/[slug].ts": $api_tags_slug_,
     "./routes/api/tags/autocomplete.ts": $api_tags_autocomplete,
     "./routes/api/tags/create.ts": $api_tags_create,
     "./routes/api/tags/index.ts": $api_tags_index,

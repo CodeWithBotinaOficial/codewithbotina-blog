@@ -1,13 +1,21 @@
 ---
 export const prerender = false;
 
-import BaseLayout from '../../components/BaseLayout.astro';
-import PostEditor from '../../components/admin/PostEditor';
+import BaseLayout from "../../components/BaseLayout.astro";
+import PostEditor from "../../components/admin/PostEditor";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from "../../lib/i18n";
+
+const langParam = Astro.url.searchParams.get("lang");
+const language = isSupportedLanguage(langParam ?? "")
+  ? (langParam as SupportedLanguage)
+  : null;
+const initialData = language ? { language } : undefined;
+const currentLanguage = language ?? DEFAULT_LANGUAGE;
 ---
 
-<BaseLayout title="Create New Post">
+<BaseLayout title="Create New Post" currentLanguage={currentLanguage} currentPath={Astro.url.pathname}>
   <section class="container-responsive py-12">
     <h1 class="text-3xl font-bold mb-6">Create New Post</h1>
-    <PostEditor mode="create" cancelHref="/" client:load />
+    <PostEditor mode="create" initialData={initialData} cancelHref={`/${currentLanguage}/`} client:load />
   </section>
 </BaseLayout>

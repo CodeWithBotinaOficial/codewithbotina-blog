@@ -1,5 +1,13 @@
 ---
-import { Search, X } from 'lucide-astro';
+import { Search, X } from "lucide-astro";
+
+interface Props {
+  placeholder: string;
+  showingLabel: string;
+}
+
+const { placeholder, showingLabel } = Astro.props;
+const [showingPrefix, showingSuffix] = showingLabel.split("{{count}}");
 ---
 
 <div class="relative w-full max-w-xl mx-auto mb-12 z-50 isolate">
@@ -10,7 +18,7 @@ import { Search, X } from 'lucide-astro';
     <input
       type="text"
       id="search-input"
-      placeholder="Search articles..."
+      placeholder={placeholder}
       class="w-full pl-12 pr-12 py-4 rounded-full border border-[var(--color-border)] bg-white shadow-sm focus:ring-2 focus:ring-[var(--color-accent-primary)] focus:border-transparent outline-none transition-all relative z-10"
     />
     <button
@@ -22,12 +30,14 @@ import { Search, X } from 'lucide-astro';
     </button>
   </div>
   <div id="search-results-count" class="absolute -bottom-8 left-0 text-sm text-[var(--color-text-tertiary)] hidden">
-    Showing <span id="count">0</span> articles
+    {showingPrefix}
+    <span id="count">0</span>
+    {showingSuffix}
   </div>
 </div>
 
 <script>
-  import { handleSearch } from '../lib/search';
+  import { handleSearch } from "../lib/search";
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
   if (searchInput) {
     handleSearch(searchInput);

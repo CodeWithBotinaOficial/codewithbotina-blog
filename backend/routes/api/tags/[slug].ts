@@ -15,6 +15,12 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
+    const languageParam = new URL(req.url).searchParams.get("language");
+    const normalizedLanguage = languageParam ? languageParam.trim().toLowerCase() : null;
+    const supportedLanguages = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
+    const language = normalizedLanguage && supportedLanguages.has(normalizedLanguage)
+      ? normalizedLanguage
+      : null;
 
     try {
       const slug = ctx.params.slug?.trim();
@@ -46,7 +52,7 @@ export const handler: Handlers = {
         | Array<{ post?: unknown }>
         | null = null;
 
-      const withUpdated = await supabase
+      let withUpdatedQuery = supabase
         .from("post_tags")
         .select(`
           post:posts (
@@ -56,16 +62,23 @@ export const handler: Handlers = {
             body,
             imagen_url,
             fecha,
-            updated_at
+            updated_at,
+            language
           )
         `)
-        .eq("tag_id", tag.id)
+        .eq("tag_id", tag.id);
+
+      if (language) {
+        withUpdatedQuery = withUpdatedQuery.eq("post.language", language);
+      }
+
+      const withUpdated = await withUpdatedQuery
         .order("created_at", { ascending: false });
 
       if (withUpdated.error) {
         const message = String(withUpdated.error?.message || "");
         if (message.includes("updated_at")) {
-          const withoutUpdated = await supabase
+          let withoutUpdatedQuery = supabase
             .from("post_tags")
             .select(`
               post:posts (
@@ -74,10 +87,17 @@ export const handler: Handlers = {
                 slug,
                 body,
                 imagen_url,
-                fecha
+                fecha,
+                language
               )
             `)
-            .eq("tag_id", tag.id)
+            .eq("tag_id", tag.id);
+
+          if (language) {
+            withoutUpdatedQuery = withoutUpdatedQuery.eq("post.language", language);
+          }
+
+          const withoutUpdated = await withoutUpdatedQuery
             .order("created_at", { ascending: false });
           postTags = withoutUpdated.data ?? [];
         } else {

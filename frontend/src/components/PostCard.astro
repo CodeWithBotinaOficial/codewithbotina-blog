@@ -1,19 +1,23 @@
 ---
-import { ArrowRight, Calendar, Clock } from 'lucide-astro';
-import { formatDate, calculateReadTime, truncateText, stripMarkdown } from '../lib/utils';
-import type { Post } from '../types/post';
+import { ArrowRight, Calendar, Clock } from "lucide-astro";
+import { formatDate, calculateReadTime, truncateText, stripMarkdown } from "../lib/utils";
+import type { Post } from "../types/post";
+import { t, type SupportedLanguage } from "../lib/i18n";
 
 interface Props {
   post: Post;
+  language: SupportedLanguage;
 }
 
-const { post } = Astro.props;
+const { post, language } = Astro.props;
 const readTime = calculateReadTime(post.body);
 const plainExcerpt = stripMarkdown(post.excerpt || post.body);
+const locale = language === "es" ? "es-ES" : "en-US";
+const readTimeLabel = t(language, "time.readTime", "common", { minutes: readTime });
 ---
 
 <article class="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex flex-col h-full group relative z-1 isolate">
-  <a href={`/posts/${post.slug}`} class="flex flex-col h-full text-inherit no-underline">
+  <a href={`/${language}/posts/${post.slug}`} class="flex flex-col h-full text-inherit no-underline">
     {post.imagen_url && (
       <div class="aspect-video overflow-hidden bg-[var(--color-bg-subtle)]">
         <img
@@ -29,11 +33,11 @@ const plainExcerpt = stripMarkdown(post.excerpt || post.body);
       <div class="flex items-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-3">
         <span class="flex items-center gap-1">
           <Calendar size={14} />
-          {formatDate(post.fecha)}
+          {formatDate(post.fecha, locale)}
         </span>
         <span class="flex items-center gap-1">
           <Clock size={14} />
-          {readTime} min read
+          {readTimeLabel}
         </span>
       </div>
 
@@ -46,7 +50,7 @@ const plainExcerpt = stripMarkdown(post.excerpt || post.body);
       </p>
 
       <div class="flex items-center text-[var(--color-accent-primary)] font-medium text-sm mt-auto group-hover:translate-x-1 transition-transform">
-        Read more <ArrowRight size={16} class="ml-1" />
+        {t(language, "actions.readMore")} <ArrowRight size={16} class="ml-1" />
       </div>
     </div>
   </a>

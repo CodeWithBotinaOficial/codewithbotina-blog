@@ -1,0 +1,37 @@
+---
+import BaseLayout from "../../components/BaseLayout.astro";
+import { marked } from "marked";
+import fs from "node:fs";
+import path from "node:path";
+import { getSiteUrl } from "../../lib/env";
+import { getLocalizedPath, SUPPORTED_LANGUAGES } from "../../lib/i18n";
+
+const language = "en";
+const policyPath = path.join(process.cwd(), "..", "legal-docs", "en", "data-deletion.md");
+const markdown = fs.readFileSync(policyPath, "utf-8");
+const html = marked.parse(markdown);
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+const canonicalUrl = `${siteUrl}${Astro.url.pathname}`;
+const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
+  lang,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+}));
+---
+
+<BaseLayout
+  title="Data Deletion"
+  description="Instructions for deleting your CodeWithBotina data."
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/data-deletion`} />
+  </Fragment>
+  <section class="container-responsive py-12">
+    <article class="prose prose-lg max-w-none" set:html={html} />
+  </section>
+</BaseLayout>

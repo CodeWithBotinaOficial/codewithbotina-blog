@@ -24,6 +24,20 @@ interface Props {
   initialComments: Comment[];
   currentUserId?: string | null;
   isAdmin?: boolean;
+  labels?: {
+    empty: string;
+    edit: string;
+    delete: string;
+    save: string;
+    saving: string;
+    cancel: string;
+    pin: string;
+    unpin: string;
+    pinned: string;
+    anonymous: string;
+    updateError: string;
+  };
+  dateLocale?: string;
 }
 
 const API_URL = getApiUrl();
@@ -41,6 +55,8 @@ export default function CommentList({
   initialComments,
   currentUserId,
   isAdmin,
+  labels,
+  dateLocale,
 }: Props) {
   const [comments, setComments] = useState<Comment[]>(initialComments || []);
   const { user, isAdmin: sessionIsAdmin } = useSession();
@@ -144,7 +160,7 @@ export default function CommentList({
   return (
     <div class="comment-list" data-post-id={postId}>
       {sortedComments.length === 0 ? (
-        <p class="comment-empty">No comments yet. Be the first to comment.</p>
+        <p class="comment-empty">{copy.empty}</p>
       ) : (
         sortedComments.map((comment) => (
           <CommentItem
@@ -152,6 +168,8 @@ export default function CommentList({
             comment={comment}
             currentUserId={effectiveUserId}
             isAdmin={effectiveIsAdmin}
+            labels={copy}
+            dateLocale={dateLocale}
             onDelete={() => handleDelete(comment.id)}
             onUpdate={(content) => handleUpdate(comment.id, content)}
             onTogglePin={() => handleTogglePin(comment.id, !comment.is_pinned)}
@@ -161,3 +179,16 @@ export default function CommentList({
     </div>
   );
 }
+  const copy = labels ?? {
+    empty: "No comments yet. Be the first to comment.",
+    edit: "Edit",
+    delete: "Delete",
+    save: "Save",
+    saving: "Saving...",
+    cancel: "Cancel",
+    pin: "Pin",
+    unpin: "Unpin",
+    pinned: "Pinned",
+    anonymous: "Anonymous",
+    updateError: "Failed to update comment.",
+  };

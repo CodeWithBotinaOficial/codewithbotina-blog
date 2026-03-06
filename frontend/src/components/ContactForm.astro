@@ -1,5 +1,26 @@
 ---
-import { Send, Loader2, CheckCircle, AlertCircle } from 'lucide-astro';
+import { Send, Loader2, CheckCircle, AlertCircle } from "lucide-astro";
+
+interface Labels {
+  nameLabel: string;
+  namePlaceholder: string;
+  nameError: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  emailError: string;
+  messageLabel: string;
+  messagePlaceholder: string;
+  messageError: string;
+  submit: string;
+  successMessage: string;
+  errorMessage: string;
+}
+
+interface Props {
+  labels: Labels;
+}
+
+const { labels } = Astro.props;
 const apiUrl = import.meta.env.PUBLIC_API_URL;
 ---
 
@@ -7,9 +28,11 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
   id="contact-form" 
   class="space-y-6 bg-white p-8 rounded-xl border border-[var(--color-border)] shadow-sm"
   data-api-url={apiUrl}
+  data-success-message={labels.successMessage}
+  data-error-message={labels.errorMessage}
 >
   <div>
-    <label for="name" class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Name</label>
+    <label for="name" class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{labels.nameLabel}</label>
     <input
       type="text"
       id="name"
@@ -17,26 +40,26 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
       required
       maxlength="100"
       class="input-field"
-      placeholder="Your name"
+      placeholder={labels.namePlaceholder}
     />
-    <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="name-error">Name is required</p>
+    <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="name-error">{labels.nameError}</p>
   </div>
 
   <div>
-    <label for="email" class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Email</label>
+    <label for="email" class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{labels.emailLabel}</label>
     <input
       type="email"
       id="email"
       name="email"
       required
       class="input-field"
-      placeholder="you@example.com"
+      placeholder={labels.emailPlaceholder}
     />
-    <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="email-error">Please enter a valid email</p>
+    <p class="text-xs text-[var(--color-error)] mt-1 hidden" id="email-error">{labels.emailError}</p>
   </div>
 
   <div>
-    <label for="message" class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Message</label>
+    <label for="message" class="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{labels.messageLabel}</label>
     <textarea
       id="message"
       name="message"
@@ -45,10 +68,10 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
       minlength="10"
       maxlength="1000"
       class="input-field resize-y"
-      placeholder="How can I help you?"
+      placeholder={labels.messagePlaceholder}
     ></textarea>
     <div class="flex justify-between mt-1">
-      <p class="text-xs text-[var(--color-error)] hidden" id="message-error">Message must be at least 10 characters</p>
+      <p class="text-xs text-[var(--color-error)] hidden" id="message-error">{labels.messageError}</p>
       <p class="text-xs text-[var(--color-text-tertiary)] ml-auto"><span id="char-count">0</span>/1000</p>
     </div>
   </div>
@@ -66,14 +89,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     id="submit-btn"
     class="btn-primary w-full flex items-center justify-center gap-2"
   >
-    <span>Send Message</span>
+    <span>{labels.submit}</span>
     <Send size={18} class="send-icon" />
     <Loader2 size={18} class="loading-icon animate-spin hidden" />
   </button>
 </form>
 
 <script>
-  import { handleContactForm } from '../lib/contact-form';
+  import { handleContactForm } from "../lib/contact-form";
   
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('contact-form') as HTMLFormElement;

@@ -4,7 +4,15 @@ import { useSession } from "../../hooks/useSession";
 import { initAuthListener } from "../../lib/auth";
 import { getApiUrl } from "../../lib/env";
 
-export default function HeaderAuthControls() {
+interface Props {
+  labels: {
+    signIn: string;
+    signOut: string;
+    loading: string;
+  };
+}
+
+export default function HeaderAuthControls({ labels }: Props) {
   initAuthListener();
   const { user, loading } = useSession();
   const { signIn, signOut } = useAuth();
@@ -21,14 +29,14 @@ export default function HeaderAuthControls() {
   }, []);
 
   if (loading) {
-    return <div class="auth-loading">Loading...</div>;
+    return <div class="auth-loading">{labels.loading}</div>;
   }
 
   if (!user) {
     return (
       <div class="auth-controls">
         <button class="btn-auth" type="button" onClick={signIn}>
-          Sign in with Google
+          {labels.signIn}
         </button>
       </div>
     );
@@ -48,7 +56,7 @@ export default function HeaderAuthControls() {
       </div>
       <span class="auth-name">{user.full_name || user.email}</span>
       <button class="btn-auth" type="button" onClick={signOut}>
-        Sign out
+        {labels.signOut}
       </button>
     </div>
   );

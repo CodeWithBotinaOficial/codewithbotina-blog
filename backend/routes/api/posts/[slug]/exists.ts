@@ -19,9 +19,10 @@ export const handler: Handlers = {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
     const { slug } = ctx.params;
+    const language = new URL(req.url).searchParams.get("language") ?? undefined;
 
     try {
-      const isUnique = await postService.isSlugUnique(slug);
+      const isUnique = await postService.isSlugUnique(slug, undefined, language ?? undefined);
       headers.set("Content-Type", "application/json");
       return new Response(JSON.stringify({ exists: !isUnique }), {
         status: 200,

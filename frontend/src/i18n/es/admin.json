@@ -1,0 +1,23 @@
+{
+  "createPost": "Crear publicación",
+  "editPost": "Editar publicación",
+  "deletePost": "Eliminar publicación",
+  "title": "Título",
+  "slug": "Slug",
+  "content": "Contenido",
+  "language": "Idioma",
+  "selectLanguage": "Seleccionar idioma",
+  "featuredImage": "Imagen destacada",
+  "confirmPublish": "¿Estás seguro de que quieres publicar esta publicación? Por favor verifica que todo el contenido sea correcto.",
+  "confirmDelete": "Esta acción no se puede deshacer. Eliminar esta publicación removerá permanentemente todos los comentarios y reacciones.",
+  "deleteConfirmTitle": "¿Eliminar publicación?",
+  "deleteConfirmMessage": "Esto eliminará permanentemente \"{{title}}\" y borrará {{comments}} comentarios, {{likes}} me gusta y {{dislikes}} no me gusta.",
+  "deleteLoadError": "No se pudo cargar la confirmación de eliminación. Intenta de nuevo.",
+  "deleteError": "No se pudo eliminar la publicación. Intenta de nuevo.",
+  "deleteSuccess": "Publicación eliminada correctamente.",
+  "deleting": "Eliminando...",
+  "cancel": "Cancelar",
+  "postCreated": "¡Publicación creada exitosamente!",
+  "postUpdated": "¡Publicación actualizada exitosamente!",
+  "postDeleted": "¡Publicación eliminada exitosamente!"
+}

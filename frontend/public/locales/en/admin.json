@@ -1,0 +1,23 @@
+{
+  "createPost": "Create post",
+  "editPost": "Edit post",
+  "deletePost": "Delete post",
+  "title": "Title",
+  "slug": "Slug",
+  "content": "Content",
+  "language": "Language",
+  "selectLanguage": "Select language",
+  "featuredImage": "Featured image",
+  "confirmPublish": "Are you sure you want to publish this post? Please verify all content is correct.",
+  "confirmDelete": "This action cannot be undone. Deleting this post will permanently remove all comments and reactions.",
+  "deleteConfirmTitle": "Delete post?",
+  "deleteConfirmMessage": "This will permanently remove \"{{title}}\" and delete {{comments}} comments, {{likes}} likes, and {{dislikes}} dislikes.",
+  "deleteLoadError": "Failed to load delete confirmation. Please try again.",
+  "deleteError": "Failed to delete post. Please try again.",
+  "deleteSuccess": "Post deleted successfully.",
+  "deleting": "Deleting...",
+  "cancel": "Cancel",
+  "postCreated": "Post created successfully!",
+  "postUpdated": "Post updated successfully!",
+  "postDeleted": "Post deleted successfully!"
+}

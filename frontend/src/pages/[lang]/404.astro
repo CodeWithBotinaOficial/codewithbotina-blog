@@ -1,0 +1,48 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../components/BaseLayout.astro";
+import { ArrowLeft } from "lucide-astro";
+import { getSiteUrl } from "../../lib/env";
+import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+const canonicalUrl = `${siteUrl}/${language}/404`;
+const alternateLinks = SUPPORTED_LANGUAGES.map((entry) => ({
+  lang: entry,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, entry)}`,
+}));
+---
+
+<BaseLayout
+  title={t(language, "errors.notFoundTitle")}
+  description={t(language, "errors.notFoundMessage")}
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex" />
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/404`} />
+  </Fragment>
+
+  <section class="container-responsive py-24 text-center">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">{t(language, "errors.notFoundTitle")}</h1>
+    <p class="text-lg text-[var(--color-text-secondary)] max-w-2xl mx-auto">
+      {t(language, "errors.notFoundMessage")}
+    </p>
+    <a
+      href={`/${language}/`}
+      class="mt-8 inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline"
+    >
+      <ArrowLeft size={18} />
+      {t(language, "errors.backHome")}
+    </a>
+  </section>
+</BaseLayout>

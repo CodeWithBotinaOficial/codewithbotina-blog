@@ -1,0 +1,132 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../components/BaseLayout.astro";
+import { supabase } from "../../../lib/supabase";
+import { getApiUrl, getSiteUrl } from "../../../lib/env";
+import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const apiUrl = getApiUrl();
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+
+let tags: Array<{
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  usage_count?: number | null;
+  updated_at?: string | null;
+  created_at?: string | null;
+}> = [];
+
+let hasError = false;
+
+const tagResult = await supabase
+  .from("tags")
+  .select("id, name, slug, description, usage_count, updated_at, created_at")
+  .order("usage_count", { ascending: false });
+
+if (!tagResult.error) {
+  tags = tagResult.data ?? [];
+} else {
+  hasError = true;
+}
+
+if (hasError) {
+  try {
+    const response = await fetch(`${apiUrl}/api/tags`);
+    if (response.ok) {
+      const payload = await response.json();
+      tags = payload?.data?.tags ?? payload?.tags ?? [];
+      hasError = false;
+    }
+  } catch (_error) {
+    hasError = true;
+  }
+}
+
+const canonicalUrl = `${siteUrl}/${language}/tags`;
+const pageTitle = t(language, "tagsTitle", "post");
+const metaDescription = t(language, "tagsDescription", "post");
+const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
+  lang,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+}));
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: pageTitle,
+  description: metaDescription,
+  url: canonicalUrl,
+  inLanguage: language,
+  mainEntity: {
+    "@type": "ItemList",
+    numberOfItems: tags.length,
+    itemListElement: tags.map((tag, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${siteUrl}/${language}/tags/${tag.slug}`,
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={metaDescription}
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/tags`} />
+    <script type="application/ld+json">
+      {JSON.stringify(structuredData)}
+    </script>
+  </Fragment>
+
+  <section class="container-responsive py-12">
+    <div class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2">{pageTitle}</h1>
+      <p class="text-[var(--color-text-secondary)] max-w-2xl">{metaDescription}</p>
+    </div>
+
+    {tags.length === 0 ? (
+      <div class="text-center py-12 text-[var(--color-text-secondary)]">
+        {t(language, "tagsEmpty", "post")}
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {tags.map((tag) => {
+          const usageLabel = (tag.usage_count ?? 0) === 1
+            ? t(language, "tagUsageCount", "post", { count: tag.usage_count ?? 0 })
+            : t(language, "tagUsageCountPlural", "post", { count: tag.usage_count ?? 0 });
+
+          return (
+            <a
+              href={`/${language}/tags/${tag.slug}`}
+              class="border border-[var(--color-border)] rounded-xl p-5 hover:shadow-lg transition"
+            >
+              <p class="text-lg font-semibold mb-1">#{tag.name}</p>
+              <p class="text-sm text-[var(--color-text-secondary)]">
+                {tag.description || t(language, "tagDescriptionFallback", "post")}
+              </p>
+              <p class="text-xs text-[var(--color-text-tertiary)] mt-3">{usageLabel}</p>
+            </a>
+          );
+        })}
+      </div>
+    )}
+  </section>
+</BaseLayout>

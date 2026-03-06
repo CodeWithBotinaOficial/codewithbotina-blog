@@ -36,6 +36,9 @@ export function handleContactForm(form: HTMLFormElement, apiUrl: string) {
       mensaje: messageTextarea.value
     };
 
+    const successMessage = form.dataset.successMessage ?? "Message sent successfully.";
+    const errorMessage = form.dataset.errorMessage ?? "Failed to send message. Please try again later.";
+
     try {
       const response = await fetch(`${apiUrl}/api/contact`, {
         method: 'POST',
@@ -50,7 +53,7 @@ export function handleContactForm(form: HTMLFormElement, apiUrl: string) {
       statusDiv?.classList.add('bg-green-50', 'text-green-800');
       successIcon?.classList.remove('hidden');
       errorIcon?.classList.add('hidden');
-      if (statusMsg) statusMsg.textContent = 'Message sent successfully! I will get back to you soon.';
+      if (statusMsg) statusMsg.textContent = successMessage;
       form.reset();
       charCount.textContent = '0';
 
@@ -59,7 +62,7 @@ export function handleContactForm(form: HTMLFormElement, apiUrl: string) {
       statusDiv?.classList.add('bg-red-50', 'text-red-800');
       errorIcon?.classList.remove('hidden');
       successIcon?.classList.add('hidden');
-      if (statusMsg) statusMsg.textContent = 'Failed to send message. Please try again later.';
+      if (statusMsg) statusMsg.textContent = errorMessage;
     } finally {
       submitBtn.disabled = false;
       loadingIcon?.classList.add('hidden');

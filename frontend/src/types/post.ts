@@ -7,6 +7,7 @@ export interface Post {
   fecha: string;
   tags?: string[];
   excerpt?: string;
+  language?: string;
 }
 
 export interface ContactFormData {

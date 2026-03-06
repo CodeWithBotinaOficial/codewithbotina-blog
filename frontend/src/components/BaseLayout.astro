@@ -1,9 +1,10 @@
 ---
-import Header from './Header.astro';
-import Footer from './Footer.astro';
-import SEO from './SEO.astro';
-import CookieConsent from './CookieConsent.tsx';
-import '../styles/global.css';
+import Header from "./Header.astro";
+import Footer from "./Footer.astro";
+import SEO from "./SEO.astro";
+import CookieConsent from "./CookieConsent.tsx";
+import "../styles/global.css";
+import { DEFAULT_LANGUAGE } from "../lib/i18n";
 
 interface Props {
   title: string;
@@ -11,6 +12,8 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   canonical?: string;
+  currentLanguage?: string;
+  currentPath?: string;
 }
 
 const {
@@ -19,13 +22,15 @@ const {
   image,
   type,
   canonical,
+  currentLanguage = DEFAULT_LANGUAGE,
+  currentPath = Astro.url.pathname,
 } = Astro.props;
 
 const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={currentLanguage}>
   <head>
     <SEO
       title={title}
@@ -44,16 +49,16 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
       rel="alternate"
       type="application/rss+xml"
       title="CodeWithBotina RSS Feed"
-      href="/rss.xml"
+      href={`/${currentLanguage}/rss.xml`}
     />
     <slot name="head" />
   </head>
   <body class="min-h-screen flex flex-col">
-    <Header />
+    <Header currentLanguage={currentLanguage} currentPath={currentPath} />
     <main class="flex-1">
       <slot />
     </main>
-    <Footer />
+    <Footer currentLanguage={currentLanguage} />
     <CookieConsent client:load />
   </body>
 </html>

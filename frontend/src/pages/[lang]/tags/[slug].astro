@@ -1,0 +1,159 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../components/BaseLayout.astro";
+import PostCard from "../../../components/PostCard.astro";
+import { supabase } from "../../../lib/supabase";
+import { getApiUrl, getSiteUrl } from "../../../lib/env";
+import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+import type { Post } from "../../../types/post";
+
+const { slug, lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const apiUrl = getApiUrl();
+
+let tag: { id: string; name: string; slug: string; description?: string | null } | null = null;
+let posts: Post[] = [];
+let hasTagError = false;
+
+const tagResult = await supabase
+  .from("tags")
+  .select("id, name, slug, description")
+  .eq("slug", slug)
+  .single();
+
+if (!tagResult.error && tagResult.data) {
+  tag = tagResult.data;
+
+  const { data: postTags, error: postTagsError } = await supabase
+    .from("post_tags")
+    .select(`
+      post:posts (
+        id,
+        titulo,
+        slug,
+        body,
+        imagen_url,
+        fecha,
+        language
+      )
+    `)
+    .eq("tag_id", tag.id)
+    .eq("post.language", language)
+    .order("created_at", { ascending: false });
+
+  if (!postTagsError) {
+    posts = (postTags ?? [])
+      .map((item: { post?: Post }) => item.post)
+      .filter(Boolean) as Post[];
+  } else {
+    hasTagError = true;
+  }
+} else {
+  hasTagError = true;
+}
+
+if (hasTagError) {
+  try {
+    const response = await fetch(
+      `${apiUrl}/api/tags/${encodeURIComponent(slug ?? "")}?language=${encodeURIComponent(language)}`,
+    );
+    if (response.ok) {
+      const payload = await response.json();
+      tag = payload?.data?.tag ?? payload?.tag ?? null;
+      posts = (payload?.data?.posts ?? payload?.posts ?? []) as Post[];
+      hasTagError = !tag;
+    } else {
+      hasTagError = true;
+    }
+  } catch (_error) {
+    hasTagError = true;
+  }
+}
+
+if (!tag || hasTagError) {
+  return Astro.redirect(`/${language}/404`);
+}
+
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+const canonicalUrl = `${siteUrl}/${language}/tags/${tag.slug}`;
+const pageTitle = `#${tag.name}`;
+const metaDescription = tag.description
+  ? `${tag.description} (${posts.length})`
+  : t(language, "tagsDescription", "post");
+const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
+  lang,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+}));
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: pageTitle,
+  description: metaDescription,
+  url: canonicalUrl,
+  inLanguage: language,
+  about: {
+    "@type": "Thing",
+    name: tag.name,
+  },
+  mainEntity: {
+    "@type": "ItemList",
+    numberOfItems: posts.length,
+    itemListElement: posts.map((post, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${siteUrl}/${language}/posts/${post.slug}`,
+    })),
+  },
+};
+
+const countLabel = posts.length === 1
+  ? t(language, "tagPostsCount", "post", { count: posts.length })
+  : t(language, "tagPostsCountPlural", "post", { count: posts.length });
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={metaDescription}
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/tags/${tag.slug}`} />
+    <script type="application/ld+json">
+      {JSON.stringify(structuredData)}
+    </script>
+  </Fragment>
+
+  <section class="container-responsive py-12">
+    <div class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2">#{tag.name}</h1>
+      {tag.description && (
+        <p class="text-[var(--color-text-secondary)] max-w-2xl">{tag.description}</p>
+      )}
+      <p class="text-sm text-[var(--color-text-tertiary)] mt-2">{countLabel}</p>
+    </div>
+
+    {posts.length === 0 ? (
+      <div class="text-center py-12 text-[var(--color-text-secondary)]">
+        {t(language, "noTagPosts", "post")}
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {posts.map((post) => (
+          <PostCard post={post} language={language} />
+        ))}
+      </div>
+    )}
+  </section>
+</BaseLayout>

@@ -1,0 +1,102 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../components/BaseLayout.astro";
+import PostCard from "../../components/PostCard.astro";
+import SearchBar from "../../components/SearchBar.astro";
+import AdminCreatePostButton from "../../components/admin/AdminCreatePostButton";
+import { supabase } from "../../lib/supabase";
+import { getSiteUrl } from "../../lib/env";
+import type { Post } from "../../types/post";
+import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const { data: posts, error } = await supabase
+  .from("posts")
+  .select("id, titulo, slug, body, imagen_url, fecha, language")
+  .eq("language", language)
+  .order("fecha", { ascending: false });
+
+const allPosts = (posts || []) as Post[];
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+const canonicalUrl = `${siteUrl}/${language}/`;
+const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
+  lang,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+}));
+---
+
+<BaseLayout
+  title={t(language, "site.title")}
+  description={t(language, "site.description")}
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/`} />
+  </Fragment>
+  <section class="bg-[var(--color-bg-subtle)] py-20 border-b border-[var(--color-border)]">
+    <div class="container-responsive text-center">
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-[var(--color-text-primary)]">
+        {t(language, "site.title")}
+      </h1>
+      <p class="text-xl text-[var(--color-text-secondary)] max-w-2xl mx-auto mb-8">
+        {t(language, "site.description")}
+      </p>
+      <SearchBar
+        placeholder={t(language, "search.placeholder")}
+        showingLabel={t(language, "search.showing")}
+      />
+    </div>
+  </section>
+
+  <AdminCreatePostButton
+    language={language}
+    label={t(language, "createPost", "admin")}
+    client:load
+  />
+
+  <section class="py-16">
+    <div class="container-responsive">
+      {error && (
+        <div class="text-center py-20">
+          <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
+        </div>
+      )}
+      {!error && (
+        <>
+          <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {allPosts.map((post) => (
+              <div class="post-card-wrapper" data-title={post.titulo} data-excerpt={post.body}>
+                <PostCard post={post} language={language} />
+              </div>
+            ))}
+          </div>
+
+          <div id="no-results" class="hidden text-center py-20">
+            <p class="text-xl text-[var(--color-text-secondary)]">
+              {t(language, "search.noResults")}
+            </p>
+            <button
+              id="reset-search"
+              class="mt-4 text-[var(--color-accent-primary)] hover:underline"
+              onclick="document.getElementById('clear-search').click()"
+            >
+              {t(language, "search.clear")}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  </section>
+</BaseLayout>

@@ -6,7 +6,10 @@ export interface PostRecord {
   imagen_url: string | null;
   fecha: string;
   updated_at?: string | null;
+  language: PostLanguage;
 }
+
+export type PostLanguage = "en" | "es" | "fr" | "de" | "pt" | "ja" | "zh";
 
 export interface PostCreate {
   titulo: string;
@@ -14,6 +17,7 @@ export interface PostCreate {
   body: string;
   imagen_url?: string | null;
   tag_ids?: string[];
+  language?: PostLanguage;
 }
 
 export interface PostUpdate {
@@ -22,6 +26,7 @@ export interface PostUpdate {
   body: string;
   imagen_url?: string | null;
   tag_ids?: string[];
+  language?: PostLanguage;
 }
 
 export interface DeleteResult {

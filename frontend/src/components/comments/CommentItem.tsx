@@ -8,11 +8,24 @@ interface Props {
   onDelete: () => void;
   onUpdate: (_content: string) => Promise<Comment | null>;
   onTogglePin: () => void;
+  labels: {
+    edit: string;
+    delete: string;
+    save: string;
+    saving: string;
+    cancel: string;
+    pin: string;
+    unpin: string;
+    pinned: string;
+    anonymous: string;
+    updateError: string;
+  };
+  dateLocale?: string;
 }
 
-function formatDate(value: string) {
+function formatDate(value: string, locale?: string) {
   const date = new Date(value);
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(locale || "en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -26,6 +39,8 @@ export default function CommentItem({
   onDelete,
   onUpdate,
   onTogglePin,
+  labels,
+  dateLocale,
 }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -47,7 +62,7 @@ export default function CommentItem({
     if (updated) {
       setIsEditing(false);
     } else {
-      setError("Failed to update comment.");
+      setError(labels.updateError);
     }
     setIsSaving(false);
   };
@@ -58,20 +73,20 @@ export default function CommentItem({
         <div class="comment-author">
           <img
             src={comment.user?.avatar_url || "/avatar-placeholder.png"}
-            alt={comment.user?.full_name || "User avatar"}
+            alt={comment.user?.full_name || labels.anonymous}
             class="comment-avatar"
             width={40}
             height={40}
             loading="lazy"
           />
           <div>
-            <p class="comment-name">{comment.user?.full_name || "Anonymous"}</p>
-            <p class="comment-date">{formatDate(comment.created_at)}</p>
+            <p class="comment-name">{comment.user?.full_name || labels.anonymous}</p>
+            <p class="comment-date">{formatDate(comment.created_at, dateLocale)}</p>
           </div>
         </div>
 
         {comment.is_pinned ? (
-          <span class="comment-pinned-badge">Pinned</span>
+          <span class="comment-pinned-badge">{labels.pinned}</span>
         ) : null}
       </header>
 
@@ -99,7 +114,7 @@ export default function CommentItem({
                 onClick={handleSave}
                 disabled={!isValid || isSaving}
               >
-                {isSaving ? "Saving..." : "Save"}
+                {isSaving ? labels.saving : labels.save}
               </button>
               <button
                 type="button"
@@ -110,7 +125,7 @@ export default function CommentItem({
                   setError("");
                 }}
               >
-                Cancel
+                {labels.cancel}
               </button>
             </>
           ) : (
@@ -119,20 +134,20 @@ export default function CommentItem({
               class="comment-action"
               onClick={() => setIsEditing(true)}
             >
-              Edit
+              {labels.edit}
             </button>
           )
         ) : null}
 
         {canDelete ? (
           <button type="button" class="comment-action danger" onClick={onDelete}>
-            Delete
+            {labels.delete}
           </button>
         ) : null}
 
         {canPin ? (
           <button type="button" class="comment-action" onClick={onTogglePin}>
-            {comment.is_pinned ? "Unpin" : "Pin"}
+            {comment.is_pinned ? labels.unpin : labels.pin}
           </button>
         ) : null}
       </div>

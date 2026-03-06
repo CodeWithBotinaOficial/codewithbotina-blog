@@ -3,7 +3,7 @@ import CommentList from "./CommentList";
 import CommentForm from "./CommentForm";
 import { getApiUrl } from "../../lib/env";
 
-const { postId } = Astro.props;
+const { postId, labels, dateLocale } = Astro.props;
 const apiUrl = getApiUrl();
 
 let initialComments = [];
@@ -20,10 +20,16 @@ try {
 
 <section class="comment-section">
   <h3 class="comment-title">
-    Comments <span class="comment-count">({initialComments.length})</span>
+    {labels?.title ?? "Comments"} <span class="comment-count">({initialComments.length})</span>
   </h3>
 
-  <CommentForm postId={postId} client:load />
+  <CommentForm postId={postId} labels={labels} client:load />
 
-  <CommentList postId={postId} initialComments={initialComments} client:load />
+  <CommentList
+    postId={postId}
+    initialComments={initialComments}
+    labels={labels}
+    dateLocale={dateLocale}
+    client:load
+  />
 </section>

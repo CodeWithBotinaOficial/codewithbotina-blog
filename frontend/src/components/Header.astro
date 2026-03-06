@@ -1,17 +1,26 @@
 ---
-import { Menu, X } from 'lucide-astro';
-import HeaderAuth from './auth/HeaderAuth.astro';
+import { Menu, X } from "lucide-astro";
+import HeaderAuth from "./auth/HeaderAuth.astro";
+import LanguageSwitcher from "./LanguageSwitcher.tsx";
+import { getRoutePath, t, type SupportedLanguage } from "../lib/i18n";
+
+interface Props {
+  currentLanguage: SupportedLanguage;
+  currentPath: string;
+}
+
+const { currentLanguage, currentPath } = Astro.props;
 
 const navLinks = [
-  { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
+  { name: t(currentLanguage, "nav.home"), href: `/${currentLanguage}/` },
+  { name: t(currentLanguage, "nav.about"), href: getRoutePath(currentLanguage, "about") },
+  { name: t(currentLanguage, "nav.contact"), href: getRoutePath(currentLanguage, "contact") },
 ];
 ---
 
 <header class="sticky top-0 z-50 w-full bg-[var(--color-bg-base)]/90 backdrop-blur-md border-b border-[var(--color-border)]">
     <div class="container-responsive h-16 flex items-center justify-between gap-6">
-    <a href="/" class="text-xl font-bold text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors">
+    <a href={`/${currentLanguage}/`} class="text-xl font-bold text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors">
       CodeWithBotina
     </a>
 
@@ -28,7 +37,8 @@ const navLinks = [
     </nav>
 
     <div class="hidden md:flex items-center gap-4">
-      <HeaderAuth />
+      <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} client:load />
+      <HeaderAuth currentLanguage={currentLanguage} />
     </div>
 
     <!-- Mobile Menu Button -->
@@ -53,8 +63,9 @@ const navLinks = [
           {link.name}
         </a>
       ))}
-      <div class="pt-2 border-t border-[var(--color-border)]">
-        <HeaderAuth />
+      <div class="pt-2 border-t border-[var(--color-border)] flex flex-col gap-3">
+        <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} client:load />
+        <HeaderAuth currentLanguage={currentLanguage} />
       </div>
     </nav>
   </div>

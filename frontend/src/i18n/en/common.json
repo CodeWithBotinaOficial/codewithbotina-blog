@@ -1,0 +1,55 @@
+{
+  "site": {
+    "title": "CodeWithBotina",
+    "description": "Technical insights on software development, programming tutorials, and best practices"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "tags": "Tags"
+  },
+  "footer": {
+    "copyright": "© {{year}} CodeWithBotina. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "dataDelete": "Data Deletion",
+    "builtWith": "Built with Astro and Supabase.",
+    "support": "Support"
+  },
+  "actions": {
+    "readMore": "Read more",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "publish": "Publish",
+    "search": "Search"
+  },
+  "time": {
+    "publishedOn": "Published on",
+    "updatedOn": "Updated on",
+    "readTime": "{{minutes}} min read"
+  },
+  "language": {
+    "switchTo": "Switch to {{language}}",
+    "current": "Language",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "search": {
+    "placeholder": "Search articles...",
+    "showing": "Showing {{count}} articles",
+    "noResults": "No articles found matching your search.",
+    "clear": "Clear search filters"
+  },
+  "errors": {
+    "fetchPosts": "Error fetching posts. Please try again later.",
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "We couldn’t find the page you’re looking for. It may have been moved or renamed.",
+    "backHome": "Back to home"
+  }
+}

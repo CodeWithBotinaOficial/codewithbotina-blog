@@ -1,0 +1,55 @@
+{
+  "site": {
+    "title": "CodeWithBotina",
+    "description": "Conocimientos técnicos sobre desarrollo de software, tutoriales de programación y mejores prácticas"
+  },
+  "nav": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "contact": "Contacto",
+    "tags": "Etiquetas"
+  },
+  "footer": {
+    "copyright": "© {{year}} CodeWithBotina. Todos los derechos reservados.",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "cookies": "Política de Cookies",
+    "dataDelete": "Eliminación de Datos",
+    "builtWith": "Hecho con Astro y Supabase.",
+    "support": "Soporte"
+  },
+  "actions": {
+    "readMore": "Leer más",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "publish": "Publicar",
+    "search": "Buscar"
+  },
+  "time": {
+    "publishedOn": "Publicado el",
+    "updatedOn": "Actualizado el",
+    "readTime": "{{minutes}} min de lectura"
+  },
+  "language": {
+    "switchTo": "Cambiar a {{language}}",
+    "current": "Idioma",
+    "en": "Inglés",
+    "es": "Español"
+  },
+  "search": {
+    "placeholder": "Buscar artículos...",
+    "showing": "Mostrando {{count}} artículos",
+    "noResults": "No se encontraron artículos que coincidan con tu búsqueda.",
+    "clear": "Limpiar filtros de búsqueda"
+  },
+  "errors": {
+    "fetchPosts": "Error al cargar publicaciones. Por favor intenta de nuevo.",
+    "notFoundTitle": "Página no encontrada",
+    "notFoundMessage": "No pudimos encontrar la página que buscas. Puede que se haya movido o cambiado de nombre.",
+    "backHome": "Volver al inicio"
+  }
+}

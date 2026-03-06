@@ -1,0 +1,361 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../components/BaseLayout.astro";
+import CommentSection from "../../../components/comments/CommentSection.astro";
+import ReactionButtons from "../../../components/reactions/ReactionButtons";
+import ReactionCounts from "../../../components/reactions/ReactionCounts.astro";
+import AdminPostMenu from "../../../components/admin/AdminPostMenu";
+import { supabase } from "../../../lib/supabase";
+import { getApiUrl, getSiteUrl } from "../../../lib/env";
+import { formatDate, calculateReadTime, stripMarkdown, truncateText } from "../../../lib/utils";
+import { Calendar, Clock, ArrowLeft, Share2 } from "lucide-astro";
+import { marked } from "marked";
+import type { Post } from "../../../types/post";
+import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+
+const { slug, lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const apiUrl = getApiUrl().replace(/\/$/, "");
+
+let post: any = null;
+let postError: any = null;
+
+const joinedResult = await supabase
+  .from("posts")
+  .select(`
+    *,
+    post_tags (
+      tag:tags (
+        id,
+        name,
+        slug
+      )
+    )
+  `)
+  .eq("slug", slug)
+  .eq("language", language)
+  .single();
+
+if (joinedResult.error) {
+  const fallback = await supabase
+    .from("posts")
+    .select("*")
+    .eq("slug", slug)
+    .eq("language", language)
+    .single();
+  post = fallback.data;
+  postError = fallback.error;
+} else {
+  post = joinedResult.data;
+}
+
+if (postError || !post) {
+  return Astro.redirect(`/${language}/404`);
+}
+
+let reactions = { likes: 0, dislikes: 0, total: 0 };
+try {
+  const reactionResponse = await fetch(`${apiUrl}/api/reactions/${post.id}`);
+  if (reactionResponse.ok) {
+    const body = await reactionResponse.json();
+    reactions = body?.data ?? reactions;
+  }
+} catch (_error) {
+  reactions = { likes: 0, dislikes: 0, total: 0 };
+}
+
+const currentPost = post as Post;
+const content = marked.parse(currentPost.body);
+const readTime = calculateReadTime(currentPost.body);
+const locale = language === "es" ? "es-ES" : "en-US";
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+const canonicalUrl = `${siteUrl}/${language}/posts/${currentPost.slug}`;
+const imageUrl = currentPost.imagen_url || `${siteUrl}/og-image.png`;
+const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
+  lang,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+}));
+let tagList = Array.isArray(post?.post_tags)
+  ? (post.post_tags
+      .map((item: { tag?: { id: string; name: string; slug: string } }) => item.tag)
+      .filter(Boolean) as Array<{ id: string; name: string; slug: string }>)
+  : [];
+
+if (tagList.length === 0 && slug) {
+  try {
+    const response = await fetch(`${apiUrl}/api/posts/${encodeURIComponent(slug)}/tags`);
+    if (response.ok) {
+      const payload = await response.json();
+      const fallbackTags = payload?.data?.tags ?? payload?.tags ?? [];
+      if (Array.isArray(fallbackTags)) {
+        tagList = fallbackTags;
+      }
+    }
+  } catch (_error) {
+    // Leave tagList empty
+  }
+}
+const tagNames = tagList.map((tag) => tag.name).filter(Boolean);
+const tagKeywords = tagNames.join(", ");
+
+function toIsoDate(value?: string | null): string {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString();
+  }
+  return date.toISOString();
+}
+
+function buildDescription(contentValue: string, length: number, fallback: string): string {
+  const plain = stripMarkdown(contentValue).replace(/\s+/g, " ").trim();
+  const base = plain || fallback;
+  return truncateText(base, length);
+}
+
+const updatedAtRaw = (post as { updated_at?: string | null }).updated_at;
+const publishedAt = toIsoDate(currentPost.fecha);
+const updatedAt = toIsoDate(updatedAtRaw || currentPost.fecha);
+const metaDescription = buildDescription(
+  currentPost.excerpt || currentPost.body,
+  160,
+  currentPost.titulo,
+);
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: currentPost.titulo,
+  image: imageUrl,
+  datePublished: publishedAt,
+  dateModified: updatedAt,
+  author: {
+    "@type": "Person",
+    name: "CodeWithBotina",
+    url: siteUrl,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "CodeWithBotina",
+    logo: {
+      "@type": "ImageObject",
+      url: `${siteUrl}/logo.png`,
+    },
+  },
+  description: metaDescription,
+  keywords: tagNames,
+  inLanguage: language,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonicalUrl,
+  },
+};
+
+const reactionLabels = {
+  signIn: t(language, "commentSignIn", "post"),
+  signInSuffix: t(language, "reactions.signInSuffix", "post"),
+  loading: t(language, "reactions.loading", "post"),
+  error: t(language, "reactions.error", "post"),
+};
+
+const reactionCountLabels = {
+  likes: t(language, "reactions.like", "post"),
+  dislikes: t(language, "reactions.dislike", "post"),
+  total: t(language, "reactions.total", "post"),
+};
+
+const commentLabels = {
+  title: t(language, "commentsTitle", "post"),
+  empty: t(language, "commentsEmpty", "post"),
+  signIn: t(language, "commentSignIn", "post"),
+  signInSuffix: t(language, "commentSignInSuffix", "post"),
+  loading: t(language, "commentLoading", "post"),
+  placeholder: t(language, "commentPlaceholder", "post"),
+  submit: t(language, "commentSubmit", "post"),
+  submitting: t(language, "commentSubmitting", "post"),
+  authError: t(language, "commentAuthError", "post"),
+  postError: t(language, "commentPostError", "post"),
+  postErrorRetry: t(language, "commentPostErrorRetry", "post"),
+  edit: t(language, "commentEdit", "post"),
+  delete: t(language, "commentDelete", "post"),
+  save: t(language, "commentSave", "post"),
+  saving: t(language, "commentSaving", "post"),
+  cancel: t(language, "commentCancel", "post"),
+  pin: t(language, "commentPin", "post"),
+  unpin: t(language, "commentUnpin", "post"),
+  pinned: t(language, "commentPinned", "post"),
+  anonymous: t(language, "commentAnonymous", "post"),
+  updateError: t(language, "commentUpdateError", "post"),
+};
+
+const adminLabels = {
+  edit: t(language, "editPost", "admin"),
+  delete: t(language, "deletePost", "admin"),
+  deleting: t(language, "deleting", "admin"),
+  deleteSuccess: t(language, "deleteSuccess", "admin"),
+  deleteError: t(language, "deleteError", "admin"),
+  deleteLoadError: t(language, "deleteLoadError", "admin"),
+  deleteConfirmTitle: t(language, "deleteConfirmTitle", "admin"),
+  deleteConfirmMessage: t(language, "deleteConfirmMessage", "admin"),
+  confirmText: t(language, "deletePost", "admin"),
+  cancelText: t(language, "cancel", "admin"),
+};
+---
+
+<BaseLayout
+  title={currentPost.titulo}
+  description={metaDescription}
+  image={imageUrl}
+  type="article"
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    <meta property="article:published_time" content={publishedAt} />
+    <meta property="article:modified_time" content={updatedAt} />
+    <meta property="article:author" content="CodeWithBotina" />
+    {tagKeywords ? <meta name="keywords" content={tagKeywords} /> : null}
+    {tagList.map((tag) => (
+      <meta property="article:tag" content={tag.name} />
+    ))}
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/posts/${currentPost.slug}`} />
+    <script type="application/ld+json">
+      {JSON.stringify(structuredData)}
+    </script>
+  </Fragment>
+
+  <article class="max-w-3xl mx-auto px-4 py-12 relative">
+    <div class="absolute right-4 top-6">
+      <AdminPostMenu
+        slug={currentPost.slug}
+        titulo={currentPost.titulo}
+        language={language}
+        labels={adminLabels}
+        client:load
+      />
+    </div>
+    <header class="mb-12 text-center">
+      <div class="flex items-center justify-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-6">
+        <span class="flex items-center gap-1">
+          <Calendar size={16} />
+          {formatDate(currentPost.fecha, locale)}
+        </span>
+        <span class="flex items-center gap-1">
+          <Clock size={16} />
+          {t(language, "time.readTime", "common", { minutes: readTime })}
+        </span>
+      </div>
+
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 leading-tight">
+        {currentPost.titulo}
+      </h1>
+
+      {currentPost.imagen_url && (
+        <div class="rounded-xl overflow-hidden shadow-lg mb-8 aspect-video bg-[var(--color-bg-subtle)]">
+          <img
+            src={currentPost.imagen_url}
+            alt={currentPost.titulo}
+            class="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      {tagList.length > 0 && (
+        <div class="mt-6">
+          <p class="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-tertiary)]">
+            {t(language, "topics", "post")}
+          </p>
+          <div class="flex flex-wrap justify-center gap-2 mt-2">
+            {tagList.map((tag) => (
+              <a
+                href={`/${language}/tags/${tag.slug}`}
+                class="text-xs font-semibold px-3 py-1 rounded-full bg-[var(--color-accent-light)] text-[var(--color-accent-primary)] hover:bg-[var(--color-accent-primary)] hover:text-white transition-colors"
+              >
+                #{tag.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </header>
+
+    <div class="prose prose-lg max-w-none prose-headings:text-[var(--color-text-primary)] prose-a:text-[var(--color-accent-primary)] prose-img:rounded-xl">
+      <Fragment set:html={content} />
+    </div>
+
+    <section class="reaction-section">
+      <ReactionCounts
+        likes={reactions.likes}
+        dislikes={reactions.dislikes}
+        total={reactions.total}
+        labels={reactionCountLabels}
+      />
+      <ReactionButtons
+        postId={currentPost.id}
+        initialLikes={reactions.likes}
+        initialDislikes={reactions.dislikes}
+        userReaction={null}
+        isAuthenticated={false}
+        labels={reactionLabels}
+        client:load
+      />
+    </section>
+
+    <CommentSection postId={currentPost.id} labels={commentLabels} dateLocale={locale} />
+
+    <div class="mt-16 pt-8 border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-between items-center gap-6">
+      <a href={`/${language}/`} class="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-accent-primary)] transition-colors">
+        <ArrowLeft size={20} />
+        {t(language, "backToPosts", "post")}
+      </a>
+
+      <button
+        id="share-btn"
+        class="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-bg-subtle)] hover:bg-[var(--color-border)] transition-colors"
+        data-url={canonicalUrl}
+        data-title={currentPost.titulo}
+        data-copied={t(language, "share.linkCopied", "post")}
+      >
+        <Share2 size={18} />
+        {t(language, "share.title", "post")}
+      </button>
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  const shareBtn = document.getElementById("share-btn");
+
+  shareBtn?.addEventListener("click", async () => {
+    const url = shareBtn.getAttribute("data-url") || "";
+    const title = shareBtn.getAttribute("data-title") || "";
+    const copiedLabel = shareBtn.getAttribute("data-copied") || "";
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          url: url,
+        });
+      } catch (_err) {
+        // User cancelled share.
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      const originalText = shareBtn.innerHTML;
+      shareBtn.innerHTML = copiedLabel || originalText;
+      setTimeout(() => {
+        shareBtn.innerHTML = originalText;
+      }, 2000);
+    }
+  });
+</script>
