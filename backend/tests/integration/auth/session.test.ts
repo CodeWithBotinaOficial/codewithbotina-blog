@@ -5,6 +5,9 @@ import { AuthService } from "../../../services/auth.service.ts";
 import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
 
 Deno.test("Integration: GET /api/auth/callback sets cookies and redirects", async () => {
+  const previousFrontendUrl = Deno.env.get("FRONTEND_URL");
+  Deno.env.set("FRONTEND_URL", "https://blog.codewithbotina.com");
+
   const _stub = stub(
     AuthService.prototype,
     "exchangeCodeForSessionWithVerifier",
@@ -21,18 +24,24 @@ Deno.test("Integration: GET /api/auth/callback sets cookies and redirects", asyn
   );
 
   const req = new Request(
-    "https://api.codewithbotina.com/api/auth/callback?code=abc",
+    "https://api.codewithbotina.com/api/auth/callback?code=abc&next=https://blog.codewithbotina.com/es/",
     { method: "GET", headers: { Cookie: "cwb_pkce=verifier" } },
   );
 
   const res = await handler.GET!(req, {} as never);
 
   assertEquals(res.status, 302);
-  assertStringIncludes(res.headers.get("Location") || "", "auth/success");
+  assertStringIncludes(res.headers.get("Location") || "", "/es/auth/success");
   const setCookie = res.headers.get("set-cookie") || "";
   assertMatch(setCookie, /(cwb_access|cwb_refresh)=/);
 
   restore();
+
+  if (previousFrontendUrl) {
+    Deno.env.set("FRONTEND_URL", previousFrontendUrl);
+  } else {
+    Deno.env.delete("FRONTEND_URL");
+  }
 });
 
 Deno.test("Integration: POST /api/auth/refresh returns new tokens", async () => {

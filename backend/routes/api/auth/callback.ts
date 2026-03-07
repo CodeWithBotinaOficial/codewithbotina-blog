@@ -12,15 +12,63 @@ import { errorResponse } from "../../../utils/responses.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
 import { takePkceSession } from "../../../lib/pkce.store.ts";
 
+const SUPPORTED_LANGUAGES = new Set(["en", "es"]);
+
 function isValidNext(next: string, frontendUrl: string): boolean {
   if (!next) return false;
   try {
-    const nextUrl = new URL(next);
+    const nextUrl = new URL(next, frontendUrl);
     const frontend = new URL(frontendUrl);
     return nextUrl.origin === frontend.origin;
   } catch (_error) {
     return false;
   }
+}
+
+function extractLanguageFromNext(
+  next: string,
+  frontendUrl: string,
+): string | null {
+  if (!next) return null;
+  try {
+    const nextUrl = new URL(next, frontendUrl);
+    const match = nextUrl.pathname.match(/^\/(en|es)(\/|$)/);
+    if (match && SUPPORTED_LANGUAGES.has(match[1])) {
+      return match[1];
+    }
+  } catch (_error) {
+    return null;
+  }
+  return null;
+}
+
+function extractLanguageFromState(state: string): string | null {
+  if (!state) return null;
+  const match = state.match(/(?:^|[;&])lang[:=]([a-z]{2})/i);
+  if (!match) return null;
+  const language = match[1].toLowerCase();
+  return SUPPORTED_LANGUAGES.has(language) ? language : null;
+}
+
+function resolveCallbackPath(
+  frontendUrl: string,
+  next: string,
+  state: string,
+): string {
+  const envCallback = Deno.env.get("FRONTEND_AUTH_CALLBACK") || "/auth/success";
+  const nextLanguage = extractLanguageFromNext(next, frontendUrl);
+  const stateLanguage = extractLanguageFromState(state);
+  const language = nextLanguage ?? stateLanguage;
+
+  if (envCallback.includes("{lang}")) {
+    return envCallback.replace("{lang}", language ?? "en");
+  }
+
+  if (language) {
+    return `/${language}/auth/success`;
+  }
+
+  return envCallback;
 }
 
 export const handler: Handlers = {
@@ -30,6 +78,7 @@ export const handler: Handlers = {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
     const next = url.searchParams.get("next") ?? "";
+    const state = url.searchParams.get("state") ?? "";
     const pkceId = url.searchParams.get("pkce_id") ?? "";
 
     if (!code) {
@@ -71,8 +120,7 @@ export const handler: Handlers = {
       clearPkceCookie(headers, req);
 
       const { frontendUrl } = getEnvironmentConfig();
-      const callbackPath = Deno.env.get("FRONTEND_AUTH_CALLBACK") ||
-        "/auth/success";
+      const callbackPath = resolveCallbackPath(frontendUrl, next, state);
       const redirectUrl = new URL(callbackPath, frontendUrl);
       const tokenParams = new URLSearchParams({
         access_token: session.access_token,

@@ -19,9 +19,11 @@ import * as $api_cookies_consent from "./routes/api/cookies/consent.ts";
 import * as $api_health from "./routes/api/health.ts";
 import * as $api_posts_slug_delete from "./routes/api/posts/[slug]/delete.ts";
 import * as $api_posts_slug_exists from "./routes/api/posts/[slug]/exists.ts";
+import * as $api_posts_slug_index from "./routes/api/posts/[slug]/index.ts";
 import * as $api_posts_slug_tags from "./routes/api/posts/[slug]/tags.ts";
 import * as $api_posts_slug_update from "./routes/api/posts/[slug]/update.ts";
 import * as $api_posts_create from "./routes/api/posts/create.ts";
+import * as $api_posts_index from "./routes/api/posts/index.ts";
 import * as $api_posts_test from "./routes/api/posts/test.ts";
 import * as $api_posts_upload_image from "./routes/api/posts/upload-image.ts";
 import * as $api_reactions_postId_dislike from "./routes/api/reactions/[postId]/dislike.ts";
@@ -58,9 +60,11 @@ const manifest = {
     "./routes/api/health.ts": $api_health,
     "./routes/api/posts/[slug]/delete.ts": $api_posts_slug_delete,
     "./routes/api/posts/[slug]/exists.ts": $api_posts_slug_exists,
+    "./routes/api/posts/[slug]/index.ts": $api_posts_slug_index,
     "./routes/api/posts/[slug]/tags.ts": $api_posts_slug_tags,
     "./routes/api/posts/[slug]/update.ts": $api_posts_slug_update,
     "./routes/api/posts/create.ts": $api_posts_create,
+    "./routes/api/posts/index.ts": $api_posts_index,
     "./routes/api/posts/test.ts": $api_posts_test,
     "./routes/api/posts/upload-image.ts": $api_posts_upload_image,
     "./routes/api/reactions/[postId]/dislike.ts": $api_reactions_postId_dislike,

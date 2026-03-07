@@ -10,6 +10,7 @@ import { storePkceSession } from "../../../lib/pkce.store.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
+const SUPPORTED_LANGUAGES = new Set(["en", "es"]);
 
 async function generatePkcePair() {
   const verifierBytes = crypto.getRandomValues(new Uint8Array(32));
@@ -32,12 +33,29 @@ function getClientIp(ctx: { remoteAddr: Deno.Addr }): string {
 function isValidNext(next: string, frontendUrl: string): boolean {
   if (!next) return false;
   try {
-    const nextUrl = new URL(next);
+    const nextUrl = new URL(next, frontendUrl);
     const frontend = new URL(frontendUrl);
     return nextUrl.origin === frontend.origin;
   } catch (_error) {
     return false;
   }
+}
+
+function extractLanguageFromNext(
+  next: string,
+  frontendUrl: string,
+): string | null {
+  if (!next) return null;
+  try {
+    const nextUrl = new URL(next, frontendUrl);
+    const match = nextUrl.pathname.match(/^\/(en|es)(\/|$)/);
+    if (match && SUPPORTED_LANGUAGES.has(match[1])) {
+      return match[1];
+    }
+  } catch (_error) {
+    return null;
+  }
+  return null;
 }
 
 export const handler: Handlers = {
@@ -65,9 +83,13 @@ export const handler: Handlers = {
     const next = url.searchParams.get("next") ?? "";
     const { frontendUrl } = getEnvironmentConfig();
     const redirectUrl = new URL("/api/auth/callback", req.url);
-    if (isValidNext(next, frontendUrl)) {
+    const validNext = isValidNext(next, frontendUrl);
+    if (validNext) {
       redirectUrl.searchParams.set("next", next);
     }
+    const nextLanguage = validNext
+      ? extractLanguageFromNext(next, frontendUrl)
+      : null;
 
     try {
       const { verifier, challenge } = await generatePkcePair();
@@ -81,6 +103,9 @@ export const handler: Handlers = {
       const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
       authUrl.searchParams.set("provider", "google");
       authUrl.searchParams.set("redirect_to", redirectTo);
+      if (nextLanguage) {
+        authUrl.searchParams.set("state", `lang:${nextLanguage}`);
+      }
       authUrl.searchParams.set("code_challenge", challenge);
       authUrl.searchParams.set("code_challenge_method", "S256");
       authUrl.searchParams.set("scopes", "openid email profile");

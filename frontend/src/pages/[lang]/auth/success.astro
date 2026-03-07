@@ -1,0 +1,82 @@
+---
+import BaseLayout from "../../../components/BaseLayout.astro";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, setLanguagePreference, t, type SupportedLanguage } from "../../../lib/i18n";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+setLanguagePreference(Astro.cookies, language);
+---
+
+<BaseLayout
+  title={t(language, "successTitle", "auth")}
+  description={t(language, "successMessage", "auth")}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <section class="container-responsive py-16">
+    <h1>{t(language, "successTitle", "auth")}</h1>
+    <p>{t(language, "successMessage", "auth")}</p>
+    <p class="mt-3 text-sm text-[var(--color-text-tertiary)]">
+      {t(language, "redirecting", "auth")}
+    </p>
+  </section>
+
+  <script type="module" define:vars={{ language }}>
+    import { supabase } from "../../../lib/supabase";
+    import { getApiUrl } from "../../../lib/env";
+
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next");
+    const apiUrl = getApiUrl();
+
+    const resolveNextTarget = (value) => {
+      if (!value) return null;
+      try {
+        const resolved = new URL(value, window.location.origin);
+        if (resolved.origin !== window.location.origin) return null;
+        return resolved.toString();
+      } catch (_error) {
+        return null;
+      }
+    };
+
+    const finalize = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        window.history.replaceState({}, "", window.location.pathname + window.location.search);
+      } else {
+        const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const body = await res.json();
+          if (body?.access_token && body?.refresh_token) {
+            await supabase.auth.setSession({
+              access_token: body.access_token,
+              refresh_token: body.refresh_token,
+            });
+          }
+        }
+      }
+
+      const target = resolveNextTarget(next) ?? `/${language}/`;
+      window.location.assign(target);
+    };
+
+    finalize();
+  </script>
+</BaseLayout>

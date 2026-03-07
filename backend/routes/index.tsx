@@ -68,7 +68,7 @@ export default function ApiDocumentation() {
        ↘ Redirect to Google OAuth
 Google → GET /api/auth/callback?code=...
 Backend → Exchange code + set cookies
-Backend → Redirect to /auth/success (frontend)`}</code></pre>
+Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
             </div>
 
             <div class="endpoint-block mb-8">
