@@ -121,6 +121,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [slugChecking, setSlugChecking] = useState(false);
   const { toasts, showToast, removeToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   const initialSlug = useMemo(() => initialData?.slug ?? "", [initialData?.slug]);
   const initialTitle = useMemo(() => initialData?.titulo ?? "", [initialData?.titulo]);
@@ -187,19 +188,38 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       setImageFile(null);
     }
     setImageTitle("");
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
     setImagePreviewUrl(null);
     setErrors((prev) => ({ ...prev, imageFile: "", imageTitle: "" }));
   }, [imageMode]);
 
   useEffect(() => {
     if (!imageFile) {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
       setImagePreviewUrl(null);
       return;
     }
+
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+
     const objectUrl = URL.createObjectURL(imageFile);
+    previewUrlRef.current = objectUrl;
     setImagePreviewUrl(objectUrl);
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      if (previewUrlRef.current === objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        previewUrlRef.current = null;
+      } else {
+        URL.revokeObjectURL(objectUrl);
+      }
     };
   }, [imageFile]);
 
@@ -226,6 +246,11 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const handleImageFileSelection = (file: File | null) => {
     if (!file) {
       setImageFile(null);
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+      setImagePreviewUrl(null);
       setErrors((prev) => ({ ...prev, imageFile: "" }));
       return;
     }
@@ -236,6 +261,10 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         fileInputRef.current.value = "";
       }
       setImageFile(null);
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
       setImagePreviewUrl(null);
       setErrors((prev) => ({ ...prev, imageFile: validationError }));
       return;
