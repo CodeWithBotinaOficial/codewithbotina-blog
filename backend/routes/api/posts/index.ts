@@ -35,7 +35,7 @@ export const handler: Handlers = {
 
       let query = supabase
         .from("posts")
-        .select("id, titulo, slug, body, imagen_url, fecha, updated_at, language")
+        .select("id, titulo, slug, body, imagen_url, fecha, language")
         .order("fecha", { ascending: false });
 
       if (language) {
@@ -49,8 +49,13 @@ export const handler: Handlers = {
         throw new AppError("Failed to fetch posts", 500);
       }
 
+      const posts = (data ?? []).map((post) => ({
+        ...post,
+        updated_at: (post as { updated_at?: string | null }).updated_at ?? post.fecha ?? null,
+      }));
+
       const response = successResponse(
-        { posts: data ?? [], limit, offset },
+        { posts, limit, offset },
         "Posts fetched successfully",
         200,
       );

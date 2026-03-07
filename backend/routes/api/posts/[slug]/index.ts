@@ -37,7 +37,6 @@ export const handler: Handlers = {
           body,
           imagen_url,
           fecha,
-          updated_at,
           language,
           post_tags (
             tag:tags (
@@ -78,7 +77,7 @@ export const handler: Handlers = {
         body: data.body,
         imagen_url: data.imagen_url,
         fecha: data.fecha,
-        updated_at: data.updated_at,
+        updated_at: (data as { updated_at?: string | null }).updated_at ?? data.fecha ?? null,
         language: data.language,
         tags,
       };
