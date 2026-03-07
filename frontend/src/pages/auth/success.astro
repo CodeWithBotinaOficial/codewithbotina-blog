@@ -38,12 +38,12 @@ setLanguagePreference(Astro.cookies, language);
     </p>
   </section>
 
-  <script>
+  <script type="module">
     import { supabase } from "../../lib/supabase";
+    import { getApiUrl } from "../../lib/env";
 
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next");
-    import { getApiUrl } from "../../lib/env";
     const apiUrl = getApiUrl();
 
     const language = ${JSON.stringify(language)};
