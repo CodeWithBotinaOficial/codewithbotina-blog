@@ -59,6 +59,6 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
       <slot />
     </main>
     <Footer currentLanguage={currentLanguage} />
-    <CookieConsent client:load />
+    <CookieConsent language={currentLanguage} client:load />
   </body>
 </html>

@@ -23,10 +23,18 @@ export interface PostEditorLabels {
   imageUrlPlaceholder: string;
   imageTitlePlaceholder: string;
   imageHelp: string;
+  imageDropTitle: string;
+  imageDropSubtitle: string;
+  imageDropActive: string;
+  imageReplaceLabel: string;
+  imageFileName: string;
+  imageFileSize: string;
   submitCreate: string;
   submitUpdate: string;
   submitting: string;
   cancel: string;
+  submitDisabledHint: string;
+  updateDisabledHint: string;
   confirmCreateTitle: string;
   confirmCreateMessage: string;
   confirmUpdateTitle: string;
@@ -91,10 +99,18 @@ export function getPostEditorLabels(language: SupportedLanguage): PostEditorLabe
     imageUrlPlaceholder: t(language, "editor.imageUrlPlaceholder", "admin"),
     imageTitlePlaceholder: t(language, "editor.imageTitlePlaceholder", "admin"),
     imageHelp: t(language, "editor.imageHelp", "admin"),
+    imageDropTitle: t(language, "editor.imageDropTitle", "admin"),
+    imageDropSubtitle: t(language, "editor.imageDropSubtitle", "admin"),
+    imageDropActive: t(language, "editor.imageDropActive", "admin"),
+    imageReplaceLabel: t(language, "editor.imageReplaceLabel", "admin"),
+    imageFileName: t(language, "editor.imageFileName", "admin"),
+    imageFileSize: t(language, "editor.imageFileSize", "admin"),
     submitCreate: t(language, "editor.submitCreate", "admin"),
     submitUpdate: t(language, "editor.submitUpdate", "admin"),
     submitting: t(language, "editor.submitting", "admin"),
     cancel: t(language, "editor.cancel", "admin"),
+    submitDisabledHint: t(language, "editor.submitDisabledHint", "admin"),
+    updateDisabledHint: t(language, "editor.updateDisabledHint", "admin"),
     confirmCreateTitle: t(language, "editor.confirmCreateTitle", "admin"),
     confirmCreateMessage: t(language, "editor.confirmCreateMessage", "admin"),
     confirmUpdateTitle: t(language, "editor.confirmUpdateTitle", "admin"),

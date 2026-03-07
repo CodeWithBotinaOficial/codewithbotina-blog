@@ -27,6 +27,8 @@
 - 📱 Fully responsive and accessible (WCAG AA)
 - 🌍 Edge-deployed on Cloudflare Pages (global CDN)
 - ⚡ Lighthouse score > 95 in all categories
+- 📷 Drag-and-drop image uploads with preview (upload on submit only)
+- ✅ Form validation with disabled submit until valid
 
 ---
 
@@ -48,6 +50,7 @@ Administrators can create, edit, and delete posts directly from the frontend.
 2. Click three-dot menu → "Edit Post"
 3. Modify content, language, tags, or image
 4. Click "Update Post" and confirm
+5. Existing tags load automatically and persist unless changed
 
 **Deleting Posts:**
 1. Navigate to post detail page (must be admin)
@@ -58,9 +61,10 @@ Administrators can create, edit, and delete posts directly from the frontend.
 
 When creating/editing posts, you can:
 - Provide external image URL
-- Upload image from device (auto-optimized to WebP)
+- Upload image from device (drag-and-drop or click to browse)
 
 Images are stored in Supabase Storage bucket: `blog-images`
+Uploads only occur when you click Create/Update, preventing abandoned files.
 
 ### Tags & SEO
 

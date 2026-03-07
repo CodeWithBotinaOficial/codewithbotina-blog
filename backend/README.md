@@ -17,6 +17,7 @@
 - 📬 Contact form submission handling with validation
 - 📧 Email notifications via Resend
 - 📝 Post creation, update, delete, and slug validation
+- 📃 Post listing and single-post fetch with language filters
 - 🏷️ Tag system (suggest, autocomplete, create, tag → posts)
 - 💬 Comments with admin pinning and moderation
 - 👍👎 Reactions (like/dislike) with user tracking
@@ -198,6 +199,11 @@ ALLOWED_ORIGIN=https://blog.codewithbotina.com
 
 - **Production:** `https://api.codewithbotina.com`
 - **Development:** `http://localhost:8000`
+
+### Post Endpoints
+
+- `GET /api/posts` (optional `language`, `limit`, `offset`)
+- `GET /api/posts/:slug` (optional `language`, includes tags)
 
 ### Endpoints
 

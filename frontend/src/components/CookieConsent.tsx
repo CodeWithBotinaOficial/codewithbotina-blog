@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { getApiUrl } from "../lib/env";
 import { supabase } from "../lib/supabase";
+import { DEFAULT_LANGUAGE, getLanguageFromPath, getRoutePath, isSupportedLanguage, t, type SupportedLanguage } from "../lib/i18n";
 
 interface CookiePreferences {
   functional: boolean;
@@ -15,6 +16,10 @@ const VERSION_KEY = "cookie_consent_version";
 const DATE_KEY = "cookie_consent_date";
 const SESSION_KEY = "cookie_session_id";
 const API_URL = getApiUrl();
+
+interface Props {
+  language?: SupportedLanguage;
+}
 
 function safeParse(value: string | null): CookiePreferences | null {
   if (!value) return null;
@@ -46,15 +51,41 @@ function applyConsent(preferences: CookiePreferences) {
   });
 }
 
-export default function CookieConsent() {
+function getCookieLanguage(): SupportedLanguage | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )preferred_language=([^;]+)/);
+  if (!match) return null;
+  const value = decodeURIComponent(match[1] || "").trim();
+  return isSupportedLanguage(value) ? value : null;
+}
+
+function resolveLanguage(provided?: SupportedLanguage): SupportedLanguage {
+  if (provided && isSupportedLanguage(provided)) return provided;
+  const cookieLang = getCookieLanguage();
+  if (cookieLang) return cookieLang;
+  if (typeof window !== "undefined") {
+    const pathLang = getLanguageFromPath(window.location.pathname);
+    if (isSupportedLanguage(pathLang)) return pathLang;
+  }
+  return DEFAULT_LANGUAGE;
+}
+
+export default function CookieConsent({ language }: Props) {
   const [showBanner, setShowBanner] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>(
+    language && isSupportedLanguage(language) ? language : DEFAULT_LANGUAGE,
+  );
   const [preferences, setPreferences] = useState<CookiePreferences>({
     functional: true,
     analytics: false,
     marketing: false,
     version: CONSENT_VERSION,
   });
+
+  useEffect(() => {
+    setCurrentLanguage(resolveLanguage(language));
+  }, [language]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -143,6 +174,7 @@ export default function CookieConsent() {
   };
 
   if (!showBanner) return null;
+  const policyHref = getRoutePath(currentLanguage, "cookiePolicy");
 
   return (
     <div class="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-text-primary)] text-white shadow-lg">
@@ -150,15 +182,14 @@ export default function CookieConsent() {
         {!showSettings ? (
           <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div class="space-y-2">
-              <p class="text-sm font-semibold">Cookies y privacidad</p>
+              <p class="text-sm font-semibold">{t(currentLanguage, "cookieConsent.bannerTitle")}</p>
               <p class="text-xs text-gray-200 max-w-2xl">
-                Usamos cookies esenciales para el funcionamiento del sitio y cookies opcionales
-                para analítica. Usted puede aceptar todas o configurar sus preferencias.
+                {t(currentLanguage, "cookieConsent.bannerDescription")}
                 <a
-                  href="/cookie-policy"
+                  href={policyHref}
                   class="underline ml-1 text-white"
                 >
-                  Ver política de cookies
+                  {t(currentLanguage, "cookieConsent.policyLink")}
                 </a>
               </p>
             </div>
@@ -168,46 +199,56 @@ export default function CookieConsent() {
                 class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold"
                 onClick={() => setShowSettings(true)}
               >
-                Configurar
+                {t(currentLanguage, "cookieConsent.configure")}
               </button>
               <button
                 type="button"
                 class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold"
                 onClick={acceptNecessary}
               >
-                Solo necesarias
+                {t(currentLanguage, "cookieConsent.acceptNecessary")}
               </button>
               <button
                 type="button"
                 class="px-4 py-2 rounded-lg bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-hover)] text-xs font-semibold"
                 onClick={acceptAll}
               >
-                Aceptar todas
+                {t(currentLanguage, "cookieConsent.acceptAll")}
               </button>
             </div>
           </div>
         ) : (
           <div class="space-y-4">
             <div>
-              <p class="text-sm font-semibold">Preferencias de cookies</p>
+              <p class="text-sm font-semibold">{t(currentLanguage, "cookieConsent.settingsTitle")}</p>
               <p class="text-xs text-gray-200">
-                Las cookies funcionales son necesarias y siempre están activas.
+                {t(currentLanguage, "cookieConsent.settingsDescription")}
               </p>
             </div>
 
             <div class="space-y-3">
               <div class="flex items-center justify-between gap-4 bg-white/5 rounded-lg px-4 py-3">
                 <div>
-                  <p class="text-sm font-semibold">Funcionales</p>
-                  <p class="text-xs text-gray-300">Autenticación y sesión</p>
+                  <p class="text-sm font-semibold">
+                    {t(currentLanguage, "cookieConsent.categories.functional")}
+                  </p>
+                  <p class="text-xs text-gray-300">
+                    {t(currentLanguage, "cookieConsent.categories.functionalDescription")}
+                  </p>
                 </div>
-                <span class="text-xs text-green-200">Siempre activas</span>
+                <span class="text-xs text-green-200">
+                  {t(currentLanguage, "cookieConsent.alwaysActive")}
+                </span>
               </div>
 
               <div class="flex items-center justify-between gap-4 bg-white/5 rounded-lg px-4 py-3">
                 <div>
-                  <p class="text-sm font-semibold">Analíticas</p>
-                  <p class="text-xs text-gray-300">Métricas agregadas de uso</p>
+                  <p class="text-sm font-semibold">
+                    {t(currentLanguage, "cookieConsent.categories.analytics")}
+                  </p>
+                  <p class="text-xs text-gray-300">
+                    {t(currentLanguage, "cookieConsent.categories.analyticsDescription")}
+                  </p>
                 </div>
                 <input
                   type="checkbox"
@@ -222,8 +263,12 @@ export default function CookieConsent() {
 
               <div class="flex items-center justify-between gap-4 bg-white/5 rounded-lg px-4 py-3">
                 <div>
-                  <p class="text-sm font-semibold">Marketing</p>
-                  <p class="text-xs text-gray-300">No usamos actualmente</p>
+                  <p class="text-sm font-semibold">
+                    {t(currentLanguage, "cookieConsent.categories.marketing")}
+                  </p>
+                  <p class="text-xs text-gray-300">
+                    {t(currentLanguage, "cookieConsent.categories.marketingDescription")}
+                  </p>
                 </div>
                 <input
                   type="checkbox"
@@ -243,14 +288,14 @@ export default function CookieConsent() {
                 class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold"
                 onClick={() => setShowSettings(false)}
               >
-                Volver
+                {t(currentLanguage, "cookieConsent.cancel")}
               </button>
               <button
                 type="button"
                 class="px-4 py-2 rounded-lg bg-[var(--color-accent-primary)] hover:bg-[var(--color-accent-hover)] text-xs font-semibold"
                 onClick={savePreferences}
               >
-                Guardar preferencias
+                {t(currentLanguage, "cookieConsent.save")}
               </button>
             </div>
           </div>

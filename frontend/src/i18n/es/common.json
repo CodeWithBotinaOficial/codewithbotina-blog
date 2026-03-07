@@ -51,5 +51,26 @@
     "notFoundTitle": "Página no encontrada",
     "notFoundMessage": "No pudimos encontrar la página que buscas. Puede que se haya movido o cambiado de nombre.",
     "backHome": "Volver al inicio"
+  },
+  "cookieConsent": {
+    "bannerTitle": "Usamos cookies",
+    "bannerDescription": "Usamos cookies esenciales para que el sitio funcione y cookies opcionales para analítica. Puedes aceptar todas o gestionar tus preferencias.",
+    "policyLink": "Ver política de cookies",
+    "configure": "Configurar",
+    "acceptNecessary": "Solo necesarias",
+    "acceptAll": "Aceptar todas",
+    "settingsTitle": "Preferencias de cookies",
+    "settingsDescription": "Las cookies funcionales son necesarias y siempre están activas.",
+    "categories": {
+      "functional": "Funcionales",
+      "functionalDescription": "Autenticación y seguridad de sesión",
+      "analytics": "Analíticas",
+      "analyticsDescription": "Métricas agregadas de uso",
+      "marketing": "Marketing",
+      "marketingDescription": "Contenido personalizado y seguimiento de campañas"
+    },
+    "alwaysActive": "Siempre activas",
+    "save": "Guardar preferencias",
+    "cancel": "Cancelar"
   }
 }

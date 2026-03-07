@@ -5,6 +5,7 @@ import BaseLayout from "../../../../components/BaseLayout.astro";
 import PostEditor from "../../../../components/admin/PostEditor";
 import { supabase } from "../../../../lib/supabase";
 import { formatDate } from "../../../../lib/utils";
+import { getApiUrl } from "../../../../lib/env";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, t, type SupportedLanguage } from "../../../../lib/i18n";
 import { getPostEditorLabels, getTagSelectorLabels } from "../../../../lib/admin-editor";
 
@@ -18,6 +19,23 @@ if (!lang || !isSupportedLanguage(lang)) {
 let post: any = null;
 let postError: any = null;
 
+const apiUrl = getApiUrl().replace(/\/$/, "");
+
+try {
+  const response = await fetch(
+    `${apiUrl}/api/posts/${encodeURIComponent(slug ?? "")}?language=${encodeURIComponent(language)}`,
+  );
+  if (response.ok) {
+    const payload = await response.json();
+    post = payload?.data ?? payload?.post ?? null;
+  } else {
+    postError = new Error("Failed to load post");
+  }
+} catch (error) {
+  postError = error;
+}
+
+if (!post) {
 let joinedQuery = supabase
   .from("posts")
   .select(`
@@ -47,6 +65,8 @@ if (joinedResult.error) {
   postError = fallback.error;
 } else {
   post = joinedResult.data;
+  postError = null;
+}
 }
 
 if (postError || !post) {
@@ -56,7 +76,9 @@ if (postError || !post) {
 const locale = language === "es" ? "es-ES" : "en-US";
 const createdAt = post.fecha ? formatDate(post.fecha, locale) : t(language, "editor.unknownDate", "admin");
 const updatedAt = post.updated_at ? formatDate(post.updated_at, locale) : null;
-const tags = Array.isArray(post?.post_tags)
+const tags = Array.isArray(post?.tags)
+  ? post.tags
+  : Array.isArray(post?.post_tags)
   ? (post.post_tags
       .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
       .filter(Boolean))

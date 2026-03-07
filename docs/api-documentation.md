@@ -39,11 +39,26 @@ Update an existing post (admin only).
 
 ### GET `/api/posts`
 
-**Note:** The frontend currently reads posts directly from Supabase. If a public listing endpoint is exposed, it must support language filtering.
+List posts with optional language filtering.
+
+**Query parameters:**
+- `language` (optional) — filters by language.
+- `limit` (optional) — defaults to 20.
+- `offset` (optional) — defaults to 0.
 
 **Language filtering (in words):**
 - To list English posts, filter results where the post language equals `en`.
 - To list Spanish posts, filter results where the post language equals `es`.
+
+### GET `/api/posts/:slug`
+
+Fetch a single post by slug.
+
+**Query parameters:**
+- `language` (optional) — fetch a specific language variant.
+
+**Response notes:**
+- Includes a `tags` array with tag metadata for the post.
 
 ## Validation Rules (Language)
 

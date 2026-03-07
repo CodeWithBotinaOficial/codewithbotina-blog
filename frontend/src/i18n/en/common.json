@@ -51,5 +51,26 @@
     "notFoundTitle": "Page not found",
     "notFoundMessage": "We couldn’t find the page you’re looking for. It may have been moved or renamed.",
     "backHome": "Back to home"
+  },
+  "cookieConsent": {
+    "bannerTitle": "We use cookies",
+    "bannerDescription": "We use essential cookies to keep the site running and optional cookies for analytics. You can accept all cookies or manage your preferences.",
+    "policyLink": "View cookie policy",
+    "configure": "Configure",
+    "acceptNecessary": "Only necessary",
+    "acceptAll": "Accept all",
+    "settingsTitle": "Cookie preferences",
+    "settingsDescription": "Functional cookies are required and always active.",
+    "categories": {
+      "functional": "Functional",
+      "functionalDescription": "Authentication and session security",
+      "analytics": "Analytics",
+      "analyticsDescription": "Aggregated usage metrics",
+      "marketing": "Marketing",
+      "marketingDescription": "Personalized content and campaign tracking"
+    },
+    "alwaysActive": "Always active",
+    "save": "Save preferences",
+    "cancel": "Cancel"
   }
 }

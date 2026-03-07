@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { UploadCloud } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
 import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
@@ -54,10 +55,18 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     imageUrlPlaceholder: "https://example.com/image.jpg",
     imageTitlePlaceholder: "Image title (for alt text)",
     imageHelp: "Max 5MB, JPG/PNG/WebP only. Uploads are optimized to WebP.",
+    imageDropTitle: "Drag image here or click to browse",
+    imageDropSubtitle: "JPG, PNG, or WebP up to 5MB",
+    imageDropActive: "Drop image to upload",
+    imageReplaceLabel: "Change image",
+    imageFileName: "File",
+    imageFileSize: "Size",
     submitCreate: "Create post",
     submitUpdate: "Update post",
     submitting: "Saving...",
     cancel: "Cancel",
+    submitDisabledHint: "Complete all required fields to enable.",
+    updateDisabledHint: "Make a change and ensure the form is valid to enable.",
     confirmCreateTitle: "Publish post",
     confirmCreateMessage:
       "Are you sure you want to publish this post? Please verify all content is correct.",
@@ -103,14 +112,25 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [imageMode, setImageMode] = useState<"url" | "upload">("url");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageTitle, setImageTitle] = useState("");
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [slugTouched, setSlugTouched] = useState(false);
   const [slugChecking, setSlugChecking] = useState(false);
   const { toasts, showToast, removeToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const initialSlug = useMemo(() => initialData?.slug ?? "", [initialData?.slug]);
+  const initialTitle = useMemo(() => initialData?.titulo ?? "", [initialData?.titulo]);
+  const initialBody = useMemo(() => initialData?.body ?? "", [initialData?.body]);
+  const initialImageUrl = useMemo(() => initialData?.imagen_url ?? "", [initialData?.imagen_url]);
+  const initialLanguage = useMemo(() => initialData?.language ?? "es", [initialData?.language]);
+  const initialTagIds = useMemo(
+    () => (initialData?.tags ?? []).map((tag) => tag.id).sort().join(","),
+    [initialData?.tags],
+  );
 
   useEffect(() => {
     if (!sessionLoading && !isAdmin) {
@@ -127,8 +147,14 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
   useEffect(() => {
     const trimmed = slug.trim();
-    if (!trimmed) return;
-    if (trimmed === initialSlug) return;
+    if (!trimmed) {
+      setErrors((prev) => ({ ...prev, slug: "" }));
+      return;
+    }
+    if (trimmed === initialSlug) {
+      setErrors((prev) => ({ ...prev, slug: "" }));
+      return;
+    }
 
     const timer = setTimeout(async () => {
       try {
@@ -151,6 +177,173 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     return () => clearTimeout(timer);
   }, [slug, initialSlug, language]);
 
+  useEffect(() => {
+    if (imageMode === "upload") {
+      setErrors((prev) => ({ ...prev, imageUrl: "" }));
+      return;
+    }
+
+    if (imageFile) {
+      setImageFile(null);
+    }
+    setImageTitle("");
+    setImagePreviewUrl(null);
+    setErrors((prev) => ({ ...prev, imageFile: "", imageTitle: "" }));
+  }, [imageMode]);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageFile]);
+
+  const formatFileSize = (size: number) => {
+    if (size >= 1024 * 1024) {
+      return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    if (size >= 1024) {
+      return `${(size / 1024).toFixed(1)} KB`;
+    }
+    return `${size} B`;
+  };
+
+  const getImageFileError = (file: File) => {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      return copy.errors.imageFileType;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return copy.errors.imageFileSize;
+    }
+    return null;
+  };
+
+  const handleImageFileSelection = (file: File | null) => {
+    if (!file) {
+      setImageFile(null);
+      setErrors((prev) => ({ ...prev, imageFile: "" }));
+      return;
+    }
+
+    const validationError = getImageFileError(file);
+    if (validationError) {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      setImageFile(null);
+      setImagePreviewUrl(null);
+      setErrors((prev) => ({ ...prev, imageFile: validationError }));
+      return;
+    }
+
+    setErrors((prev) => ({ ...prev, imageFile: "" }));
+    setImageFile(file);
+  };
+
+  const handleDrop = (event: DragEvent) => {
+    event.preventDefault();
+    setDragActive(false);
+    const file = event.dataTransfer?.files?.[0] ?? null;
+    handleImageFileSelection(file);
+  };
+
+  const handleDragOver = (event: DragEvent) => {
+    event.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (event: DragEvent) => {
+    event.preventDefault();
+    setDragActive(false);
+  };
+
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
+
+  const currentTagIds = useMemo(
+    () => tags.map((tag) => tag.id).sort().join(","),
+    [tags],
+  );
+
+  const tagsChanged = useMemo(
+    () => currentTagIds !== initialTagIds,
+    [currentTagIds, initialTagIds],
+  );
+
+  const trimmedTitle = title.trim();
+  const trimmedSlug = slug.trim();
+  const trimmedBody = body.trim();
+  const trimmedImageUrl = imageUrl.trim();
+  const trimmedImageTitle = imageTitle.trim();
+
+  const slugIsValid = Boolean(trimmedSlug) && /^[a-z0-9-]+$/.test(trimmedSlug);
+  const languageIsValid = SUPPORTED_LANGUAGES.includes(language as "en" | "es");
+  const bodyIsValid = trimmedBody.length >= 100 && trimmedBody.length <= 50000;
+  const titleIsValid = trimmedTitle.length > 0 && trimmedTitle.length <= 200;
+
+  const imageUrlIsValid = imageMode !== "url" || !trimmedImageUrl || (() => {
+    try {
+      new URL(trimmedImageUrl);
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  })();
+
+  const imageFileIsValid = imageMode !== "upload"
+    ? true
+    : Boolean(imageFile) && !getImageFileError(imageFile as File) && Boolean(trimmedImageTitle);
+
+  const isFormValid = titleIsValid
+    && slugIsValid
+    && !slugChecking
+    && !errors.slug
+    && languageIsValid
+    && bodyIsValid
+    && imageUrlIsValid
+    && imageFileIsValid;
+
+  const hasChanges = useMemo(() => {
+    if (mode === "create") return true;
+    const titleChanged = trimmedTitle !== initialTitle.trim();
+    const slugChanged = trimmedSlug !== initialSlug.trim();
+    const bodyChanged = trimmedBody !== initialBody.trim();
+    const languageChanged = language !== initialLanguage;
+    const tagsUpdated = tagsChanged;
+    const imageUrlChanged = imageMode === "url"
+      ? trimmedImageUrl !== (initialImageUrl ?? "").trim()
+      : Boolean(imageFile);
+    return titleChanged || slugChanged || bodyChanged || languageChanged || tagsUpdated || imageUrlChanged;
+  }, [
+    mode,
+    trimmedTitle,
+    trimmedSlug,
+    trimmedBody,
+    trimmedImageUrl,
+    language,
+    tagsChanged,
+    imageMode,
+    imageFile,
+    initialTitle,
+    initialSlug,
+    initialBody,
+    initialImageUrl,
+    initialLanguage,
+  ]);
+
+  const submitDisabled = isSubmitting || !isFormValid || (mode === "edit" && !hasChanges);
+  const submitHint = !isFormValid
+    ? copy.submitDisabledHint
+    : mode === "edit" && !hasChanges
+    ? copy.updateDisabledHint
+    : "";
+
   if (sessionLoading) {
     return (
       <div class="py-12 text-center text-[var(--color-text-secondary)]">
@@ -164,9 +357,6 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
     const newErrors: Record<string, string> = {};
-    const trimmedTitle = title.trim();
-    const trimmedSlug = slug.trim();
-    const trimmedBody = body.trim();
 
     if (!trimmedTitle || trimmedTitle.length < 1) {
       newErrors.title = copy.errors.titleRequired;
@@ -190,9 +380,9 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       newErrors.body = copy.errors.bodyTooLong;
     }
 
-    if (imageMode === "url" && imageUrl) {
+    if (imageMode === "url" && trimmedImageUrl) {
       try {
-        new URL(imageUrl);
+        new URL(trimmedImageUrl);
       } catch (_error) {
         newErrors.imageUrl = copy.errors.imageUrlInvalid;
       }
@@ -201,13 +391,14 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     if (imageMode === "upload") {
       if (!imageFile) {
         newErrors.imageFile = copy.errors.imageFileRequired;
-      } else if (!["image/jpeg", "image/png", "image/webp"].includes(imageFile.type)) {
-        newErrors.imageFile = copy.errors.imageFileType;
-      } else if (imageFile.size > 5 * 1024 * 1024) {
-        newErrors.imageFile = copy.errors.imageFileSize;
+      } else {
+        const fileError = getImageFileError(imageFile);
+        if (fileError) {
+          newErrors.imageFile = fileError;
+        }
       }
 
-      if (!imageTitle.trim()) {
+      if (!trimmedImageTitle) {
         newErrors.imageTitle = copy.errors.imageTitleRequired;
       }
     }
@@ -221,16 +412,16 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       return;
     }
 
+    if (mode === "edit" && !hasChanges) {
+      return;
+    }
+
     setShowConfirm(true);
   };
 
   const submitPost = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
-
-    const trimmedTitle = title.trim();
-    const trimmedSlug = slug.trim();
-    const trimmedBody = body.trim();
 
     try {
       const { data } = await supabase.auth.getSession();
@@ -248,20 +439,22 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         ? "/api/posts/create"
         : `/api/posts/${initialSlug}/update`;
 
+      const payload = {
+        titulo: trimmedTitle,
+        slug: trimmedSlug,
+        body: trimmedBody,
+        imagen_url: finalImageUrl || null,
+        language,
+        ...(mode === "create" || tagsChanged ? { tag_ids: tags.map((tag) => tag.id) } : {}),
+      };
+
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: mode === "create" ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          titulo: trimmedTitle,
-          slug: trimmedSlug,
-          body: trimmedBody,
-          imagen_url: finalImageUrl || null,
-          language,
-          tag_ids: tags.map((tag) => tag.id),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -456,14 +649,60 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
               {copy.imageFileLabel}
             </label>
             <input
+              ref={fileInputRef}
               type="file"
               id="post-image-file"
               name="imageFile"
               accept="image/jpeg,image/png,image/webp"
               onChange={(event) =>
-                setImageFile((event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
-              class="input-field"
+                handleImageFileSelection((event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
+              class="sr-only"
             />
+            <button
+              type="button"
+              onClick={openFileDialog}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              aria-label={copy.imageDropTitle}
+              class={`group relative w-full rounded-xl border-2 border-dashed px-6 py-8 transition-colors ${
+                dragActive
+                  ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)]"
+                  : "border-[var(--color-border)] bg-[var(--color-bg-subtle)] hover:border-[var(--color-accent-primary)]"
+              }`}
+            >
+              {imagePreviewUrl ? (
+                <div class="relative">
+                  <img
+                    src={imagePreviewUrl}
+                    alt={copy.imageTitlePlaceholder}
+                    class="w-full h-56 object-cover rounded-lg"
+                  />
+                  <div class="absolute inset-0 rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
+                    <span class="text-xs font-semibold text-white uppercase tracking-wide">
+                      {copy.imageReplaceLabel}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div class="flex flex-col items-center gap-2 text-center">
+                  <UploadCloud className="h-8 w-8 text-[var(--color-accent-primary)]" />
+                  <p class="text-sm font-semibold text-[var(--color-text-primary)]">
+                    {dragActive ? copy.imageDropActive : copy.imageDropTitle}
+                  </p>
+                  <p class="text-xs text-[var(--color-text-tertiary)]">
+                    {copy.imageDropSubtitle}
+                  </p>
+                </div>
+              )}
+            </button>
+            {imageFile ? (
+              <div class="text-xs text-[var(--color-text-tertiary)] flex flex-wrap gap-2">
+                <span>{copy.imageFileName}: {imageFile.name}</span>
+                <span>•</span>
+                <span>{copy.imageFileSize}: {formatFileSize(imageFile.size)}</span>
+              </div>
+            ) : null}
             <label class="text-sm font-semibold" htmlFor="post-image-title">
               {copy.imageTitleLabel}
             </label>
@@ -492,14 +731,20 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={submitDisabled}
+          title={submitDisabled ? submitHint : undefined}
           class="btn-primary w-full sm:w-auto"
         >
-          {isSubmitting
-            ? copy.submitting
-            : mode === "create"
-            ? copy.submitCreate
-            : copy.submitUpdate}
+          {isSubmitting ? (
+            <span class="inline-flex items-center justify-center gap-2">
+              <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent" />
+              {copy.submitting}
+            </span>
+          ) : mode === "create" ? (
+            copy.submitCreate
+          ) : (
+            copy.submitUpdate
+          )}
         </button>
         <a
           href={cancelHref ?? "/"}

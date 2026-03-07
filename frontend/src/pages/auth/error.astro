@@ -1,14 +1,20 @@
 ---
 import BaseLayout from "../../components/BaseLayout.astro";
+import { DEFAULT_LANGUAGE, detectLanguage, setLanguagePreference, t, type SupportedLanguage } from "../../lib/i18n";
+
+const language = detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language")) as SupportedLanguage;
+setLanguagePreference(Astro.cookies, language);
 ---
 
 <BaseLayout
-  title="Authentication Error"
-  description="Sign-in failed. Please try again."
+  title={t(language, "errorTitle", "auth")}
+  description={t(language, "errorMessage", "auth")}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
 >
   <section class="container-responsive py-16">
-    <h1>Authentication error</h1>
-    <p>Something went wrong during sign-in. Please try again.</p>
-    <a class="btn-auth" href="/auth/signin">Go back to sign-in</a>
+    <h1>{t(language, "errorTitle", "auth")}</h1>
+    <p>{t(language, "errorMessage", "auth")}</p>
+    <a class="btn-auth" href="/auth/signin">{t(language, "backToSignIn", "auth")}</a>
   </section>
 </BaseLayout>

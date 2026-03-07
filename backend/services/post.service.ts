@@ -131,7 +131,7 @@ export class PostService {
 
       if (Array.isArray(data.tag_ids)) {
         const tagIds = this.normalizeTagIds(data.tag_ids);
-        await this.safeReplacePostTags(existing.id, tagIds);
+        await this.syncPostTags(existing.id, tagIds);
       }
 
       return { success: true, data: updated as PostRecord };
@@ -413,19 +413,38 @@ export class PostService {
     }
   }
 
-  private async safeReplacePostTags(postId: string, tagIds: string[]) {
-    const { error: deleteError } = await supabase
+  private async syncPostTags(postId: string, tagIds: string[]) {
+    const { data, error } = await supabase
       .from("post_tags")
-      .delete()
+      .select("tag_id")
       .eq("post_id", postId);
 
-    if (deleteError) {
-      console.error("Failed to clear post tags:", deleteError);
+    if (error) {
+      console.error("Failed to load post tags:", error);
       return;
     }
 
-    if (tagIds.length === 0) return;
-    await this.safeInsertPostTags(postId, tagIds);
+    const existingIds = new Set((data ?? []).map((row) => row.tag_id));
+    const incomingIds = new Set(tagIds);
+
+    const toRemove = Array.from(existingIds).filter((id) => !incomingIds.has(id));
+    const toAdd = tagIds.filter((id) => !existingIds.has(id));
+
+    if (toRemove.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("post_tags")
+        .delete()
+        .eq("post_id", postId)
+        .in("tag_id", toRemove);
+
+      if (deleteError) {
+        console.error("Failed to remove post tags:", deleteError);
+      }
+    }
+
+    if (toAdd.length > 0) {
+      await this.safeInsertPostTags(postId, toAdd);
+    }
   }
 
   private async getPostBySlug(

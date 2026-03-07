@@ -13,7 +13,8 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ **Tag landing pages + tag-based sitemap entries**
 - ✅ **Cookie consent (GDPR/CCPA) with consent tracking**
 - ✅ **WYSIWYG Markdown editor with live preview**
-- ✅ **Image upload to Supabase Storage**
+- ✅ **Drag-and-drop image uploads with preview (upload on submit only)**
+- ✅ **Tag persistence in edit flows (no accidental unlinking)**
 - ✅ Hybrid rendering (dynamic content without rebuilds)
 - ✅ SEO optimized (JSON-LD, Open Graph, keywords, RSS, sitemaps)
 - ✅ Bilingual i18n (English/Spanish) with language detection + hreflang
@@ -102,6 +103,14 @@ deno task start
 
 - **Frontend:** Deployed to Cloudflare Pages (blog.codewithbotina.com)
 - **Backend:** Deployed to Deno Deploy (API endpoints)
+
+## 📚 Documentation
+
+- [SEO](docs/SEO.md)
+- [Tag System](docs/tag-system.md)
+- [Database Schema](docs/database-schema.md)
+- [i18n Implementation](docs/i18n-implementation.md)
+- [API Documentation](docs/api-documentation.md)
 
 ## 📝 License
 
