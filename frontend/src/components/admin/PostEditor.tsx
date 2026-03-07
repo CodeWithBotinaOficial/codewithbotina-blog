@@ -490,8 +490,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         throw new Error("Failed to save post");
       }
 
-      const payload = await response.json();
-      const nextSlug = payload?.data?.slug ?? trimmedSlug;
+      const responsePayload = await response.json();
+      const nextSlug = responsePayload?.data?.slug ?? trimmedSlug;
       showToast(mode === "create" ? copy.toastSuccessCreate : copy.toastSuccessUpdate, "success");
       window.setTimeout(() => {
         window.location.href = `/${language}/posts/${nextSlug}`;
