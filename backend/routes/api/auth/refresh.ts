@@ -2,7 +2,7 @@ import { Handlers } from "$fresh/server.ts";
 import { corsHeaders } from "../../../middleware/cors.ts";
 import { getRefreshToken } from "../../../middleware/auth.ts";
 import { AuthService } from "../../../services/auth.service.ts";
-import { setAuthCookies } from "../../../utils/auth.cookies.ts";
+import { clearAuthCookies, setAuthCookies } from "../../../utils/auth.cookies.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { errorResponse } from "../../../utils/responses.ts";
 
@@ -55,6 +55,13 @@ export const handler: Handlers = {
         headers,
       });
     } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.toLowerCase().includes("refresh token")
+      ) {
+        // Clear stale cookies to avoid repeated refresh failures.
+        clearAuthCookies(headers, req);
+      }
       const statusCode = error instanceof AppError ? error.statusCode : 500;
       const response = errorResponse(
         error instanceof Error ? error.message : "Internal server error",

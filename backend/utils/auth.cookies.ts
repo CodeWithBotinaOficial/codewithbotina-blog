@@ -23,6 +23,7 @@ export function setAuthCookies(
   session: AuthSession,
 ): void {
   const secure = isSecureRequest(req);
+  const sameSite = secure ? "None" : "Lax";
   const domain = getCookieDomain(req);
   const maxAge = Math.max(session.expires_in ?? SEVEN_DAYS_SECONDS, 60);
 
@@ -30,7 +31,7 @@ export function setAuthCookies(
     name: ACCESS_COOKIE_NAME,
     value: session.access_token,
     httpOnly: true,
-    sameSite: "Lax",
+    sameSite,
     secure,
     domain,
     path: "/",
@@ -41,7 +42,7 @@ export function setAuthCookies(
     name: REFRESH_COOKIE_NAME,
     value: session.refresh_token,
     httpOnly: true,
-    sameSite: "Lax",
+    sameSite,
     secure,
     domain,
     path: "/",
