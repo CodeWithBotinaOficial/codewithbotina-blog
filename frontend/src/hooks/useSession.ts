@@ -26,24 +26,55 @@ export function useSession() {
 
     const fetchUser = async () => {
       try {
+        const fetchProfile = async (token?: string) => {
+          const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+          const res = await fetch(`${API_URL}/api/auth/me`, {
+            headers,
+            credentials: "include",
+          });
+
+          if (!res.ok) return null;
+          const body = await res.json();
+          return body.user ?? null;
+        };
+
+        const refreshSession = async (refreshToken?: string) => {
+          const res = await fetch(
+            `${API_URL}/api/auth/refresh`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: refreshToken ? JSON.stringify({ refresh_token: refreshToken }) : "{}",
+            },
+          );
+
+          if (!res.ok) return false;
+          const body = await res.json();
+          if (body?.access_token && body?.refresh_token) {
+            await supabase.auth.setSession({
+              access_token: body.access_token,
+              refresh_token: body.refresh_token,
+            });
+            return true;
+          }
+          return false;
+        };
+
         const { data } = await supabase.auth.getSession();
         if (!active) return;
 
         if (!data.session) {
-          const res = await fetch(`${API_URL}/api/auth/refresh`, {
-            method: "POST",
-            credentials: "include",
-          });
+          const cookieUser = await fetchProfile();
+          if (cookieUser) {
+            setUser(cookieUser);
+            setLoading(false);
+            return;
+          }
 
-          if (res.ok) {
-            const body = await res.json();
-            if (body?.access_token && body?.refresh_token) {
-              await supabase.auth.setSession({
-                access_token: body.access_token,
-                refresh_token: body.refresh_token,
-              });
-              return fetchUser();
-            }
+          const refreshed = await refreshSession();
+          if (refreshed) {
+            return fetchUser();
           }
 
           setUser(null);
@@ -54,50 +85,25 @@ export function useSession() {
         if (data.session.expires_at) {
           const expiresInMs = data.session.expires_at * 1000 - Date.now();
           if (expiresInMs < 5 * 60 * 1000) {
-            const res = await fetch(
-              `${API_URL}/api/auth/refresh`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                  refresh_token: data.session.refresh_token,
-                }),
-              },
-            );
-
-            if (res.ok) {
-              const body = await res.json();
-              if (body?.access_token && body?.refresh_token) {
-                await supabase.auth.setSession({
-                  access_token: body.access_token,
-                  refresh_token: body.refresh_token,
-                });
-              }
-            }
+            await refreshSession(data.session.refresh_token);
           }
         }
 
-        const res = await fetch(
-          `${API_URL}/api/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${data.session.access_token}`,
-            },
-            credentials: "include",
-          },
-        );
+        let profile = await fetchProfile(data.session.access_token);
+        if (!profile) {
+          profile = await fetchProfile();
+        }
+
+        if (!profile) {
+          const refreshed = await refreshSession(data.session.refresh_token);
+          if (refreshed) {
+            return fetchUser();
+          }
+        }
 
         if (!active) return;
 
-        if (!res.ok) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        const body = await res.json();
-        setUser(body.user ?? null);
+        setUser(profile ?? null);
       } catch (_error) {
         if (!active) return;
         setUser(null);
