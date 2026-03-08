@@ -42,25 +42,6 @@ function extractLanguageFromNext(
   return null;
 }
 
-function resolveCallbackPath(
-  frontendUrl: string,
-  next: string,
-): string {
-  const envCallback = Deno.env.get("FRONTEND_AUTH_CALLBACK") || "/auth/success";
-  const nextLanguage = extractLanguageFromNext(next, frontendUrl);
-  const language = nextLanguage;
-
-  if (envCallback.includes("{lang}")) {
-    return envCallback.replace("{lang}", language ?? "en");
-  }
-
-  if (language) {
-    return `/${language}/auth/success`;
-  }
-
-  return envCallback;
-}
-
 export const handler: Handlers = {
   async GET(req) {
     const origin = req.headers.get("Origin");
@@ -100,11 +81,9 @@ export const handler: Handlers = {
       clearPkceCookie(headers, req);
 
       const { frontendUrl } = getEnvironmentConfig();
-      const callbackPath = resolveCallbackPath(frontendUrl, next);
-      const redirectUrl = new URL(callbackPath, frontendUrl);
-      if (isValidNext(next, frontendUrl)) {
-        redirectUrl.searchParams.set("next", next);
-      }
+      const redirectUrl = isValidNext(next, frontendUrl)
+        ? new URL(next)
+        : new URL(`/${extractLanguageFromNext(next, frontendUrl) ?? "en"}/`, frontendUrl);
 
       headers.set("Location", redirectUrl.toString());
       return new Response(null, {
