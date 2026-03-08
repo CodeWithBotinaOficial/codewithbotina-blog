@@ -66,8 +66,28 @@ const apiUrl = getApiUrl();
       const searchParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.slice(1));
       const code = searchParams.get("code") || hashParams.get("code");
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      const buildSuccessUrl = () => {
+        const pathname = window.location.pathname;
+        let successPath = "/auth/success";
+        if (pathname.startsWith("/en/")) {
+          successPath = "/en/auth/success";
+        } else if (pathname.startsWith("/es/")) {
+          successPath = "/es/auth/success";
+        }
+        const successUrl = new URL(successPath, window.location.origin);
+        const next = searchParams.get("next");
+        if (next) {
+          successUrl.searchParams.set("next", next);
+        }
+        return successUrl.toString();
+      };
+
       if (code) {
-        const next = window.location.origin + window.location.pathname;
+        const next = searchParams.get("next") ||
+          (window.location.origin + window.location.pathname);
         const callback = new URL(`${apiUrl}/api/auth/callback`);
         callback.searchParams.set("code", code);
         callback.searchParams.set("next", next);
@@ -80,6 +100,15 @@ const apiUrl = getApiUrl();
           callback.searchParams.set("pkce_id", pkceId);
         }
         window.location.replace(callback.toString());
+      } else if (refreshToken || accessToken) {
+        fetch(`${apiUrl}/api/auth/refresh`, {
+          method: "POST",
+          headers: refreshToken ? { "Content-Type": "application/json" } : undefined,
+          credentials: "include",
+          body: refreshToken ? JSON.stringify({ refresh_token: refreshToken }) : undefined,
+        }).finally(() => {
+          window.location.replace(buildSuccessUrl());
+        });
       }
     </script>
   </body>

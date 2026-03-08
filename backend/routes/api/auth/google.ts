@@ -6,7 +6,6 @@ import { errorResponse } from "../../../utils/responses.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { setPkceCookie } from "../../../utils/auth.cookies.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
-import { storePkceSession } from "../../../lib/pkce.store.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
@@ -88,19 +87,13 @@ export const handler: Handlers = {
       : null;
 
     try {
-      const callbackPath = nextLanguage ? `/${nextLanguage}/auth/callback` : "/auth/callback";
-      const frontendCallback = new URL(callbackPath, frontendUrl);
+      const apiOrigin = new URL(req.url).origin;
+      const backendCallback = new URL("/api/auth/callback", apiOrigin);
 
       const { verifier, challenge } = await generatePkcePair();
-      const pkceId = crypto.randomUUID();
-      storePkceSession(pkceId, verifier);
       setPkceCookie(headers, req, verifier);
 
-      if (validNext) {
-        frontendCallback.searchParams.set("next", next);
-      }
-      frontendCallback.searchParams.set("pkce_id", pkceId);
-      const redirectTo = frontendCallback.toString();
+      const redirectTo = backendCallback.toString();
 
       console.log("OAuth start:", {
         origin,
@@ -112,8 +105,15 @@ export const handler: Handlers = {
       const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
       authUrl.searchParams.set("provider", "google");
       authUrl.searchParams.set("redirect_to", redirectTo);
+      const stateParts: string[] = [];
       if (nextLanguage) {
-        authUrl.searchParams.set("state", `lang:${nextLanguage}`);
+        stateParts.push(`lang:${nextLanguage}`);
+      }
+      if (validNext) {
+        stateParts.push(`next:${encodeURIComponent(next)}`);
+      }
+      if (stateParts.length > 0) {
+        authUrl.searchParams.set("state", stateParts.join(";"));
       }
       authUrl.searchParams.set("code_challenge", challenge);
       authUrl.searchParams.set("code_challenge_method", "S256");
@@ -124,7 +124,6 @@ export const handler: Handlers = {
       headers.set("Location", authUrl.toString());
       console.log("OAuth redirecting to Supabase:", {
         supabaseAuthorize: authUrl.toString(),
-        pkceId,
       });
       return new Response(null, {
         status: 302,

@@ -57,6 +57,17 @@ function extractLanguageFromState(state: string): string | null {
   return SUPPORTED_LANGUAGES.has(language) ? language : null;
 }
 
+function extractNextFromState(state: string): string | null {
+  if (!state) return null;
+  const match = state.match(/(?:^|[;&])next[:=]([^;&]+)/i);
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch (_error) {
+    return match[1];
+  }
+}
+
 function resolveCallbackPath(
   frontendUrl: string,
   next: string,
@@ -89,9 +100,10 @@ export const handler: Handlers = {
     const headers = corsHeaders(origin);
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
-    const next = url.searchParams.get("next") ?? "";
+    const queryNext = url.searchParams.get("next") ?? "";
     const state = url.searchParams.get("state") ?? "";
     const pkceId = url.searchParams.get("pkce_id") ?? "";
+    const next = queryNext || extractNextFromState(state) || "";
 
     console.log("OAuth callback received:", {
       origin,
