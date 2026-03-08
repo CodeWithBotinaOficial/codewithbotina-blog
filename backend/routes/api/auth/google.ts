@@ -87,12 +87,12 @@ export const handler: Handlers = {
       : null;
 
     try {
-      const frontendCallback = new URL("/auth/callback", frontendUrl);
+      const frontendRedirect = new URL("/", frontendUrl);
 
       const { verifier, challenge } = await generatePkcePair();
       setPkceCookie(headers, req, verifier);
 
-      const redirectTo = frontendCallback.toString();
+      const redirectTo = frontendRedirect.toString();
 
       console.log("OAuth start:", {
         origin,
