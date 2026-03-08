@@ -1,0 +1,28 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../components/BaseLayout.astro";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, setLanguagePreference, t, type SupportedLanguage } from "../../../lib/i18n";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+setLanguagePreference(Astro.cookies, language);
+---
+
+<BaseLayout
+  title={t(language, "errorTitle", "auth")}
+  description={t(language, "errorMessage", "auth")}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <section class="container-responsive py-16">
+    <h1>{t(language, "errorTitle", "auth")}</h1>
+    <p>{t(language, "errorMessage", "auth")}</p>
+    <a class="btn-auth" href={`/${language}/`}>{t(language, "backToSignIn", "auth")}</a>
+  </section>
+</BaseLayout>
