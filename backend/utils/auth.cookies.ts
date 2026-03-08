@@ -4,6 +4,7 @@ import { ACCESS_COOKIE_NAME, REFRESH_COOKIE_NAME } from "../middleware/auth.ts";
 
 const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
 export const PKCE_COOKIE_NAME = "cwb_pkce";
+export const AUTH_STATE_COOKIE_NAME = "cwb_auth_state";
 
 function isSecureRequest(req: Request): boolean {
   const protocol = new URL(req.url).protocol;
@@ -68,6 +69,17 @@ export function setAuthCookies(
     path: "/",
     maxAge: SEVEN_DAYS_SECONDS,
   });
+
+  setCookie(headers, {
+    name: AUTH_STATE_COOKIE_NAME,
+    value: "1",
+    httpOnly: false,
+    sameSite,
+    secure,
+    domain,
+    path: "/",
+    maxAge: SEVEN_DAYS_SECONDS,
+  });
 }
 
 export function clearAuthCookies(headers: Headers, req: Request): void {
@@ -78,6 +90,11 @@ export function clearAuthCookies(headers: Headers, req: Request): void {
   });
 
   deleteCookie(headers, REFRESH_COOKIE_NAME, {
+    domain,
+    path: "/",
+  });
+
+  deleteCookie(headers, AUTH_STATE_COOKIE_NAME, {
     domain,
     path: "/",
   });

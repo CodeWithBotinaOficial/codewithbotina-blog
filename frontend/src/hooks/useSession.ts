@@ -23,7 +23,7 @@ async function resolveSessionUser(): Promise<AuthUser | null> {
   let refreshAttempted = false;
   let refreshBlocked = false;
   const state = getAuthState();
-  if (state === false) {
+  if (state !== true) {
     setAuthState(false);
     return null;
   }
