@@ -31,7 +31,10 @@ Deno.test("Integration: GET /api/auth/callback sets cookies and redirects", asyn
   const res = await handler.GET!(req, {} as never);
 
   assertEquals(res.status, 302);
-  assertStringIncludes(res.headers.get("Location") || "", "/es/auth/success");
+  assertEquals(
+    res.headers.get("Location"),
+    "https://blog.codewithbotina.com/es/",
+  );
   const setCookie = res.headers.get("set-cookie") || "";
   assertMatch(setCookie, /(cwb_access|cwb_refresh)=/);
 
