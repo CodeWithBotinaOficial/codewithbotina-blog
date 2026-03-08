@@ -29,12 +29,10 @@ setLanguagePreference(Astro.cookies, language);
   </section>
 
   <script type="module" define:vars={{ language }}>
-    import { getApiUrl } from "../../../lib/env";
+    import { setAuthState } from "../../../lib/auth-state";
 
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next");
-    const apiUrl = getApiUrl();
-    const AUTH_STATE_KEY = "cwb_auth_state";
 
     const resolveNextTarget = (value) => {
       if (!value) return null;
@@ -47,64 +45,13 @@ setLanguagePreference(Astro.cookies, language);
       }
     };
 
-    const syncCookies = async (refreshToken) => {
-      if (!refreshToken) return null;
-      const res = await fetch(`${apiUrl}/api/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
-      if (!res.ok) return null;
-      const body = await res.json();
-      if (body?.access_token && body?.refresh_token) {
-        return body;
-      }
-      return null;
-    };
-
-    const verifySession = async () => {
-      const res = await fetch(`${apiUrl}/api/auth/me`, {
-        credentials: "include",
-      });
-      if (!res.ok) return false;
-      const body = await res.json();
-      if (body?.user) {
-        window.localStorage.setItem(AUTH_STATE_KEY, "1");
-        window.dispatchEvent(new Event("cwb:auth-changed"));
-      }
-      return Boolean(body?.user);
-    };
-
     const finalize = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const refreshToken = hashParams.get("refresh_token");
-
-      if (refreshToken) {
-        await syncCookies(refreshToken);
-        window.history.replaceState({}, "", window.location.pathname + window.location.search);
-      }
-
-      let ok = await verifySession();
-      if (!ok) {
-        const refreshed = await fetch(`${apiUrl}/api/auth/refresh`, {
-          method: "POST",
-          credentials: "include",
-        });
-        if (refreshed.ok) {
-          ok = await verifySession();
-        }
-      }
-      if (!ok) {
-        window.localStorage.setItem(AUTH_STATE_KEY, "0");
-        window.location.assign(`/${language}/auth/error`);
-        return;
-      }
-
+      setAuthState(true);
+      window.dispatchEvent(new Event("cwb:auth-changed"));
       const target = resolveNextTarget(next) ?? `/${language}/`;
-      window.location.assign(target);
+      window.location.replace(target);
     };
 
-    finalize();
+    window.setTimeout(finalize, 50);
   </script>
 </BaseLayout>

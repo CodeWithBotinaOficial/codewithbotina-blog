@@ -71,17 +71,31 @@ const apiUrl = getApiUrl();
         hashParams.get("error_description");
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
+      const queryLang = searchParams.get("lang");
+
+      const getLanguageFromNext = (value) => {
+        if (!value) return null;
+        try {
+          const resolved = new URL(value, window.location.origin);
+          const match = resolved.pathname.match(/^\/(en|es)(\/|$)/);
+          return match ? match[1] : null;
+        } catch (_error) {
+          return null;
+        }
+      };
 
       const buildSuccessUrl = () => {
         const pathname = window.location.pathname;
         let successPath = "/auth/success";
-        if (pathname.startsWith("/en/")) {
+        const next = searchParams.get("next");
+        const nextLanguage = getLanguageFromNext(next);
+        const language = queryLang || nextLanguage;
+        if (language === "en" || pathname.startsWith("/en/")) {
           successPath = "/en/auth/success";
-        } else if (pathname.startsWith("/es/")) {
+        } else if (language === "es" || pathname.startsWith("/es/")) {
           successPath = "/es/auth/success";
         }
         const successUrl = new URL(successPath, window.location.origin);
-        const next = searchParams.get("next");
         if (next) {
           successUrl.searchParams.set("next", next);
         }
@@ -89,7 +103,6 @@ const apiUrl = getApiUrl();
       };
 
       if (error) {
-        console.error("OAuth error:", { error, errorDescription });
         const errorUrl = new URL("/auth/error", window.location.origin);
         errorUrl.searchParams.set("error", error);
         if (errorDescription) {
@@ -103,17 +116,9 @@ const apiUrl = getApiUrl();
         if (next) {
           callback.searchParams.set("next", next);
         }
-        const state = searchParams.get("state") || hashParams.get("state");
-        if (state) {
-          callback.searchParams.set("state", state);
-        }
         const pkce = searchParams.get("pkce") || hashParams.get("pkce");
         if (pkce) {
           callback.searchParams.set("pkce", pkce);
-        }
-        const pkceId = searchParams.get("pkce_id") || hashParams.get("pkce_id");
-        if (pkceId) {
-          callback.searchParams.set("pkce_id", pkceId);
         }
         window.location.replace(callback.toString());
       } else if (refreshToken || accessToken) {

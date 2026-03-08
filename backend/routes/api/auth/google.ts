@@ -104,13 +104,6 @@ export const handler: Handlers = {
 
       const redirectTo = frontendRedirect.toString();
 
-      console.log("OAuth start:", {
-        origin,
-        next: validNext ? next : "",
-        redirectTo,
-        hasNextLanguage: Boolean(nextLanguage),
-      });
-
       const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
       authUrl.searchParams.set("provider", "google");
       authUrl.searchParams.set("redirect_to", redirectTo);
@@ -121,9 +114,6 @@ export const handler: Handlers = {
       authUrl.searchParams.set("access_type", "offline");
 
       headers.set("Location", authUrl.toString());
-      console.log("OAuth redirecting to Supabase:", {
-        supabaseAuthorize: authUrl.toString(),
-      });
       return new Response(null, {
         status: 302,
         headers,

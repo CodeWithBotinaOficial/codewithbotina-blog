@@ -1,12 +1,35 @@
 ---
 export const prerender = false;
 
-import BaseLayout from "../../components/BaseLayout.astro";
----
+import { DEFAULT_LANGUAGE, detectLanguage, isSupportedLanguage, type SupportedLanguage } from "../../lib/i18n";
 
-<BaseLayout title="Signing in" description="Completing authentication...">
-  <section class="container-responsive py-16">
-    <h1>Signing you in...</h1>
-    <p>Completing authentication. Please wait.</p>
-  </section>
-</BaseLayout>
+const nextParam = Astro.url.searchParams.get("next") ?? "";
+const langParam = Astro.url.searchParams.get("lang") ?? "";
+
+function extractLanguageFromNext(nextValue: string): SupportedLanguage | null {
+  if (!nextValue) return null;
+  try {
+    const nextUrl = new URL(nextValue, "https://blog.codewithbotina.com");
+    const match = nextUrl.pathname.match(/^\/(en|es)(\/|$)/);
+    if (match && isSupportedLanguage(match[1])) {
+      return match[1] as SupportedLanguage;
+    }
+  } catch (_error) {
+    return null;
+  }
+  return null;
+}
+
+const language = isSupportedLanguage(langParam)
+  ? (langParam as SupportedLanguage)
+  : extractLanguageFromNext(nextParam) ??
+    (detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language")) as SupportedLanguage) ??
+    DEFAULT_LANGUAGE;
+
+const redirectUrl = new URL(`/${language}/auth/callback`, Astro.url.origin);
+for (const [key, value] of Astro.url.searchParams.entries()) {
+  redirectUrl.searchParams.set(key, value);
+}
+
+return Astro.redirect(redirectUrl.toString(), 302);
+---

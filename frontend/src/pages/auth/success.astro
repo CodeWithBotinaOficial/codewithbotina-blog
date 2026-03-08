@@ -1,8 +1,7 @@
 ---
 export const prerender = false;
 
-import BaseLayout from "../../components/BaseLayout.astro";
-import { DEFAULT_LANGUAGE, detectLanguage, isSupportedLanguage, setLanguagePreference, t, type SupportedLanguage } from "../../lib/i18n";
+import { DEFAULT_LANGUAGE, detectLanguage, isSupportedLanguage, type SupportedLanguage } from "../../lib/i18n";
 
 const nextParam = Astro.url.searchParams.get("next") ?? "";
 
@@ -21,100 +20,14 @@ function extractLanguageFromNext(nextValue: string): SupportedLanguage | null {
 }
 
 const nextLanguage = extractLanguageFromNext(nextParam);
-const detected = detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language"));
-const language = nextLanguage ?? detected ?? DEFAULT_LANGUAGE;
-setLanguagePreference(Astro.cookies, language);
+const language = nextLanguage ??
+  (detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language")) as SupportedLanguage) ??
+  DEFAULT_LANGUAGE;
+
+const redirectUrl = new URL(`/${language}/auth/success`, Astro.url.origin);
+if (nextParam) {
+  redirectUrl.searchParams.set("next", nextParam);
+}
+
+return Astro.redirect(redirectUrl.toString(), 302);
 ---
-
-<BaseLayout
-  title={t(language, "successTitle", "auth")}
-  description={t(language, "successMessage", "auth")}
-  currentLanguage={language}
-  currentPath={Astro.url.pathname}
->
-  <section class="container-responsive py-16">
-    <h1>{t(language, "successTitle", "auth")}</h1>
-    <p>{t(language, "successMessage", "auth")}</p>
-    <p class="mt-3 text-sm text-[var(--color-text-tertiary)]">
-      {t(language, "redirecting", "auth")}
-    </p>
-  </section>
-
-  <script type="module" define:vars={{ language }}>
-    import { getApiUrl } from "../../lib/env";
-
-    const params = new URLSearchParams(window.location.search);
-    const next = params.get("next");
-    const apiUrl = getApiUrl();
-    const AUTH_STATE_KEY = "cwb_auth_state";
-
-    const syncCookies = async (refreshToken) => {
-      if (!refreshToken) return null;
-      const res = await fetch(`${apiUrl}/api/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      });
-      if (!res.ok) return null;
-      const body = await res.json();
-      if (body?.access_token && body?.refresh_token) {
-        return body;
-      }
-      return null;
-    };
-
-    const verifySession = async () => {
-      const res = await fetch(`${apiUrl}/api/auth/me`, {
-        credentials: "include",
-      });
-      if (!res.ok) return false;
-      const body = await res.json();
-      if (body?.user) {
-        window.localStorage.setItem(AUTH_STATE_KEY, "1");
-        window.dispatchEvent(new Event("cwb:auth-changed"));
-      }
-      return Boolean(body?.user);
-    };
-
-    const finalize = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const refreshToken = hashParams.get("refresh_token");
-
-      if (refreshToken) {
-        await syncCookies(refreshToken);
-        window.history.replaceState({}, "", window.location.pathname + window.location.search);
-      }
-
-      let ok = await verifySession();
-      if (!ok) {
-        const refreshed = await fetch(`${apiUrl}/api/auth/refresh`, {
-          method: "POST",
-          credentials: "include",
-        });
-        if (refreshed.ok) {
-          ok = await verifySession();
-        }
-      }
-      if (!ok) {
-        window.localStorage.setItem(AUTH_STATE_KEY, "0");
-        window.location.assign("/auth/error");
-        return;
-      }
-
-      if (next) {
-        if (next.startsWith("https://blog.codewithbotina.com/")) {
-          window.location.assign(next);
-          return;
-        }
-        if (next.startsWith("/")) {
-          window.location.assign(next);
-          return;
-        }
-      }
-      window.location.assign(`/${language}/`);
-    };
-
-    finalize();
-  </script>
-</BaseLayout>
