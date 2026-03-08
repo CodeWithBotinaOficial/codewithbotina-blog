@@ -15,6 +15,92 @@ export interface AuthUser {
   is_admin?: boolean;
 }
 
+let sharedUser: AuthUser | null = null;
+let sharedResolved = false;
+let sharedPromise: Promise<AuthUser | null> | null = null;
+
+async function resolveSessionUser(): Promise<AuthUser | null> {
+  let refreshAttempted = false;
+  let refreshBlocked = false;
+  const state = getAuthState();
+  if (state === false) {
+    setAuthState(false);
+    return null;
+  }
+
+  const fetchProfile = async () => {
+    const res = await fetch(`${API_URL}/api/auth/me`, {
+      credentials: "include",
+    });
+
+    if (!res.ok) return null;
+    const body = await res.json();
+    return body.user ?? null;
+  };
+
+  const refreshSession = async () => {
+    if (refreshBlocked) return false;
+    const res = await fetch(`${API_URL}/api/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      refreshBlocked = true;
+      return false;
+    }
+
+    refreshBlocked = false;
+    return true;
+  };
+
+  let profile = await fetchProfile();
+
+  if (!profile && !refreshAttempted) {
+    refreshAttempted = true;
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      profile = await fetchProfile();
+    }
+  }
+
+  if (profile) {
+    setAuthState(true);
+  } else {
+    setAuthState(false);
+  }
+
+  return profile ?? null;
+}
+
+function getSharedSession(): Promise<AuthUser | null> {
+  if (sharedResolved) {
+    return Promise.resolve(sharedUser);
+  }
+  if (sharedPromise) {
+    return sharedPromise;
+  }
+  sharedPromise = resolveSessionUser()
+    .then((user) => {
+      sharedUser = user;
+      sharedResolved = true;
+      return user;
+    })
+    .catch((error) => {
+      setAuthState(false);
+      throw error;
+    })
+    .finally(() => {
+      sharedPromise = null;
+    });
+  return sharedPromise;
+}
+
+function invalidateSharedSession() {
+  sharedResolved = false;
+  sharedUser = null;
+}
+
 export function useSession() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,62 +109,11 @@ export function useSession() {
 
   useEffect(() => {
     let active = true;
-    let refreshAttempted = false;
-    let refreshBlocked = false;
 
     const fetchUser = async () => {
       try {
-        const state = getAuthState();
-        if (state === false) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        const fetchProfile = async () => {
-          const res = await fetch(`${API_URL}/api/auth/me`, {
-            credentials: "include",
-          });
-
-          if (!res.ok) return null;
-          const body = await res.json();
-          return body.user ?? null;
-        };
-
-        const refreshSession = async () => {
-          if (refreshBlocked) return false;
-          const res = await fetch(`${API_URL}/api/auth/refresh`, {
-            method: "POST",
-            credentials: "include",
-          });
-
-          if (!res.ok) {
-            refreshBlocked = true;
-            return false;
-          }
-
-          refreshBlocked = false;
-          return true;
-        };
-
-        let profile = await fetchProfile();
-
-        if (!profile && !refreshAttempted) {
-          refreshAttempted = true;
-          const refreshed = await refreshSession();
-          if (refreshed) {
-            profile = await fetchProfile();
-          }
-        }
-
+        const profile = await getSharedSession();
         if (!active) return;
-
-        if (profile) {
-          setAuthState(true);
-        } else {
-          setAuthState(false);
-        }
-
         setUser(profile ?? null);
       } catch (_error) {
         if (!active) return;
@@ -93,11 +128,13 @@ export function useSession() {
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === AUTH_STATE_KEY) {
+        invalidateSharedSession();
         fetchUser();
       }
     };
 
     const handleAuthChange = () => {
+      invalidateSharedSession();
       fetchUser();
     };
 
