@@ -5,6 +5,7 @@ import SEO from "./SEO.astro";
 import CookieConsent from "./CookieConsent.tsx";
 import "../styles/global.css";
 import { DEFAULT_LANGUAGE } from "../lib/i18n";
+import { getApiUrl } from "../lib/env";
 
 interface Props {
   title: string;
@@ -27,6 +28,7 @@ const {
 } = Astro.props;
 
 const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
+const apiUrl = getApiUrl();
 ---
 
 <!doctype html>
@@ -60,5 +62,20 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
     </main>
     <Footer currentLanguage={currentLanguage} />
     <CookieConsent language={currentLanguage} client:load />
+    <script type="module" define:vars={{ apiUrl }}>
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        const next = window.location.origin + window.location.pathname;
+        const callback = new URL(`${apiUrl}/api/auth/callback`);
+        callback.searchParams.set("code", code);
+        callback.searchParams.set("next", next);
+        const state = params.get("state");
+        if (state) {
+          callback.searchParams.set("state", state);
+        }
+        window.location.replace(callback.toString());
+      }
+    </script>
   </body>
 </html>
