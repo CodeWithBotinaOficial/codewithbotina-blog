@@ -6,7 +6,27 @@ const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
 export const PKCE_COOKIE_NAME = "cwb_pkce";
 
 function isSecureRequest(req: Request): boolean {
-  return new URL(req.url).protocol === "https:";
+  const protocol = new URL(req.url).protocol;
+  if (protocol === "https:") return true;
+
+  const forwarded = req.headers.get("x-forwarded-proto") ||
+    req.headers.get("x-forwarded-protocol");
+  if (forwarded) {
+    const value = forwarded.split(",")[0]?.trim().toLowerCase();
+    if (value === "https") return true;
+  }
+
+  const cfVisitor = req.headers.get("cf-visitor");
+  if (cfVisitor) {
+    try {
+      const parsed = JSON.parse(cfVisitor) as { scheme?: string };
+      if (parsed?.scheme?.toLowerCase() === "https") return true;
+    } catch (_error) {
+      // Ignore malformed cf-visitor header
+    }
+  }
+
+  return false;
 }
 
 function getCookieDomain(req: Request): string | undefined {
