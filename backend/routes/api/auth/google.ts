@@ -87,10 +87,17 @@ export const handler: Handlers = {
       : null;
 
     try {
-      const frontendRedirect = new URL("/", frontendUrl);
+      const frontendRedirect = new URL("/auth/callback", frontendUrl);
 
       const { verifier, challenge } = await generatePkcePair();
       setPkceCookie(headers, req, verifier);
+
+      if (validNext) {
+        frontendRedirect.searchParams.set("next", next);
+      }
+      if (nextLanguage) {
+        frontendRedirect.searchParams.set("lang", nextLanguage);
+      }
 
       const redirectTo = frontendRedirect.toString();
 
@@ -104,16 +111,6 @@ export const handler: Handlers = {
       const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
       authUrl.searchParams.set("provider", "google");
       authUrl.searchParams.set("redirect_to", redirectTo);
-      const stateParts: string[] = [];
-      if (nextLanguage) {
-        stateParts.push(`lang:${nextLanguage}`);
-      }
-      if (validNext) {
-        stateParts.push(`next:${encodeURIComponent(next)}`);
-      }
-      if (stateParts.length > 0) {
-        authUrl.searchParams.set("state", stateParts.join(";"));
-      }
       authUrl.searchParams.set("code_challenge", challenge);
       authUrl.searchParams.set("code_challenge_method", "S256");
       authUrl.searchParams.set("scopes", "openid email profile");
