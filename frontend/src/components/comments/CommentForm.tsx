@@ -1,6 +1,5 @@
 import { useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
-import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 
 interface Props {
@@ -48,23 +47,20 @@ export default function CommentForm({ postId, labels }: Props) {
     setError("");
 
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) {
-        setError(copy.authError);
-        return;
-      }
-
       const response = await fetch(`${API_URL}/api/comments/${postId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ content }),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setError(copy.authError);
+          return;
+        }
         const body = await response.json().catch(() => null);
         setError(body?.error || copy.postError);
         return;

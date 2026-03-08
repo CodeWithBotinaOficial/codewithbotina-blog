@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
-import { supabase } from "../lib/supabase";
 import { getApiUrl } from "../lib/env";
+import { AUTH_STATE_KEY, getAuthState, setAuthState } from "../lib/auth-state";
 
 const API_URL = getApiUrl();
 
@@ -28,10 +28,15 @@ export function useSession() {
 
     const fetchUser = async () => {
       try {
-        const fetchProfile = async (token?: string) => {
-          const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+        const state = getAuthState();
+        if (state === false) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        const fetchProfile = async () => {
           const res = await fetch(`${API_URL}/api/auth/me`, {
-            headers,
             credentials: "include",
           });
 
@@ -40,98 +45,45 @@ export function useSession() {
           return body.user ?? null;
         };
 
-        const refreshSession = async (refreshToken?: string) => {
+        const refreshSession = async () => {
           if (refreshBlocked) return false;
-          const res = await fetch(
-            `${API_URL}/api/auth/refresh`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: refreshToken ? JSON.stringify({ refresh_token: refreshToken }) : "{}",
-            },
-          );
+          const res = await fetch(`${API_URL}/api/auth/refresh`, {
+            method: "POST",
+            credentials: "include",
+          });
 
           if (!res.ok) {
             refreshBlocked = true;
             return false;
           }
-          const body = await res.json();
-          if (body?.access_token && body?.refresh_token) {
-            await supabase.auth.setSession({
-              access_token: body.access_token,
-              refresh_token: body.refresh_token,
-            });
-            return true;
-          }
-          refreshBlocked = true;
-          return false;
+
+          refreshBlocked = false;
+          return true;
         };
 
-        const { data } = await supabase.auth.getSession();
-        if (!active) return;
+        let profile = await fetchProfile();
 
-        if (!data.session) {
-          if (typeof window !== "undefined") {
-            const stored = window.localStorage.getItem("CodeWithBotinaAuth");
-            if (!stored) {
-              setUser(null);
-              setLoading(false);
-              return;
-            }
-            try {
-              const parsed = JSON.parse(stored);
-              if (!parsed?.access_token || !parsed?.refresh_token) {
-                setUser(null);
-                setLoading(false);
-                return;
-              }
-            } catch (_error) {
-              setUser(null);
-              setLoading(false);
-              return;
-            }
-          }
-
-          if (refreshAttempted || refreshBlocked) {
-            setUser(null);
-            setLoading(false);
-            return;
-          }
-
+        if (!profile && !refreshAttempted) {
           refreshAttempted = true;
           const refreshed = await refreshSession();
           if (refreshed) {
-            return fetchUser();
-          }
-
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        if (data.session.expires_at) {
-          const expiresInMs = data.session.expires_at * 1000 - Date.now();
-          if (expiresInMs < 5 * 60 * 1000) {
-            await refreshSession(data.session.refresh_token);
-          }
-        }
-
-        const profile = await fetchProfile(data.session.access_token);
-
-        if (!profile) {
-          const refreshed = await refreshSession(data.session.refresh_token);
-          if (refreshed) {
-            return fetchUser();
+            profile = await fetchProfile();
           }
         }
 
         if (!active) return;
+
+        if (profile) {
+          setAuthState(true);
+        } else {
+          setAuthState(false);
+        }
 
         setUser(profile ?? null);
       } catch (_error) {
         if (!active) return;
         setUser(null);
+        setAuthState(false);
       } finally {
         if (active) setLoading(false);
       }
@@ -139,13 +91,27 @@ export function useSession() {
 
     fetchUser();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === AUTH_STATE_KEY) {
+        fetchUser();
+      }
+    };
+
+    const handleAuthChange = () => {
       fetchUser();
-    });
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorage);
+      window.addEventListener("cwb:auth-changed", handleAuthChange);
+    }
 
     return () => {
       active = false;
-      listener?.subscription.unsubscribe();
+      if (typeof window !== "undefined") {
+        window.removeEventListener("storage", handleStorage);
+        window.removeEventListener("cwb:auth-changed", handleAuthChange);
+      }
     };
   }, []);
 

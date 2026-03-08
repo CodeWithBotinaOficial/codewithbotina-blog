@@ -1,37 +1,29 @@
-import { supabase } from "./supabase";
+import { getApiUrl } from "./env";
+import { setAuthState } from "./auth-state";
 
-let listenerInitialized = false;
+const API_URL = getApiUrl();
 
 export function initAuthListener() {
-  if (listenerInitialized) return;
-  listenerInitialized = true;
-
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === "SIGNED_IN" && session?.user) {
-      localStorage.setItem("user", JSON.stringify(session.user));
-    }
-
-    if (event === "SIGNED_OUT") {
-      localStorage.removeItem("user");
-    }
-  });
+  // Deprecated: kept for backward compatibility.
 }
 
 export async function getCurrentUser() {
-  const cached = localStorage.getItem("user");
-  if (cached) return JSON.parse(cached);
-
-  const { data } = await supabase.auth.getSession();
-  if (data.session?.user) {
-    localStorage.setItem("user", JSON.stringify(data.session.user));
-    return data.session.user;
-  }
-
-  return null;
+  const response = await fetch(`${API_URL}/api/auth/me`, {
+    credentials: "include",
+  });
+  if (!response.ok) return null;
+  const body = await response.json();
+  return body?.user ?? null;
 }
 
 export async function signOut() {
-  await supabase.auth.signOut();
-  localStorage.removeItem("user");
-  window.location.assign("/");
+  await fetch(`${API_URL}/api/auth/signout`, {
+    method: "POST",
+    credentials: "include",
+  });
+  setAuthState(false);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("cwb:auth-changed"));
+    window.location.assign("/");
+  }
 }

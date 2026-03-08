@@ -1,6 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
 import { getApiUrl } from "../lib/env";
-import { supabase } from "../lib/supabase";
 import { DEFAULT_LANGUAGE, getLanguageFromPath, getRoutePath, isSupportedLanguage, t, type SupportedLanguage } from "../lib/i18n";
 
 interface CookiePreferences {
@@ -116,15 +115,12 @@ export default function CookieConsent({ language }: Props) {
     }
 
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-
       await fetch(`${API_URL}/api/cookies/consent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({
           analytics_cookies: prefs.analytics,
           marketing_cookies: prefs.marketing,

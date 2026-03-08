@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { UploadCloud } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
-import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 import MarkdownPreview from "./MarkdownPreview";
 import TagSelector from "./TagSelector";
@@ -453,15 +452,9 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     setIsSubmitting(true);
 
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) {
-        throw new Error("Missing access token");
-      }
-
       let finalImageUrl = imageUrl;
       if (imageMode === "upload" && imageFile) {
-        finalImageUrl = await uploadImage(imageFile, imageTitle, trimmedSlug, token);
+        finalImageUrl = await uploadImage(imageFile, imageTitle, trimmedSlug);
       }
 
       const endpoint = mode === "create"
@@ -481,8 +474,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         method: mode === "create" ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -834,7 +827,6 @@ async function uploadImage(
   file: File,
   title: string,
   slug: string,
-  token: string,
 ): Promise<string> {
   const formData = new FormData();
   formData.append("image", file);
@@ -843,9 +835,7 @@ async function uploadImage(
 
   const response = await fetch(`${API_URL}/api/posts/upload-image`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
     body: formData,
   });
 

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { supabase } from "../../lib/supabase";
 import { getApiUrl } from "../../lib/env";
 import type { TagSelectorLabels } from "../../lib/admin-editor";
 
@@ -148,18 +147,12 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
     if (name.length < 2) return;
 
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) {
-        throw new Error("Missing access token");
-      }
-
       const response = await fetch(`${API_URL}/api/tags/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ name }),
       });
 

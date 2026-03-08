@@ -43,7 +43,7 @@ export function setAuthCookies(
   session: AuthSession,
 ): void {
   const secure = isSecureRequest(req);
-  const sameSite = secure ? "None" : "Lax";
+  const sameSite = "Lax";
   const domain = getCookieDomain(req);
   const maxAge = Math.max(session.expires_in ?? SEVEN_DAYS_SECONDS, 60);
 

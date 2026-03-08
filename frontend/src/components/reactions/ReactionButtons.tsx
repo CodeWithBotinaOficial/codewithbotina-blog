@@ -1,6 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
-import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 
 interface Props {
@@ -48,12 +47,8 @@ export default function ReactionButtons({
     const fetchUserReaction = async () => {
       if (!authenticated || !user) return;
 
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) return;
-
       const response = await fetch(`${API_URL}/api/reactions/user/${postId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       if (!response.ok) return;
@@ -65,11 +60,6 @@ export default function ReactionButtons({
 
     fetchUserReaction();
   }, [authenticated, postId, user?.id]);
-
-  const getAccessToken = async () => {
-    const { data } = await supabase.auth.getSession();
-    return data.session?.access_token || null;
-  };
 
   const handleReaction = async (type: "like" | "dislike") => {
     if (!authenticated || !user) {
@@ -120,16 +110,11 @@ export default function ReactionButtons({
     setCurrentReaction(nextReaction);
 
     try {
-      const token = await getAccessToken();
-      if (!token) throw new Error("Missing access token");
-
       const response = await fetch(
         `${API_URL}/api/reactions/${postId}/${type}`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         },
       );
 

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { MoreVertical, Pencil, Trash2 } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
-import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Toast from "../ui/Toast";
@@ -76,23 +75,13 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
     }, template);
   };
 
-  const getAccessToken = async () => {
-    const { data } = await supabase.auth.getSession();
-    return data.session?.access_token || null;
-  };
-
   const fetchDeleteInfo = async () => {
-    const token = await getAccessToken();
-    if (!token) throw new Error("Missing access token");
-
     const query = language ? `?language=${encodeURIComponent(language)}` : "";
     const response = await fetch(
       `${API_URL}/api/posts/${slug}/delete${query}`,
       {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       },
     );
 
@@ -130,17 +119,12 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
     setIsDeleting(true);
 
     try {
-      const token = await getAccessToken();
-      if (!token) throw new Error("Missing access token");
-
       const query = language ? `?language=${encodeURIComponent(language)}&confirm=true` : "?confirm=true";
       const response = await fetch(
         `${API_URL}/api/posts/${slug}/delete${query}`,
         {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         },
       );
 

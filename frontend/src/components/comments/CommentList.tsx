@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
-import { supabase } from "../../lib/supabase";
 import { useSession } from "../../hooks/useSession";
 import CommentItem from "./CommentItem";
 
@@ -93,20 +92,10 @@ export default function CommentList({
     return sortComments(comments);
   }, [comments]);
 
-  const getAccessToken = async () => {
-    const { data } = await supabase.auth.getSession();
-    return data.session?.access_token || null;
-  };
-
   const handleDelete = async (commentId: string) => {
-    const token = await getAccessToken();
-    if (!token) return;
-
     const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     if (response.ok) {
@@ -115,15 +104,12 @@ export default function CommentList({
   };
 
   const handleUpdate = async (commentId: string, content: string) => {
-    const token = await getAccessToken();
-    if (!token) return null;
-
     const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ content }),
     });
 
@@ -139,17 +125,12 @@ export default function CommentList({
   };
 
   const handleTogglePin = async (commentId: string, nextPinned: boolean) => {
-    const token = await getAccessToken();
-    if (!token) return;
-
     const endpoint = nextPinned ? "pin" : "unpin";
     const response = await fetch(
       `${API_URL}/api/comments/${commentId}/${endpoint}`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       },
     );
 

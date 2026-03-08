@@ -41,12 +41,12 @@ setLanguagePreference(Astro.cookies, language);
   </section>
 
   <script type="module" define:vars={{ language }}>
-    import { supabase } from "../../lib/supabase";
     import { getApiUrl } from "../../lib/env";
 
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next");
     const apiUrl = getApiUrl();
+    const AUTH_STATE_KEY = "cwb_auth_state";
 
     const syncCookies = async (refreshToken) => {
       if (!refreshToken) return null;
@@ -64,53 +64,40 @@ setLanguagePreference(Astro.cookies, language);
       return null;
     };
 
-    const verifySession = async (accessToken) => {
-      if (!accessToken) return false;
+    const verifySession = async () => {
       const res = await fetch(`${apiUrl}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
         credentials: "include",
       });
-      return res.ok;
+      if (!res.ok) return false;
+      const body = await res.json();
+      if (body?.user) {
+        window.localStorage.setItem(AUTH_STATE_KEY, "1");
+        window.dispatchEvent(new Event("cwb:auth-changed"));
+      }
+      return Boolean(body?.user);
     };
 
     const finalize = async () => {
       const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
 
-      if (accessToken && refreshToken) {
-        await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        const refreshed = await syncCookies(refreshToken);
-        if (refreshed?.access_token && refreshed?.refresh_token) {
-          await supabase.auth.setSession({
-            access_token: refreshed.access_token,
-            refresh_token: refreshed.refresh_token,
-          });
-        }
+      if (refreshToken) {
+        await syncCookies(refreshToken);
         window.history.replaceState({}, "", window.location.pathname + window.location.search);
-      } else {
-        const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+      }
+
+      let ok = await verifySession();
+      if (!ok) {
+        const refreshed = await fetch(`${apiUrl}/api/auth/refresh`, {
           method: "POST",
           credentials: "include",
         });
-
-        if (res.ok) {
-          const body = await res.json();
-          if (body?.access_token && body?.refresh_token) {
-            await supabase.auth.setSession({
-              access_token: body.access_token,
-              refresh_token: body.refresh_token,
-            });
-          }
+        if (refreshed.ok) {
+          ok = await verifySession();
         }
       }
-
-      const session = await supabase.auth.getSession();
-      const ok = await verifySession(session.data.session?.access_token);
       if (!ok) {
+        window.localStorage.setItem(AUTH_STATE_KEY, "0");
         window.location.assign("/auth/error");
         return;
       }

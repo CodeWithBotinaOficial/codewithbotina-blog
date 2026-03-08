@@ -1,8 +1,5 @@
-import { useEffect } from "preact/hooks";
 import { useAuth } from "../../hooks/useAuth";
 import { useSession } from "../../hooks/useSession";
-import { initAuthListener } from "../../lib/auth";
-import { getApiUrl } from "../../lib/env";
 
 interface Props {
   labels: {
@@ -13,20 +10,8 @@ interface Props {
 }
 
 export default function HeaderAuthControls({ labels }: Props) {
-  initAuthListener();
   const { user, loading } = useSession();
   const { signIn, signOut } = useAuth();
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (!code) return;
-
-    const apiUrl = getApiUrl();
-    const next = window.location.origin + window.location.pathname;
-    const redirect = `${apiUrl}/api/auth/callback?code=${encodeURIComponent(code)}&next=${encodeURIComponent(next)}`;
-    window.location.replace(redirect);
-  }, []);
 
   if (loading) {
     return <div class="auth-loading">{labels.loading}</div>;
