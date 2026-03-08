@@ -66,6 +66,9 @@ const apiUrl = getApiUrl();
       const searchParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.slice(1));
       const code = searchParams.get("code") || hashParams.get("code");
+      const error = searchParams.get("error") || hashParams.get("error");
+      const errorDescription = searchParams.get("error_description") ||
+        hashParams.get("error_description");
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
 
@@ -85,7 +88,15 @@ const apiUrl = getApiUrl();
         return successUrl.toString();
       };
 
-      if (code) {
+      if (error) {
+        console.error("OAuth error:", { error, errorDescription });
+        const errorUrl = new URL("/auth/error", window.location.origin);
+        errorUrl.searchParams.set("error", error);
+        if (errorDescription) {
+          errorUrl.searchParams.set("error_description", errorDescription);
+        }
+        window.location.replace(errorUrl.toString());
+      } else if (code) {
         const next = searchParams.get("next");
         const callback = new URL(`${apiUrl}/api/auth/callback`);
         callback.searchParams.set("code", code);

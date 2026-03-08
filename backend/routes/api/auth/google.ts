@@ -87,10 +87,7 @@ export const handler: Handlers = {
       : null;
 
     try {
-      const callbackPath = nextLanguage
-        ? `/${nextLanguage}/auth/callback`
-        : "/auth/callback";
-      const frontendCallback = new URL(callbackPath, frontendUrl);
+      const frontendCallback = new URL("/auth/callback", frontendUrl);
 
       const { verifier, challenge } = await generatePkcePair();
       setPkceCookie(headers, req, verifier);
