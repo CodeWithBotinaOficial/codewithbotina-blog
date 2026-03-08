@@ -107,6 +107,10 @@ const apiUrl = getApiUrl();
         if (state) {
           callback.searchParams.set("state", state);
         }
+        const pkce = searchParams.get("pkce") || hashParams.get("pkce");
+        if (pkce) {
+          callback.searchParams.set("pkce", pkce);
+        }
         const pkceId = searchParams.get("pkce_id") || hashParams.get("pkce_id");
         if (pkceId) {
           callback.searchParams.set("pkce_id", pkceId);

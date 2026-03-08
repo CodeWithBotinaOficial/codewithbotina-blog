@@ -11,6 +11,7 @@ import { AppError } from "../../../utils/errors.ts";
 import { errorResponse } from "../../../utils/responses.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
 import { takePkceSession } from "../../../lib/pkce.store.ts";
+import { readPkceToken } from "../../../lib/pkce.token.ts";
 
 const SUPPORTED_LANGUAGES = new Set(["en", "es"]);
 const TOKEN_PREVIEW = 8;
@@ -103,12 +104,14 @@ export const handler: Handlers = {
     const queryNext = url.searchParams.get("next") ?? "";
     const state = url.searchParams.get("state") ?? "";
     const pkceId = url.searchParams.get("pkce_id") ?? "";
+    const pkceToken = url.searchParams.get("pkce") ?? "";
     const next = queryNext || extractNextFromState(state) || "";
 
     console.log("OAuth callback received:", {
       origin,
       hasCode: Boolean(code),
       hasPkceId: Boolean(pkceId),
+      hasPkceToken: Boolean(pkceToken),
       hasState: Boolean(state),
       next: next ? "present" : "empty",
     });
@@ -124,10 +127,12 @@ export const handler: Handlers = {
     try {
       const cookies = getCookies(req.headers);
       const storedVerifier = pkceId ? takePkceSession(pkceId) : null;
-      const codeVerifier = storedVerifier ?? cookies[PKCE_COOKIE_NAME] ?? null;
+      const tokenVerifier = pkceToken ? await readPkceToken(pkceToken) : null;
+      const codeVerifier = storedVerifier ?? tokenVerifier ?? cookies[PKCE_COOKIE_NAME] ?? null;
       console.log("OAuth callback PKCE check:", {
         pkceId,
         storedVerifier: Boolean(storedVerifier),
+        tokenVerifier: Boolean(tokenVerifier),
         cookieVerifier: Boolean(cookies[PKCE_COOKIE_NAME]),
         hasVerifier: Boolean(codeVerifier),
       });

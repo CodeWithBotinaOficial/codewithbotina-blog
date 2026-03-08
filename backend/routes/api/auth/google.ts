@@ -6,6 +6,7 @@ import { errorResponse } from "../../../utils/responses.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { setPkceCookie } from "../../../utils/auth.cookies.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
+import { createPkceToken } from "../../../lib/pkce.token.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
@@ -91,6 +92,7 @@ export const handler: Handlers = {
 
       const { verifier, challenge } = await generatePkcePair();
       setPkceCookie(headers, req, verifier);
+      const pkceToken = await createPkceToken(verifier);
 
       if (validNext) {
         frontendRedirect.searchParams.set("next", next);
@@ -98,6 +100,7 @@ export const handler: Handlers = {
       if (nextLanguage) {
         frontendRedirect.searchParams.set("lang", nextLanguage);
       }
+      frontendRedirect.searchParams.set("pkce", pkceToken);
 
       const redirectTo = frontendRedirect.toString();
 
