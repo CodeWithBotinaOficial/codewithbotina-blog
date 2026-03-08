@@ -48,13 +48,19 @@ setLanguagePreference(Astro.cookies, language);
     };
 
     const syncCookies = async (refreshToken) => {
-      if (!refreshToken) return;
-      await fetch(`${apiUrl}/api/auth/refresh`, {
+      if (!refreshToken) return null;
+      const res = await fetch(`${apiUrl}/api/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
+      if (!res.ok) return null;
+      const body = await res.json();
+      if (body?.access_token && body?.refresh_token) {
+        return body;
+      }
+      return null;
     };
 
     const verifySession = async (accessToken) => {
@@ -76,7 +82,13 @@ setLanguagePreference(Astro.cookies, language);
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        await syncCookies(refreshToken);
+        const refreshed = await syncCookies(refreshToken);
+        if (refreshed?.access_token && refreshed?.refresh_token) {
+          await supabase.auth.setSession({
+            access_token: refreshed.access_token,
+            refresh_token: refreshed.refresh_token,
+          });
+        }
         window.history.replaceState({}, "", window.location.pathname + window.location.search);
       } else {
         const res = await fetch(`${apiUrl}/api/auth/refresh`, {

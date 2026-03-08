@@ -23,6 +23,8 @@ export function useSession() {
 
   useEffect(() => {
     let active = true;
+    let refreshAttempted = false;
+    let refreshBlocked = false;
 
     const fetchUser = async () => {
       try {
@@ -39,6 +41,7 @@ export function useSession() {
         };
 
         const refreshSession = async (refreshToken?: string) => {
+          if (refreshBlocked) return false;
           const res = await fetch(
             `${API_URL}/api/auth/refresh`,
             {
@@ -49,7 +52,10 @@ export function useSession() {
             },
           );
 
-          if (!res.ok) return false;
+          if (!res.ok) {
+            refreshBlocked = true;
+            return false;
+          }
           const body = await res.json();
           if (body?.access_token && body?.refresh_token) {
             await supabase.auth.setSession({
@@ -58,6 +64,7 @@ export function useSession() {
             });
             return true;
           }
+          refreshBlocked = true;
           return false;
         };
 
@@ -65,13 +72,34 @@ export function useSession() {
         if (!active) return;
 
         if (!data.session) {
-          const cookieUser = await fetchProfile();
-          if (cookieUser) {
-            setUser(cookieUser);
+          if (typeof window !== "undefined") {
+            const stored = window.localStorage.getItem("CodeWithBotinaAuth");
+            if (!stored) {
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+            try {
+              const parsed = JSON.parse(stored);
+              if (!parsed?.access_token || !parsed?.refresh_token) {
+                setUser(null);
+                setLoading(false);
+                return;
+              }
+            } catch (_error) {
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+          }
+
+          if (refreshAttempted || refreshBlocked) {
+            setUser(null);
             setLoading(false);
             return;
           }
 
+          refreshAttempted = true;
           const refreshed = await refreshSession();
           if (refreshed) {
             return fetchUser();
@@ -90,9 +118,6 @@ export function useSession() {
         }
 
         let profile = await fetchProfile(data.session.access_token);
-        if (!profile) {
-          profile = await fetchProfile();
-        }
 
         if (!profile) {
           const refreshed = await refreshSession(data.session.refresh_token);
