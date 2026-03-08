@@ -80,6 +80,11 @@ function resolveCallbackPath(
 
 export const handler: Handlers = {
   async GET(req) {
+    console.log("🔥 CALLBACK HIT - Request received:", {
+      url: req.url,
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries()),
+    });
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
     const url = new URL(req.url);
