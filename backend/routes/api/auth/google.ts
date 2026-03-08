@@ -92,6 +92,12 @@ export const handler: Handlers = {
       : null;
 
     try {
+      console.log("OAuth start:", {
+        origin,
+        next: validNext ? next : "",
+        redirectTo: redirectUrl.toString(),
+        hasNextLanguage: Boolean(nextLanguage),
+      });
       const { verifier, challenge } = await generatePkcePair();
       const pkceId = crypto.randomUUID();
       storePkceSession(pkceId, verifier);
@@ -113,6 +119,10 @@ export const handler: Handlers = {
       authUrl.searchParams.set("access_type", "offline");
 
       headers.set("Location", authUrl.toString());
+      console.log("OAuth redirecting to Supabase:", {
+        supabaseAuthorize: authUrl.toString(),
+        pkceId,
+      });
       return new Response(null, {
         status: 302,
         headers,

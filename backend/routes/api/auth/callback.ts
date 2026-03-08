@@ -13,6 +13,13 @@ import { getEnvironmentConfig } from "../../../lib/env.ts";
 import { takePkceSession } from "../../../lib/pkce.store.ts";
 
 const SUPPORTED_LANGUAGES = new Set(["en", "es"]);
+const TOKEN_PREVIEW = 8;
+
+function maskToken(token?: string | null): string | null {
+  if (!token) return null;
+  if (token.length <= TOKEN_PREVIEW * 2) return `${token.slice(0, TOKEN_PREVIEW)}...`;
+  return `${token.slice(0, TOKEN_PREVIEW)}...${token.slice(-TOKEN_PREVIEW)}`;
+}
 
 function isValidNext(next: string, frontendUrl: string): boolean {
   if (!next) return false;
@@ -81,6 +88,14 @@ export const handler: Handlers = {
     const state = url.searchParams.get("state") ?? "";
     const pkceId = url.searchParams.get("pkce_id") ?? "";
 
+    console.log("OAuth callback received:", {
+      origin,
+      hasCode: Boolean(code),
+      hasPkceId: Boolean(pkceId),
+      hasState: Boolean(state),
+      next: next ? "present" : "empty",
+    });
+
     if (!code) {
       const response = errorResponse("Missing authorization code", 400);
       headers.forEach((value, key) => {
@@ -93,6 +108,12 @@ export const handler: Handlers = {
       const cookies = getCookies(req.headers);
       const storedVerifier = pkceId ? takePkceSession(pkceId) : null;
       const codeVerifier = storedVerifier ?? cookies[PKCE_COOKIE_NAME] ?? null;
+      console.log("OAuth callback PKCE check:", {
+        pkceId,
+        storedVerifier: Boolean(storedVerifier),
+        cookieVerifier: Boolean(cookies[PKCE_COOKIE_NAME]),
+        hasVerifier: Boolean(codeVerifier),
+      });
       if (!codeVerifier) {
         const response = errorResponse("Missing PKCE code verifier", 400);
         headers.forEach((value, key) => {
@@ -101,12 +122,6 @@ export const handler: Handlers = {
         return response;
       }
 
-      console.log("OAuth callback:", {
-        hasCode: Boolean(code),
-        hasPkce: Boolean(codeVerifier),
-        origin,
-        next,
-      });
       const authService = new AuthService();
       const { session, userId } = await authService.exchangeCodeForSessionWithVerifier(
         code,
@@ -115,6 +130,8 @@ export const handler: Handlers = {
       console.log("OAuth session created:", {
         userId,
         expiresIn: session.expires_in,
+        accessToken: maskToken(session.access_token),
+        refreshToken: maskToken(session.refresh_token),
       });
       setAuthCookies(headers, req, session);
       clearPkceCookie(headers, req);
@@ -133,11 +150,16 @@ export const handler: Handlers = {
       }
 
       headers.set("Location", redirectUrl.toString());
+      console.log("OAuth callback redirecting:", {
+        redirect: redirectUrl.toString(),
+        setCookies: headers.get("set-cookie") ? "present" : "missing",
+      });
       return new Response(null, {
         status: 302,
         headers,
       });
     } catch (error) {
+      console.error("OAuth callback failed:", error);
       const statusCode = error instanceof AppError ? error.statusCode : 500;
       const response = errorResponse(
         error instanceof Error ? error.message : "Internal server error",
