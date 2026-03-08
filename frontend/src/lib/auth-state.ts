@@ -11,10 +11,11 @@ function setCookieValue(name: string, value: string) {
   if (typeof document === "undefined") return;
   const parts = [`${name}=${encodeURIComponent(value)}`, "Path=/", "SameSite=Lax"];
   if (typeof window !== "undefined") {
-    if (window.location.protocol === "https:") {
+    if (window.location?.protocol === "https:") {
       parts.push("Secure");
     }
-    if (window.location.hostname.endsWith("codewithbotina.com")) {
+    const hostname = window.location?.hostname;
+    if (typeof hostname === "string" && hostname.endsWith("codewithbotina.com")) {
       parts.push("Domain=.codewithbotina.com");
     }
   }
