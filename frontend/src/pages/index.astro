@@ -3,6 +3,14 @@ export const prerender = false;
 
 import { detectLanguage } from "../lib/i18n";
 
+const hasOAuthParams = ["code", "error", "state"].some((key) =>
+  Astro.url.searchParams.has(key)
+);
+
+if (hasOAuthParams) {
+  return Astro.redirect(`/auth/callback${Astro.url.search}`, 302);
+}
+
 const language = detectLanguage(
   Astro.cookies,
   Astro.request.headers.get("accept-language"),
