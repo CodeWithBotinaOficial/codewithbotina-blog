@@ -87,13 +87,15 @@ export const handler: Handlers = {
       : null;
 
     try {
-      const apiOrigin = new URL(req.url).origin;
-      const backendCallback = new URL("/api/auth/callback", apiOrigin);
+      const callbackPath = nextLanguage
+        ? `/${nextLanguage}/auth/callback`
+        : "/auth/callback";
+      const frontendCallback = new URL(callbackPath, frontendUrl);
 
       const { verifier, challenge } = await generatePkcePair();
       setPkceCookie(headers, req, verifier);
 
-      const redirectTo = backendCallback.toString();
+      const redirectTo = frontendCallback.toString();
 
       console.log("OAuth start:", {
         origin,

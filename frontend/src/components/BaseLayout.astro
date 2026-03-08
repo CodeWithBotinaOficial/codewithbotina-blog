@@ -86,11 +86,12 @@ const apiUrl = getApiUrl();
       };
 
       if (code) {
-        const next = searchParams.get("next") ||
-          (window.location.origin + window.location.pathname);
+        const next = searchParams.get("next");
         const callback = new URL(`${apiUrl}/api/auth/callback`);
         callback.searchParams.set("code", code);
-        callback.searchParams.set("next", next);
+        if (next) {
+          callback.searchParams.set("next", next);
+        }
         const state = searchParams.get("state") || hashParams.get("state");
         if (state) {
           callback.searchParams.set("state", state);
