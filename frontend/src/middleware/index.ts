@@ -6,6 +6,7 @@ const EXCLUDED_PREFIXES = ["/admin", "/auth", "/api"];
 
 export const onRequest = defineMiddleware(async ({ request, cookies, redirect, url }, next) => {
   const pathname = url.pathname;
+  const search = url.search;
 
   if (STATIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return next();
@@ -20,11 +21,19 @@ export const onRequest = defineMiddleware(async ({ request, cookies, redirect, u
     return next();
   }
 
+  // Preserve OAuth query params (code/error/state) on the root callback
+  if (search) {
+    const params = url.searchParams;
+    if (params.has("code") || params.has("error") || params.has("state")) {
+      return next();
+    }
+  }
+
   const language = detectLanguage(cookies, request.headers.get("accept-language"));
   if (!cookies.get("preferred_language")) {
     setLanguagePreference(cookies, language);
   }
 
-  const target = getLocalizedPath(pathname, language);
+  const target = getLocalizedPath(pathname, language) + search;
   return redirect(target, 302);
 });
