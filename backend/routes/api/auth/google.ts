@@ -82,29 +82,32 @@ export const handler: Handlers = {
     const url = new URL(req.url);
     const next = url.searchParams.get("next") ?? "";
     const { frontendUrl } = getEnvironmentConfig();
-    const redirectUrl = new URL("/api/auth/callback", req.url);
     const validNext = isValidNext(next, frontendUrl);
-    if (validNext) {
-      redirectUrl.searchParams.set("next", next);
-    }
     const nextLanguage = validNext
       ? extractLanguageFromNext(next, frontendUrl)
       : null;
 
     try {
-      console.log("OAuth start:", {
-        origin,
-        next: validNext ? next : "",
-        redirectTo: redirectUrl.toString(),
-        hasNextLanguage: Boolean(nextLanguage),
-      });
+      const callbackPath = nextLanguage ? `/${nextLanguage}/auth/callback` : "/auth/callback";
+      const frontendCallback = new URL(callbackPath, frontendUrl);
+
       const { verifier, challenge } = await generatePkcePair();
       const pkceId = crypto.randomUUID();
       storePkceSession(pkceId, verifier);
       setPkceCookie(headers, req, verifier);
 
-      redirectUrl.searchParams.set("pkce_id", pkceId);
-      const redirectTo = redirectUrl.toString();
+      if (validNext) {
+        frontendCallback.searchParams.set("next", next);
+      }
+      frontendCallback.searchParams.set("pkce_id", pkceId);
+      const redirectTo = frontendCallback.toString();
+
+      console.log("OAuth start:", {
+        origin,
+        next: validNext ? next : "",
+        redirectTo,
+        hasNextLanguage: Boolean(nextLanguage),
+      });
 
       const authUrl = new URL("/auth/v1/authorize", SUPABASE_URL);
       authUrl.searchParams.set("provider", "google");
