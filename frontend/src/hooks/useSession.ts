@@ -117,7 +117,7 @@ export function useSession() {
           }
         }
 
-        let profile = await fetchProfile(data.session.access_token);
+        const profile = await fetchProfile(data.session.access_token);
 
         if (!profile) {
           const refreshed = await refreshSession(data.session.refresh_token);
