@@ -20,6 +20,8 @@ export const handler: Handlers = {
   async POST(req) {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
+    headers.set("Cache-Control", "no-store");
+    headers.set("Vary", "Origin, Cookie");
 
     let body: { refresh_token?: string } | null = null;
     try {

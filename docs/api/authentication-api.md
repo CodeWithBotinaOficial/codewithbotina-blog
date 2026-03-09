@@ -31,7 +31,10 @@ curl "https://api.codewithbotina.com/api/auth/google?next=https%3A%2F%2Fblog.cod
 **Process:**
 1. Backend receives authorization code from Google
 2. Exchanges code for access_token + refresh_token via Supabase
-3. Creates session (7-day cookie)
+3. Sets first-party cookies:
+   - `cwb_access` (HTTP-only, 1 hour)
+   - `cwb_refresh` (HTTP-only, 7 days)
+   - `cwb_auth_state` (frontend hint, 7 days)
 4. Redirects to frontend: `https://blog.codewithbotina.com/auth/success`
 
 **Response:** HTTP 302 Redirect to frontend
@@ -44,10 +47,11 @@ curl "https://api.codewithbotina.com/api/auth/google?next=https%3A%2F%2Fblog.cod
 
 **Description:** Returns current authenticated user's profile.
 
-**Headers:**
-```
-Authorization: Bearer {access_token}
-```
+This endpoint is the authoritative session check for the frontend. If the access token is missing or expired but a valid `cwb_refresh` cookie is present, the backend refreshes the session server-side and returns the user in the same request.
+
+**Authentication:**
+- Preferred: first-party cookies sent with `credentials: include`
+- Optional: `Authorization: Bearer {access_token}`
 
 **Request:**
 ```bash
@@ -171,10 +175,11 @@ All endpoints follow this error format:
 
 ## Session Management
 
-- **Duration:** 7 days
-- **Refresh:** Automatic (handled by Supabase)
-- **Storage:** HTTP-only secure cookies
-- **Expiry:** User must re-authenticate after 7 days
+- **Access cookie duration:** 1 hour
+- **Refresh cookie duration:** 7 days
+- **Refresh behavior:** `GET /api/auth/me` restores from the refresh cookie when possible; `POST /api/auth/refresh` is available for explicit/background refresh
+- **Storage:** first-party cookies with `SameSite=Lax`; token cookies are HTTP-only and `Secure` on HTTPS
+- **Expiry:** user must re-authenticate after the refresh token expires or after sign-out
 
 ---
 

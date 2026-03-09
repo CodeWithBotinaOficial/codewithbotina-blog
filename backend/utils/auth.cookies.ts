@@ -2,9 +2,14 @@ import { deleteCookie, setCookie } from "$std/http/cookie.ts";
 import { AuthSession } from "../types/auth.types.ts";
 import { ACCESS_COOKIE_NAME, REFRESH_COOKIE_NAME } from "../middleware/auth.ts";
 
+const ACCESS_COOKIE_MAX_AGE_SECONDS = 60 * 60;
 const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
 export const PKCE_COOKIE_NAME = "cwb_pkce";
 export const AUTH_STATE_COOKIE_NAME = "cwb_auth_state";
+
+function expiresAt(maxAge: number): Date {
+  return new Date(Date.now() + (maxAge * 1000));
+}
 
 function isSecureRequest(req: Request): boolean {
   const protocol = new URL(req.url).protocol;
@@ -46,7 +51,13 @@ export function setAuthCookies(
   const secure = isSecureRequest(req);
   const sameSite = "Lax";
   const domain = getCookieDomain(req);
-  const maxAge = Math.max(session.expires_in ?? SEVEN_DAYS_SECONDS, 60);
+  const accessMaxAge = Math.max(
+    Math.min(
+      session.expires_in ?? ACCESS_COOKIE_MAX_AGE_SECONDS,
+      ACCESS_COOKIE_MAX_AGE_SECONDS,
+    ),
+    60,
+  );
 
   setCookie(headers, {
     name: ACCESS_COOKIE_NAME,
@@ -56,7 +67,8 @@ export function setAuthCookies(
     secure,
     domain,
     path: "/",
-    maxAge,
+    maxAge: accessMaxAge,
+    expires: expiresAt(accessMaxAge),
   });
 
   setCookie(headers, {
@@ -68,6 +80,7 @@ export function setAuthCookies(
     domain,
     path: "/",
     maxAge: SEVEN_DAYS_SECONDS,
+    expires: expiresAt(SEVEN_DAYS_SECONDS),
   });
 
   setCookie(headers, {
@@ -79,6 +92,7 @@ export function setAuthCookies(
     domain,
     path: "/",
     maxAge: SEVEN_DAYS_SECONDS,
+    expires: expiresAt(SEVEN_DAYS_SECONDS),
   });
 }
 
@@ -117,6 +131,7 @@ export function setPkceCookie(
     domain,
     path: "/",
     maxAge: 10 * 60,
+    expires: expiresAt(10 * 60),
   });
 }
 

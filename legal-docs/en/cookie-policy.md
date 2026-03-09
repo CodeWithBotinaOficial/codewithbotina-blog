@@ -14,9 +14,11 @@ These cookies are essential for the site to function and cannot be disabled.
 
 | Cookie | Purpose | Duration |
 |--------|---------|----------|
-| `sb-access-token` | Session authentication (Supabase) | 1 hour |
-| `sb-refresh-token` | Session renewal | 7 days |
-| `session_id` | Anonymous session identifier | Session |
+| `cwb_access` | HTTP-only access token for authenticated API requests | 1 hour |
+| `cwb_refresh` | HTTP-only refresh token used to restore and renew the session | 7 days |
+| `cwb_pkce` | Temporary PKCE verifier used only during Google OAuth | 10 minutes |
+| `cwb_auth_state` | First-party login state hint used by the frontend to bootstrap the session after redirects and browser restarts | 7 days |
+| `session_id` | Anonymous session identifier for cookie consent records | Session |
 | `cookie_consent` | Cookie preferences | 1 year |
 
 ### 2. Analytics Cookies (Optional)
@@ -74,9 +76,16 @@ Some providers operate globally. Your data may be processed outside Colombia, in
 
 ## Data retention
 
-- Functional cookies: until logout or expiration
+- Access token cookie: 1 hour
+- Refresh token cookie: 7 days
+- OAuth PKCE cookie: 10 minutes
+- Frontend auth state hint: 7 days
 - Analytics cookies: up to 2 years
 - Preferences: 1 year
+
+## Browser compatibility
+
+Authentication cookies are configured as first-party cookies with `Path=/`, `SameSite=Lax`, and `Secure` on HTTPS. Sensitive tokens are marked `HttpOnly`, and the frontend determines login state by calling the server rather than reading those cookies directly.
 
 ## Your rights
 

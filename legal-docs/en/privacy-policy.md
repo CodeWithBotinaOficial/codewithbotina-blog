@@ -34,6 +34,12 @@ We use cookies to:
 - Remember your preferences
 - Analyze site usage
 
+Authentication cookies currently use these retention periods:
+- Access token cookie: 1 hour
+- Refresh token cookie: 7 days
+- OAuth PKCE cookie: 10 minutes
+- First-party auth state hint: 7 days
+
 ## 3. How We Use Your Information
 
 ### 3.1 Primary Purposes

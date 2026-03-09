@@ -4,16 +4,16 @@ Handle user sessions in Astro frontend.
 
 ## Session Storage
 
-- Use Supabase's built-in session management
-- Persist in localStorage (key: 'CodeWithBotinaAuth')
-- 7-day expiry with auto-refresh
+- Authentication tokens are stored in first-party HTTP-only cookies set by the backend.
+- The frontend keeps a non-sensitive first-party hint (`cwb_auth_state`) plus localStorage fallback only to decide when to bootstrap session checks.
+- Access cookies expire after 1 hour; refresh cookies expire after 7 days.
 
 ## Automatic Refresh
 
 Implement refresh logic:
-- On app load, check session expiry
-- If near expiry, call backend `/api/auth/refresh`
-- Update session with new tokens
+- On app load, call `/api/auth/me`; the backend restores the session from the refresh cookie when needed.
+- While the app stays open, refresh the session in the background before the 1-hour access token expires.
+- If refresh fails, clear the client auth hint and show signed-out UI.
 
 ## Session Hooks
 
@@ -32,5 +32,4 @@ Use session to conditionally render:
 ## Error Handling
 
 - Invalid token: Redirect to sign-in
-- Session expired: Auto-refresh or prompt re-login
-
+- Session expired: Restore from refresh cookie when available, otherwise prompt re-login

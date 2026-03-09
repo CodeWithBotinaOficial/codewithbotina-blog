@@ -1,5 +1,6 @@
 import { assertEquals, assertMatch, assertStringIncludes } from "https://deno.land/std@0.216.0/assert/mod.ts";
 import { handler } from "../../../routes/api/auth/callback.ts";
+import { handler as meHandler } from "../../../routes/api/auth/me.ts";
 import { handler as refreshHandler } from "../../../routes/api/auth/refresh.ts";
 import { AuthService } from "../../../services/auth.service.ts";
 import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
@@ -37,6 +38,10 @@ Deno.test("Integration: GET /api/auth/callback sets cookies and redirects", asyn
   );
   const setCookie = res.headers.get("set-cookie") || "";
   assertMatch(setCookie, /(cwb_access|cwb_refresh)=/);
+  assertStringIncludes(setCookie, "SameSite=Lax");
+  assertStringIncludes(setCookie, "Domain=.codewithbotina.com");
+  assertStringIncludes(setCookie, "HttpOnly");
+  assertStringIncludes(setCookie, "Max-Age=3600");
 
   restore();
 
@@ -72,6 +77,53 @@ Deno.test("Integration: POST /api/auth/refresh returns new tokens", async () => 
   assertEquals(res.status, 200);
   assertEquals(body.success, true);
   assertEquals(body.access_token, "new-access");
+
+  restore();
+});
+
+Deno.test("Integration: GET /api/auth/me restores session from refresh cookie", async () => {
+  const refreshStub = stub(
+    AuthService.prototype,
+    "refreshAccessToken",
+    () =>
+      Promise.resolve({
+        access_token: "new-access",
+        refresh_token: "new-refresh",
+        expires_in: 3600,
+        token_type: "bearer",
+      }),
+  );
+  const userStub = stub(
+    AuthService.prototype,
+    "getUserFromToken",
+    (token: string) =>
+      Promise.resolve({
+        id: "user-id",
+        email: `${token}@example.com`,
+        full_name: "Code With Botina",
+        avatar_url: null,
+        google_id: null,
+        created_at: "2026-03-01T00:00:00.000Z",
+        last_login: "2026-03-09T00:00:00.000Z",
+        is_admin: false,
+      }),
+  );
+
+  const req = new Request("https://api.codewithbotina.com/api/auth/me", {
+    method: "GET",
+    headers: {
+      Cookie: "cwb_refresh=refresh-cookie",
+      Origin: "https://blog.codewithbotina.com",
+    },
+  });
+
+  const res = await meHandler.GET!(req, {} as never);
+  const body = await res.json();
+
+  assertEquals(res.status, 200);
+  assertEquals(body.success, true);
+  assertEquals(body.user.email, "new-access@example.com");
+  assertStringIncludes(res.headers.get("set-cookie") || "", "Max-Age=3600");
 
   restore();
 });

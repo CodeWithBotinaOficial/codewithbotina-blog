@@ -114,7 +114,9 @@ Test the OAuth flow:
 - Cookie not being set by backend (check `Set-Cookie` header)
 - Cookie domain mismatch (must be `.codewithbotina.com`)
 - SameSite set incorrectly (use `Lax`)
-- Frontend not checking session on page load
+- `Secure` flag missing on HTTPS deployments
+- Frontend not checking `/api/auth/me` on page load
+- Browser privacy shields blocking non-essential cross-site state; keep auth cookies first-party and rely on server-side session checks
 
 ### Issue: Google doesn't show account picker
 

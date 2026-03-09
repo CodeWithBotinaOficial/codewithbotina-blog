@@ -4,6 +4,12 @@
 
 This implementation provides a GDPR/CCPA-aligned cookie consent banner with user preferences stored locally and (optionally) persisted to the backend.
 
+Authentication is handled separately with first-party cookies:
+- `cwb_access`: HTTP-only, 1 hour
+- `cwb_refresh`: HTTP-only, 7 days
+- `cwb_pkce`: HTTP-only, 10 minutes
+- `cwb_auth_state`: frontend login-state hint, 7 days
+
 ## Components
 
 ### CookieConsent component

@@ -17,6 +17,7 @@ Estas cookies son esenciales para el funcionamiento del sitio y la autenticació
 | `cwb_access` | Sesión de acceso (autenticación) | Hasta 1 hora |
 | `cwb_refresh` | Renovación de sesión | Hasta 7 días |
 | `cwb_pkce` | Seguridad del flujo OAuth | Hasta 10 minutos |
+| `cwb_auth_state` | Indicador de primera parte para restaurar la sesión en el frontend después del login o al reabrir el navegador | Hasta 7 días |
 
 ### 2.2 Cookies de preferencias
 
