@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
+import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useSession } from "../../hooks/useSession";
 
 interface Props {
@@ -166,7 +167,7 @@ export default function ReactionButtons({
 
       {!authenticated ? (
         <p class="reaction-signin">
-          <a href={`${API_URL}/api/auth/google?next=${encodeURIComponent(nextUrl)}`}>
+          <a href={`${getAuthRoute("/google")}?next=${encodeURIComponent(nextUrl)}`}>
             {copy.signIn}
           </a>{" "}
           {copy.signInSuffix}

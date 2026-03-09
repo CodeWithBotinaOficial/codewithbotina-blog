@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
+import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useSession } from "../../hooks/useSession";
 
 interface Props {
@@ -87,7 +88,7 @@ export default function CommentForm({ postId, labels }: Props) {
 
   if (!user) {
     const next = typeof window !== "undefined" ? window.location.href : "/";
-    const authUrl = `${API_URL}/api/auth/google?next=${encodeURIComponent(next)}`;
+    const authUrl = `${getAuthRoute("/google")}?next=${encodeURIComponent(next)}`;
     return (
       <p class="comment-signin">
         <a href={authUrl}>{copy.signIn}</a> {copy.signInSuffix}

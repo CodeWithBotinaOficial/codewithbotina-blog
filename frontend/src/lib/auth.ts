@@ -1,14 +1,12 @@
-import { getApiUrl } from "./env";
 import { setAuthState } from "./auth-state";
-
-const API_URL = getApiUrl();
+import { getAuthRoute } from "./auth-endpoints";
 
 export function initAuthListener() {
   // Deprecated: kept for backward compatibility.
 }
 
 export async function getCurrentUser() {
-  const response = await fetch(`${API_URL}/api/auth/me`, {
+  const response = await fetch(getAuthRoute("/me"), {
     credentials: "include",
   });
   if (!response.ok) return null;
@@ -17,7 +15,7 @@ export async function getCurrentUser() {
 }
 
 export async function signOut() {
-  await fetch(`${API_URL}/api/auth/signout`, {
+  await fetch(getAuthRoute("/signout"), {
     method: "POST",
     credentials: "include",
   });

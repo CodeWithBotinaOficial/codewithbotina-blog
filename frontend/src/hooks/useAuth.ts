@@ -1,7 +1,5 @@
-import { getApiUrl } from "../lib/env";
 import { setAuthState } from "../lib/auth-state";
-
-const API_URL = getApiUrl();
+import { getAuthRoute } from "../lib/auth-endpoints";
 
 export function useAuth() {
   const signIn = () => {
@@ -9,13 +7,13 @@ export function useAuth() {
       ? encodeURIComponent(window.location.href)
       : "";
     const url = next
-      ? `${API_URL}/api/auth/google?next=${next}`
-      : `${API_URL}/api/auth/google`;
+      ? `${getAuthRoute("/google")}?next=${next}`
+      : getAuthRoute("/google");
     window.location.assign(url);
   };
 
   const signOut = async () => {
-    await fetch(`${API_URL}/api/auth/signout`, {
+    await fetch(getAuthRoute("/signout"), {
       method: "POST",
       credentials: "include",
     });
@@ -27,7 +25,7 @@ export function useAuth() {
   };
 
   const refresh = async () => {
-    const res = await fetch(`${API_URL}/api/auth/refresh`, {
+    const res = await fetch(getAuthRoute("/refresh"), {
       method: "POST",
       credentials: "include",
     });

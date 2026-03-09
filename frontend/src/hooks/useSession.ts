@@ -1,13 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
-import { getApiUrl } from "../lib/env";
 import {
   AUTH_STATE_KEY,
   clearAuthState,
   getAuthState,
   setAuthState,
 } from "../lib/auth-state";
+import { getAuthRoute } from "../lib/auth-endpoints";
 
-const API_URL = getApiUrl();
 const BACKGROUND_REFRESH_INTERVAL_MS = 55 * 60 * 1000;
 
 export interface AuthUser {
@@ -27,7 +26,7 @@ let sharedPromise: Promise<AuthUser | null> | null = null;
 let backgroundRefreshTimer: number | null = null;
 
 async function fetchProfile(): Promise<AuthUser | null> {
-  const res = await fetch(`${API_URL}/api/auth/me`, {
+  const res = await fetch(getAuthRoute("/me"), {
     credentials: "include",
   });
 
@@ -37,7 +36,7 @@ async function fetchProfile(): Promise<AuthUser | null> {
 }
 
 async function refreshSession(): Promise<boolean> {
-  const res = await fetch(`${API_URL}/api/auth/refresh`, {
+  const res = await fetch(getAuthRoute("/refresh"), {
     method: "POST",
     credentials: "include",
   });

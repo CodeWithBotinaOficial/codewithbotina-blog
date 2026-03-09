@@ -41,12 +41,18 @@ describe('Auth flow', () => {
   it('signIn redirects to backend auth endpoint', () => {
     const { signIn } = useAuth();
     signIn();
-    expect(window.location.assign).toHaveBeenCalled();
+    expect(window.location.assign).toHaveBeenCalledWith(
+      expect.stringContaining('/api/auth/google?next='),
+    );
   });
 
   it('signOut calls backend signout and redirects', async () => {
     const { signOut } = useAuth();
     await signOut();
+    expect(fetch).toHaveBeenCalledWith('/api/auth/signout', {
+      method: 'POST',
+      credentials: 'include',
+    });
     expect(window.location.assign).toHaveBeenCalledWith('/');
   });
 });

@@ -5,7 +5,6 @@ import SEO from "./SEO.astro";
 import CookieConsent from "./CookieConsent.tsx";
 import "../styles/global.css";
 import { DEFAULT_LANGUAGE } from "../lib/i18n";
-import { getApiUrl } from "../lib/env";
 
 interface Props {
   title: string;
@@ -28,7 +27,6 @@ const {
 } = Astro.props;
 
 const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
-const apiUrl = getApiUrl();
 ---
 
 <!doctype html>
@@ -62,7 +60,8 @@ const apiUrl = getApiUrl();
     </main>
     <Footer currentLanguage={currentLanguage} />
     <CookieConsent language={currentLanguage} client:load />
-    <script type="module" define:vars={{ apiUrl }}>
+    <script type="module">
+      import { getAuthRoute } from "../lib/auth-endpoints";
       const searchParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.slice(1));
       const code = searchParams.get("code") || hashParams.get("code");
@@ -111,7 +110,7 @@ const apiUrl = getApiUrl();
         window.location.replace(errorUrl.toString());
       } else if (code) {
         const next = searchParams.get("next");
-        const callback = new URL(`${apiUrl}/api/auth/callback`);
+        const callback = new URL(getAuthRoute("/callback"), window.location.origin);
         callback.searchParams.set("code", code);
         if (next) {
           callback.searchParams.set("next", next);
@@ -122,7 +121,7 @@ const apiUrl = getApiUrl();
         }
         window.location.replace(callback.toString());
       } else if (refreshToken || accessToken) {
-        fetch(`${apiUrl}/api/auth/refresh`, {
+        fetch(getAuthRoute("/refresh"), {
           method: "POST",
           headers: refreshToken ? { "Content-Type": "application/json" } : undefined,
           credentials: "include",

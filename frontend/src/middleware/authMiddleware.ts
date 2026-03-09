@@ -1,9 +1,7 @@
-import { getApiUrl } from "../lib/env";
-
-const API_URL = getApiUrl();
+import { getAuthRoute } from "../lib/auth-endpoints";
 
 export async function requireAuth(): Promise<boolean> {
-  const response = await fetch(`${API_URL}/api/auth/me`, {
+  const response = await fetch(getAuthRoute("/me"), {
     credentials: "include",
   });
   if (!response.ok) {
