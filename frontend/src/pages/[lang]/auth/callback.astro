@@ -2,10 +2,12 @@
 export const prerender = false;
 
 import BaseLayout from "../../../components/BaseLayout.astro";
+import { getApiUrl } from "../../../lib/env";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from "../../../lib/i18n";
 
 const { lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+const apiUrl = getApiUrl();
 ---
 
 <BaseLayout
@@ -13,9 +15,78 @@ const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) :
   description={language === "es" ? "Completando autenticación..." : "Completing authentication..."}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
+  hideChrome={true}
 >
   <section class="container-responsive py-16">
     <h1>{language === "es" ? "Iniciando sesión..." : "Signing you in..."}</h1>
     <p>{language === "es" ? "Completando autenticación. Espera un momento." : "Completing authentication. Please wait."}</p>
   </section>
+
+  <script type="module" define:vars={{ apiUrl, language }}>
+    import { getAuthRoute } from "../../../lib/auth-endpoints";
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const code = searchParams.get("code") || hashParams.get("code");
+    const error = searchParams.get("error") || hashParams.get("error");
+    const errorDescription = searchParams.get("error_description") ||
+      hashParams.get("error_description");
+    const accessToken = hashParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token");
+
+    const next = searchParams.get("next");
+    const successUrl = new URL(`/${language}/auth/success`, window.location.origin);
+    const errorUrl = new URL(`/${language}/auth/error`, window.location.origin);
+
+    if (next) {
+      successUrl.searchParams.set("next", next);
+      errorUrl.searchParams.set("next", next);
+    }
+
+    const redirectToError = (errorCode, description) => {
+      errorUrl.searchParams.set("error", errorCode);
+      if (description) {
+        errorUrl.searchParams.set("error_description", description);
+      }
+      window.location.replace(errorUrl.toString());
+    };
+
+    const start = async () => {
+      if (error) {
+        redirectToError(error, errorDescription);
+        return;
+      }
+
+      if (code) {
+        const callback = new URL(`${apiUrl}/api/auth/callback`);
+        callback.searchParams.set("code", code);
+        if (next) {
+          callback.searchParams.set("next", next);
+        }
+        const pkce = searchParams.get("pkce") || hashParams.get("pkce");
+        if (pkce) {
+          callback.searchParams.set("pkce", pkce);
+        }
+        window.location.replace(callback.toString());
+        return;
+      }
+
+      if (refreshToken || accessToken) {
+        await fetch(getAuthRoute("/refresh"), {
+          method: "POST",
+          headers: refreshToken ? { "Content-Type": "application/json" } : undefined,
+          credentials: "include",
+          body: refreshToken ? JSON.stringify({ refresh_token: refreshToken }) : undefined,
+        });
+        window.location.replace(successUrl.toString());
+        return;
+      }
+
+      redirectToError("missing_auth_code", "Missing OAuth callback parameters");
+    };
+
+    start().catch(() => {
+      redirectToError("oauth_callback_failed", "Failed to complete authentication");
+    });
+  </script>
 </BaseLayout>

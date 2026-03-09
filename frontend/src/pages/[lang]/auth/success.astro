@@ -19,6 +19,7 @@ setLanguagePreference(Astro.cookies, language);
   description={t(language, "successMessage", "auth")}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
+  hideChrome={true}
 >
   <section class="container-responsive py-16">
     <h1>{t(language, "successTitle", "auth")}</h1>

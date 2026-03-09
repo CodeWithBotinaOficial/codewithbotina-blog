@@ -5,8 +5,6 @@ import SEO from "./SEO.astro";
 import CookieConsent from "./CookieConsent.tsx";
 import "../styles/global.css";
 import { DEFAULT_LANGUAGE } from "../lib/i18n";
-import { getApiUrl } from "../lib/env";
-
 interface Props {
   title: string;
   description?: string;
@@ -15,6 +13,7 @@ interface Props {
   canonical?: string;
   currentLanguage?: string;
   currentPath?: string;
+  hideChrome?: boolean;
 }
 
 const {
@@ -25,10 +24,10 @@ const {
   canonical,
   currentLanguage = DEFAULT_LANGUAGE,
   currentPath = Astro.url.pathname,
+  hideChrome = false,
 } = Astro.props;
 
 const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
-const apiUrl = getApiUrl();
 ---
 
 <!doctype html>
@@ -56,82 +55,17 @@ const apiUrl = getApiUrl();
     <slot name="head" />
   </head>
   <body class="min-h-screen flex flex-col">
-    <Header currentLanguage={currentLanguage} currentPath={currentPath} />
+    {!hideChrome && (
+      <Header currentLanguage={currentLanguage} currentPath={currentPath} />
+    )}
     <main class="flex-1">
       <slot />
     </main>
-    <Footer currentLanguage={currentLanguage} />
-    <CookieConsent language={currentLanguage} client:load />
-    <script type="module" define:vars={{ apiUrl }}>
-      import { getAuthRoute } from "../lib/auth-endpoints";
-      const searchParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const code = searchParams.get("code") || hashParams.get("code");
-      const error = searchParams.get("error") || hashParams.get("error");
-      const errorDescription = searchParams.get("error_description") ||
-        hashParams.get("error_description");
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-      const queryLang = searchParams.get("lang");
-
-      const getLanguageFromNext = (value) => {
-        if (!value) return null;
-        try {
-          const resolved = new URL(value, window.location.origin);
-          const match = resolved.pathname.match(/^\/(en|es)(\/|$)/);
-          return match ? match[1] : null;
-        } catch (_error) {
-          return null;
-        }
-      };
-
-      const buildSuccessUrl = () => {
-        const pathname = window.location.pathname;
-        let successPath = "/auth/success";
-        const next = searchParams.get("next");
-        const nextLanguage = getLanguageFromNext(next);
-        const language = queryLang || nextLanguage;
-        if (language === "en" || pathname.startsWith("/en/")) {
-          successPath = "/en/auth/success";
-        } else if (language === "es" || pathname.startsWith("/es/")) {
-          successPath = "/es/auth/success";
-        }
-        const successUrl = new URL(successPath, window.location.origin);
-        if (next) {
-          successUrl.searchParams.set("next", next);
-        }
-        return successUrl.toString();
-      };
-
-      if (error) {
-        const errorUrl = new URL("/auth/error", window.location.origin);
-        errorUrl.searchParams.set("error", error);
-        if (errorDescription) {
-          errorUrl.searchParams.set("error_description", errorDescription);
-        }
-        window.location.replace(errorUrl.toString());
-      } else if (code) {
-        const next = searchParams.get("next");
-        const callback = new URL(`${apiUrl}/api/auth/callback`);
-        callback.searchParams.set("code", code);
-        if (next) {
-          callback.searchParams.set("next", next);
-        }
-        const pkce = searchParams.get("pkce") || hashParams.get("pkce");
-        if (pkce) {
-          callback.searchParams.set("pkce", pkce);
-        }
-        window.location.replace(callback.toString());
-      } else if (refreshToken || accessToken) {
-        fetch(getAuthRoute("/refresh"), {
-          method: "POST",
-          headers: refreshToken ? { "Content-Type": "application/json" } : undefined,
-          credentials: "include",
-          body: refreshToken ? JSON.stringify({ refresh_token: refreshToken }) : undefined,
-        }).finally(() => {
-          window.location.replace(buildSuccessUrl());
-        });
-      }
-    </script>
+    {!hideChrome && (
+      <>
+        <Footer currentLanguage={currentLanguage} />
+        <CookieConsent language={currentLanguage} client:load />
+      </>
+    )}
   </body>
 </html>
