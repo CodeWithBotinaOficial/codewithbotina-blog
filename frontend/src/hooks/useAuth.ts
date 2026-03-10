@@ -1,17 +1,12 @@
 import { setAuthState } from "../lib/auth-state";
 import { getAuthRoute } from "../lib/auth-endpoints";
-import { getApiUrl } from "../lib/env";
-
-const API_URL = getApiUrl();
 
 export function useAuth() {
   const signIn = () => {
     const next = typeof window !== "undefined"
       ? encodeURIComponent(window.location.href)
       : "";
-    const url = next
-      ? `${API_URL}/api/auth/google?next=${next}`
-      : `${API_URL}/api/auth/google`;
+    const url = next ? `${getAuthRoute("/google")}?next=${next}` : getAuthRoute("/google");
     window.location.assign(url);
   };
 

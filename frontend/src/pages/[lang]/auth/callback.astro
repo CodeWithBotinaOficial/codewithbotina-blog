@@ -3,12 +3,11 @@ export const prerender = false;
 
 import BaseLayout from "../../../components/BaseLayout.astro";
 import { getAuthRoute } from "../../../lib/auth-endpoints";
-import { getApiUrl } from "../../../lib/env";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from "../../../lib/i18n";
 
 const { lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
-const apiUrl = getApiUrl();
+const callbackRoute = getAuthRoute("/callback");
 const refreshRoute = getAuthRoute("/refresh");
 ---
 
@@ -24,7 +23,7 @@ const refreshRoute = getAuthRoute("/refresh");
     <p>{language === "es" ? "Completando autenticación. Espera un momento." : "Completing authentication. Please wait."}</p>
   </section>
 
-  <script type="module" define:vars={{ apiUrl, language, refreshRoute }}>
+  <script type="module" define:vars={{ callbackRoute, language, refreshRoute }}>
     const searchParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const code = searchParams.get("code") || hashParams.get("code");
@@ -58,7 +57,8 @@ const refreshRoute = getAuthRoute("/refresh");
       }
 
       if (code) {
-        const callback = new URL(`${apiUrl}/api/auth/callback`);
+        // Keep the exchange on the blog origin; Brave may drop cookies on cross-subdomain "bounce" flows.
+        const callback = new URL(callbackRoute, window.location.origin);
         callback.searchParams.set("code", code);
         if (next) {
           callback.searchParams.set("next", next);

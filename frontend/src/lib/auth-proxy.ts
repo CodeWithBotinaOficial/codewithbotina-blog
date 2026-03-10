@@ -60,7 +60,7 @@ function splitSetCookieHeader(value: string): string[] {
 function getSetCookieHeaders(headers: Headers): string[] {
   const withGetSetCookie = headers as Headers & {
     getSetCookie?: () => string[];
-    getAll?: (name: string) => string[];
+    getAll?: (_name: string) => string[];
   };
 
   if (typeof withGetSetCookie.getSetCookie === "function") {
