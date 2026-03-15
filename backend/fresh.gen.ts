@@ -21,6 +21,9 @@ import * as $api_posts_slug_delete from "./routes/api/posts/[slug]/delete.ts";
 import * as $api_posts_slug_exists from "./routes/api/posts/[slug]/exists.ts";
 import * as $api_posts_slug_index from "./routes/api/posts/[slug]/index.ts";
 import * as $api_posts_slug_tags from "./routes/api/posts/[slug]/tags.ts";
+import * as $api_posts_slug_translation_language_ from "./routes/api/posts/[slug]/translation/[language].ts";
+import * as $api_posts_slug_translations_linkedPostId_ from "./routes/api/posts/[slug]/translations/[linkedPostId].ts";
+import * as $api_posts_slug_translations_index from "./routes/api/posts/[slug]/translations/index.ts";
 import * as $api_posts_slug_update from "./routes/api/posts/[slug]/update.ts";
 import * as $api_posts_create from "./routes/api/posts/create.ts";
 import * as $api_posts_index from "./routes/api/posts/index.ts";
@@ -31,6 +34,7 @@ import * as $api_reactions_postId_index from "./routes/api/reactions/[postId]/in
 import * as $api_reactions_postId_like from "./routes/api/reactions/[postId]/like.ts";
 import * as $api_reactions_helpers from "./routes/api/reactions/_helpers.ts";
 import * as $api_reactions_user_postId_ from "./routes/api/reactions/user/[postId].ts";
+import * as $api_storage_images from "./routes/api/storage/images.ts";
 import * as $api_tags_slug_ from "./routes/api/tags/[slug].ts";
 import * as $api_tags_autocomplete from "./routes/api/tags/autocomplete.ts";
 import * as $api_tags_create from "./routes/api/tags/create.ts";
@@ -62,6 +66,12 @@ const manifest = {
     "./routes/api/posts/[slug]/exists.ts": $api_posts_slug_exists,
     "./routes/api/posts/[slug]/index.ts": $api_posts_slug_index,
     "./routes/api/posts/[slug]/tags.ts": $api_posts_slug_tags,
+    "./routes/api/posts/[slug]/translation/[language].ts":
+      $api_posts_slug_translation_language_,
+    "./routes/api/posts/[slug]/translations/[linkedPostId].ts":
+      $api_posts_slug_translations_linkedPostId_,
+    "./routes/api/posts/[slug]/translations/index.ts":
+      $api_posts_slug_translations_index,
     "./routes/api/posts/[slug]/update.ts": $api_posts_slug_update,
     "./routes/api/posts/create.ts": $api_posts_create,
     "./routes/api/posts/index.ts": $api_posts_index,
@@ -72,6 +82,7 @@ const manifest = {
     "./routes/api/reactions/[postId]/like.ts": $api_reactions_postId_like,
     "./routes/api/reactions/_helpers.ts": $api_reactions_helpers,
     "./routes/api/reactions/user/[postId].ts": $api_reactions_user_postId_,
+    "./routes/api/storage/images.ts": $api_storage_images,
     "./routes/api/tags/[slug].ts": $api_tags_slug_,
     "./routes/api/tags/autocomplete.ts": $api_tags_autocomplete,
     "./routes/api/tags/create.ts": $api_tags_create,

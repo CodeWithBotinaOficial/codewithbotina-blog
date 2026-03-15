@@ -466,6 +466,49 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     ? copy.updateDisabledHint
     : "";
 
+  const linkedImageCandidate = linkedPosts.length > 0 && linkedPosts[0]?.imagen_url ? linkedPosts[0] : null;
+  const canUseLinkedImage = Boolean(linkedImageCandidate?.imagen_url);
+
+  useEffect(() => {
+    if (!canUseLinkedImage) {
+      setInheritedImageSource(null);
+      if (mode === "create" && !useLinkedPostImageTouched) setUseLinkedPostImage(false);
+      return;
+    }
+
+    if (mode !== "create" && !useLinkedPostImageTouched) {
+      setUseLinkedPostImage(false);
+      setInheritedImageSource(null);
+      return;
+    }
+
+    if (mode === "create" && !useLinkedPostImageTouched) {
+      if (!trimmedImageUrl && !imageFile) {
+        setUseLinkedPostImage(true);
+      } else {
+        setUseLinkedPostImage(false);
+      }
+    }
+
+    if (!useLinkedPostImage) {
+      setInheritedImageSource(null);
+      return;
+    }
+
+    setInheritedImageSource(linkedImageCandidate);
+    setImageMode("url");
+    setLibraryAppliedImage(null);
+    setImageUrl(linkedImageCandidate?.imagen_url ?? "");
+  }, [
+    canUseLinkedImage,
+    linkedImageCandidate?.post_id,
+    useLinkedPostImage,
+    useLinkedPostImageTouched,
+    mode,
+    trimmedImageUrl,
+    imageFile,
+  ]);
+
   if (sessionLoading) {
     return (
       <div class="py-12 text-center text-[var(--color-text-secondary)]">
@@ -633,49 +676,6 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     fileSizeLabel: copy.imageFileSize,
     dimensionsLabel: copy.imageDimensions,
   };
-
-  const linkedImageCandidate = linkedPosts.length > 0 && linkedPosts[0]?.imagen_url ? linkedPosts[0] : null;
-  const canUseLinkedImage = Boolean(linkedImageCandidate?.imagen_url);
-
-  useEffect(() => {
-    if (!canUseLinkedImage) {
-      setInheritedImageSource(null);
-      if (mode === "create" && !useLinkedPostImageTouched) setUseLinkedPostImage(false);
-      return;
-    }
-
-    if (mode !== "create" && !useLinkedPostImageTouched) {
-      setUseLinkedPostImage(false);
-      setInheritedImageSource(null);
-      return;
-    }
-
-    if (mode === "create" && !useLinkedPostImageTouched) {
-      if (!trimmedImageUrl && !imageFile) {
-        setUseLinkedPostImage(true);
-      } else {
-        setUseLinkedPostImage(false);
-      }
-    }
-
-    if (!useLinkedPostImage) {
-      setInheritedImageSource(null);
-      return;
-    }
-
-    setInheritedImageSource(linkedImageCandidate);
-    setImageMode("url");
-    setLibraryAppliedImage(null);
-    setImageUrl(linkedImageCandidate?.imagen_url ?? "");
-  }, [
-    canUseLinkedImage,
-    linkedImageCandidate?.post_id,
-    useLinkedPostImage,
-    useLinkedPostImageTouched,
-    mode,
-    trimmedImageUrl,
-    imageFile,
-  ]);
 
   return (
     <form onSubmit={handleSubmit} class="space-y-8">

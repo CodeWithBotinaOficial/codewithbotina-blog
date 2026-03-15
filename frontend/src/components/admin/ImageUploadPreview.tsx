@@ -18,9 +18,9 @@ interface Props {
   dragActive: boolean;
   onOpenFileDialog: () => void;
   onRemove: () => void;
-  onDragOver: (event: DragEvent) => void;
-  onDragLeave: (event: DragEvent) => void;
-  onDrop: (event: DragEvent) => void;
+  onDragOver: (_event: DragEvent) => void;
+  onDragLeave: (_event: DragEvent) => void;
+  onDrop: (_event: DragEvent) => void;
   labels: ImageUploadPreviewLabels;
   disabled?: boolean;
   maxWidthClass?: string;
@@ -137,4 +137,3 @@ export default function ImageUploadPreview({
     </div>
   );
 }
-

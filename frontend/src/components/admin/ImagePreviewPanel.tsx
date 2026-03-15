@@ -4,7 +4,7 @@ import type { StorageImageItem, StorageImageLabels } from "./StorageImageGallery
 interface Props {
   image: StorageImageItem | null;
   labels: StorageImageLabels;
-  onUse: (image: StorageImageItem) => void;
+  onUse: (_image: StorageImageItem) => void;
   onCancel: () => void;
 }
 
@@ -108,4 +108,3 @@ export default function ImagePreviewPanel({ image, labels, onUse, onCancel }: Pr
     </aside>
   );
 }
-

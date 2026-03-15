@@ -26,7 +26,7 @@ interface Props {
   currentPostId?: string;
   currentPostLanguage: string;
   selected: TranslationPost[];
-  onChange: (next: TranslationPost[]) => void;
+  onChange: (_next: TranslationPost[]) => void;
   labels: TranslationLinkerLabels;
   uiLocale?: string; // e.g. "en-US" or "es-ES"
   disabled?: boolean;
@@ -246,4 +246,3 @@ export default function TranslationLinker(
     </section>
   );
 }
-

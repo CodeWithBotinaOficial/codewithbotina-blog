@@ -38,7 +38,7 @@ export interface StorageImageLabels {
 interface Props {
   labels: StorageImageLabels;
   appliedImage: StorageImageItem | null;
-  onUse: (image: StorageImageItem) => void;
+  onUse: (_image: StorageImageItem) => void;
   disabled?: boolean;
 }
 
