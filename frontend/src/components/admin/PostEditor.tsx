@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { Lock, ShieldX } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
+import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useSession } from "../../hooks/useSession";
 import MarkdownPreview from "./MarkdownPreview";
 import TagSelector from "./TagSelector";
@@ -36,6 +38,15 @@ const API_URL = getApiUrl();
 export default function PostEditor({ mode, initialData, cancelHref, labels, tagLabels }: Props) {
   const copy: PostEditorLabels = labels ?? {
     accessChecking: "Checking admin access...",
+    accessControl: {
+      signInRequired: "Sign in required",
+      signInDescription: "You must be signed in to access this page.",
+      signInButton: "Sign In",
+      accessDenied: "Access Denied",
+      notAuthorized: "You don't have permission to access this page. Only administrators can create or edit posts.",
+      redirecting: "Redirecting to homepage in {{seconds}} seconds...",
+      adminOnly: "Admin Only",
+    },
     titleLabel: "Title",
     titlePlaceholder: "Enter post title...",
     slugLabel: "Slug",
@@ -135,7 +146,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       return acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), String(value));
     }, template);
   };
-  const { loading: sessionLoading, isAdmin } = useSession();
+  const { loading: sessionLoading, isAuthenticated, isAdmin } = useSession();
   const [title, setTitle] = useState(initialData?.titulo ?? "");
   const [slug, setSlug] = useState(initialData?.slug ?? "");
   const [body, setBody] = useState(initialData?.body ?? "");
@@ -163,6 +174,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [slugTouched, setSlugTouched] = useState(false);
   const [slugChecking, setSlugChecking] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
+  const [redirectSeconds, setRedirectSeconds] = useState(5);
   const { toasts, showToast, removeToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -177,11 +190,27 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     [initialData?.tags],
   );
 
+  const uiLanguage = SUPPORTED_LANGUAGES.includes(language as "en" | "es") ? (language as "en" | "es") : "en";
+
   useEffect(() => {
-    if (!sessionLoading && !isAdmin) {
-      window.location.href = "/?error=access_denied";
-    }
-  }, [sessionLoading, isAdmin]);
+    if (sessionLoading) return;
+    if (!isAuthenticated) return;
+    if (isAdmin) return;
+
+    let seconds = 5;
+    setRedirectSeconds(seconds);
+
+    const timer = window.setInterval(() => {
+      seconds -= 1;
+      setRedirectSeconds(seconds);
+      if (seconds <= 0) {
+        window.clearInterval(timer);
+        window.location.assign(`/${uiLanguage}/`);
+      }
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [sessionLoading, isAuthenticated, isAdmin, uiLanguage]);
 
   useEffect(() => {
     const filename = getStorageFilenameFromUrl(initialImageUrl);
@@ -517,7 +546,73 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     );
   }
 
-  if (!isAdmin) return null;
+  const startSignIn = () => {
+    if (signingIn) return;
+    setSigningIn(true);
+    const next = encodeURIComponent(window.location.href);
+    window.location.assign(`${getAuthRoute("/google")}?next=${next}`);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div class="py-12">
+        <div class="mx-auto max-w-xl rounded-2xl border border-[var(--color-border)] bg-white p-6 shadow-sm sm:p-8">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-neutral-100)] text-[var(--color-accent-primary)]">
+            <Lock size={22} />
+          </div>
+          <div class="mt-4 text-center">
+            <div class="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent-light)] px-3 py-1 text-xs font-semibold text-[var(--color-accent-primary)]">
+              {copy.accessControl.adminOnly}
+            </div>
+          </div>
+          <h2 class="mt-4 text-center text-xl font-bold">{copy.accessControl.signInRequired}</h2>
+          <p class="mt-2 text-center text-[var(--color-text-secondary)]">
+            {copy.accessControl.signInDescription}
+          </p>
+          <div class="mt-6 flex justify-center">
+            <button class="btn-auth" type="button" onClick={startSignIn} disabled={signingIn}>
+              {copy.accessControl.signInButton}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    const seconds = Math.max(0, redirectSeconds);
+    const progress = Math.min(100, Math.max(0, ((5 - seconds) / 5) * 100));
+    return (
+      <div class="py-12">
+        <div class="mx-auto max-w-xl rounded-2xl border border-[var(--color-border)] bg-white p-6 shadow-sm sm:p-8">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-neutral-100)] text-[var(--color-warning)]">
+            <ShieldX size={22} />
+          </div>
+          <div class="mt-4 text-center">
+            <div class="inline-flex items-center gap-2 rounded-full bg-[var(--color-neutral-100)] px-3 py-1 text-xs font-semibold text-[var(--color-text-secondary)]">
+              {copy.accessControl.adminOnly}
+            </div>
+          </div>
+          <h2 class="mt-4 text-center text-xl font-bold">{copy.accessControl.accessDenied}</h2>
+          <p class="mt-2 text-center text-[var(--color-text-secondary)]">
+            {copy.accessControl.notAuthorized}
+          </p>
+          <p class="mt-6 text-center text-sm font-semibold text-[var(--color-text-primary)]">
+            {formatTemplate(copy.accessControl.redirecting, { seconds })}
+          </p>
+          <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--color-neutral-100)]">
+            <div
+              class="h-full bg-[var(--color-warning)] transition-[width] duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p class="mt-4 text-center text-sm text-[var(--color-text-tertiary)]">
+            <a class="underline" href={`/${uiLanguage}/`}>/{uiLanguage}/</a>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault();

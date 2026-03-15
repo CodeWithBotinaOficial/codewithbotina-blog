@@ -20,6 +20,15 @@
   "postCreated": "¡Publicación creada exitosamente!",
   "postUpdated": "¡Publicación actualizada exitosamente!",
   "postDeleted": "¡Publicación eliminada exitosamente!",
+  "accessControl": {
+    "signInRequired": "Inicio de sesión requerido",
+    "signInDescription": "Debes iniciar sesión para acceder a esta página.",
+    "signInButton": "Iniciar Sesión",
+    "accessDenied": "Acceso Denegado",
+    "notAuthorized": "No tienes permiso para acceder a esta página. Solo los administradores pueden crear o editar publicaciones.",
+    "redirecting": "Redirigiendo a la página principal en {{seconds}} segundos...",
+    "adminOnly": "Solo Administradores"
+  },
   "editor": {
     "accessChecking": "Verificando acceso de administrador...",
     "titleLabel": "Título",

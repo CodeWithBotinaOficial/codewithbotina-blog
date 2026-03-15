@@ -2,6 +2,15 @@ import { t, type SupportedLanguage } from "./i18n";
 
 export interface PostEditorLabels {
   accessChecking: string;
+  accessControl: {
+    signInRequired: string;
+    signInDescription: string;
+    signInButton: string;
+    accessDenied: string;
+    notAuthorized: string;
+    redirecting: string;
+    adminOnly: string;
+  };
   titleLabel: string;
   titlePlaceholder: string;
   slugLabel: string;
@@ -111,6 +120,15 @@ export interface TagSelectorLabels {
 export function getPostEditorLabels(language: SupportedLanguage): PostEditorLabels {
   return {
     accessChecking: t(language, "editor.accessChecking", "admin"),
+    accessControl: {
+      signInRequired: t(language, "accessControl.signInRequired", "admin"),
+      signInDescription: t(language, "accessControl.signInDescription", "admin"),
+      signInButton: t(language, "accessControl.signInButton", "admin"),
+      accessDenied: t(language, "accessControl.accessDenied", "admin"),
+      notAuthorized: t(language, "accessControl.notAuthorized", "admin"),
+      redirecting: t(language, "accessControl.redirecting", "admin"),
+      adminOnly: t(language, "accessControl.adminOnly", "admin"),
+    },
     titleLabel: t(language, "editor.titleLabel", "admin"),
     titlePlaceholder: t(language, "editor.titlePlaceholder", "admin"),
     slugLabel: t(language, "editor.slugLabel", "admin"),

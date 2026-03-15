@@ -20,6 +20,15 @@
   "postCreated": "Post created successfully!",
   "postUpdated": "Post updated successfully!",
   "postDeleted": "Post deleted successfully!",
+  "accessControl": {
+    "signInRequired": "Sign in required",
+    "signInDescription": "You must be signed in to access this page.",
+    "signInButton": "Sign In",
+    "accessDenied": "Access Denied",
+    "notAuthorized": "You don't have permission to access this page. Only administrators can create or edit posts.",
+    "redirecting": "Redirecting to homepage in {{seconds}} seconds...",
+    "adminOnly": "Admin Only"
+  },
   "editor": {
     "accessChecking": "Checking admin access...",
     "titleLabel": "Title",
