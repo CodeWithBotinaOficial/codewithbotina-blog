@@ -122,3 +122,44 @@ npm install lucide-preact
 ### Best practices
 - Keep icon sizes consistent: `className="h-5 w-5"`.
 - Provide `aria-label` for icon-only buttons.
+
+---
+
+## StorageImageGallery (Admin)
+
+Gallery component used in the post editor to select an existing image from Supabase Storage.
+
+### Files
+- `frontend/src/components/admin/StorageImageGallery.tsx`
+- `frontend/src/components/admin/ImageThumbnail.tsx`
+- `frontend/src/components/admin/ImagePreviewPanel.tsx`
+
+### Features
+- Responsive thumbnail grid (2-6 columns)
+- Filename + size display
+- Selected and applied states (highlight + checkmark)
+- Preview panel with read-only filename notice and metadata
+- Pagination via "Load more"
+
+### Usage (in PostEditor)
+```tsx
+<StorageImageGallery
+  appliedImage={libraryAppliedImage}
+  onUse={(img) => setImageUrl(img.url)}
+  labels={labels.imageSection}
+/>
+```
+
+---
+
+## ImageUploadPreview (Admin)
+
+Drag-and-drop upload preview component used by the post editor.
+
+### File
+- `frontend/src/components/admin/ImageUploadPreview.tsx`
+
+### Features
+- Aspect-safe preview (`object-contain`, no distortion)
+- File name, size, and dimensions
+- Hover actions for change/remove

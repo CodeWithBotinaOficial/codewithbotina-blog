@@ -5,6 +5,7 @@ import MarkdownPreview from "./MarkdownPreview";
 import TagSelector from "./TagSelector";
 import TranslationLinker, { type TranslationPost } from "./TranslationLinker";
 import ImageUploadPreview from "./ImageUploadPreview";
+import StorageImageGallery, { type StorageImageItem } from "./StorageImageGallery";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Toast from "../ui/Toast";
 import { useToast } from "../../hooks/useToast";
@@ -74,6 +75,27 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     translationsRemoveLabel: "Remove translation",
     translationsLanguageLabel: "Lang",
     translationsDateLabel: "Date",
+    imageSection: {
+      uploadNew: "Upload New",
+      selectFromLibrary: "Select from Library",
+      externalUrl: "External URL",
+      useThisImage: "Use This Image",
+      cancel: "Cancel",
+      noImages: "No images in library yet",
+      filenameReadOnly: "Filename cannot be changed - other posts may use this image",
+      searchImages: "Search images...",
+      selectedImage: "Selected Image",
+      pickHint: "Pick an image to preview details.",
+      fileInfo: "File Information",
+      filename: "Filename",
+      fileSize: "File Size",
+      dimensions: "Dimensions",
+      uploadedOn: "Uploaded",
+      loading: "Loading...",
+      error: "Unable to load images.",
+      retry: "Retry",
+      loadMore: "Load more",
+    },
     submitCreate: "Create post",
     submitUpdate: "Update post",
     submitting: "Saving...",
@@ -125,11 +147,14 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [translationsLoaded, setTranslationsLoaded] = useState(false);
 
   const [previewMode, setPreviewMode] = useState(false);
-  const [imageMode, setImageMode] = useState<"url" | "upload">("url");
+  const [imageMode, setImageMode] = useState<"upload" | "library" | "url">(
+    initialData?.imagen_url ? "url" : "upload",
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageTitle, setImageTitle] = useState("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [libraryAppliedImage, setLibraryAppliedImage] = useState<StorageImageItem | null>(null);
   const [useLinkedPostImage, setUseLinkedPostImage] = useState(mode === "create");
   const [useLinkedPostImageTouched, setUseLinkedPostImageTouched] = useState(false);
   const [inheritedImageSource, setInheritedImageSource] = useState<TranslationPost | null>(null);
@@ -157,6 +182,13 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       window.location.href = "/?error=access_denied";
     }
   }, [sessionLoading, isAdmin]);
+
+  useEffect(() => {
+    const filename = getStorageFilenameFromUrl(initialImageUrl);
+    if (filename) {
+      setLibraryAppliedImage({ name: filename, url: initialImageUrl, size: null, created_at: null });
+    }
+  }, [initialImageUrl]);
 
   useEffect(() => {
     if (mode !== "edit") return;
@@ -318,6 +350,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     }
 
     setErrors((prev) => ({ ...prev, imageFile: "" }));
+    setLibraryAppliedImage(null);
     setImageFile(file);
   };
 
@@ -375,7 +408,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const bodyIsValid = trimmedBody.length >= 100 && trimmedBody.length <= 50000;
   const titleIsValid = trimmedTitle.length > 0 && trimmedTitle.length <= 200;
 
-  const imageUrlIsValid = imageMode !== "url" || !trimmedImageUrl || (() => {
+  const imageUrlIsValid = imageMode === "upload" || !trimmedImageUrl || (() => {
     try {
       new URL(trimmedImageUrl);
       return true;
@@ -404,9 +437,9 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     const bodyChanged = trimmedBody !== initialBody.trim();
     const languageChanged = language !== initialLanguage;
     const tagsUpdated = tagsChanged;
-    const imageUrlChanged = imageMode === "url"
-      ? trimmedImageUrl !== (initialImageUrl ?? "").trim()
-      : Boolean(imageFile);
+    const imageUrlChanged = imageMode === "upload"
+      ? Boolean(imageFile)
+      : trimmedImageUrl !== (initialImageUrl ?? "").trim();
     return titleChanged || slugChanged || bodyChanged || languageChanged || tagsUpdated || imageUrlChanged || translationsChanged;
   }, [
     mode,
@@ -469,7 +502,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       newErrors.body = copy.errors.bodyTooLong;
     }
 
-    if (imageMode === "url" && trimmedImageUrl) {
+    if (imageMode !== "upload" && trimmedImageUrl) {
       try {
         new URL(trimmedImageUrl);
       } catch (_error) {
@@ -632,6 +665,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
     setInheritedImageSource(linkedImageCandidate);
     setImageMode("url");
+    setLibraryAppliedImage(null);
     setImageUrl(linkedImageCandidate?.imagen_url ?? "");
   }, [
     canUseLinkedImage,
@@ -822,6 +856,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
                     setUseLinkedPostImageTouched(true);
                     setUseLinkedPostImage(false);
                     setInheritedImageSource(null);
+                    setLibraryAppliedImage(null);
                     setImageUrl("");
                   }}
                 >
@@ -831,55 +866,43 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
             </div>
           ) : (
             <>
-              <div class="flex flex-wrap gap-4">
-                <label class="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="imageMode"
-                    id="image-mode-url"
-                    checked={imageMode === "url"}
-                    onChange={() => setImageMode("url")}
-                  />
-                  {copy.imageUrlOption}
-                </label>
-                <label class="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="imageMode"
-                    id="image-mode-upload"
-                    checked={imageMode === "upload"}
-                    onChange={() => setImageMode("upload")}
-                  />
-                  {copy.imageUploadOption}
-                </label>
+              <div class="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => setImageMode("upload")}
+                  class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                    imageMode === "upload"
+                      ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-primary)]"
+                  }`}
+                >
+                  {copy.imageSection.uploadNew}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageMode("library")}
+                  class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                    imageMode === "library"
+                      ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-primary)]"
+                  }`}
+                >
+                  {copy.imageSection.selectFromLibrary}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageMode("url")}
+                  class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                    imageMode === "url"
+                      ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-primary)]"
+                  }`}
+                >
+                  {copy.imageSection.externalUrl}
+                </button>
               </div>
 
-              {imageMode === "url" ? (
-                <div class="space-y-2">
-                  <label class="text-sm font-semibold" htmlFor="post-image-url">
-                    {copy.imageUrlLabel}
-                  </label>
-                  <input
-                    type="url"
-                    id="post-image-url"
-                    name="imageUrl"
-                    value={imageUrl}
-                    onInput={(event) => {
-                      if (useLinkedPostImage) {
-                        setUseLinkedPostImage(false);
-                        setUseLinkedPostImageTouched(true);
-                        setInheritedImageSource(null);
-                      }
-                      setImageUrl((event.currentTarget as HTMLInputElement).value);
-                    }}
-                    placeholder={copy.imageUrlPlaceholder}
-                    class="input-field"
-                  />
-                  {errors.imageUrl ? (
-                    <p class="text-sm text-[var(--color-error)]">{errors.imageUrl}</p>
-                  ) : null}
-                </div>
-              ) : (
+              {imageMode === "upload" ? (
                 <div class="space-y-2">
                   <label class="text-sm font-semibold" htmlFor="post-image-file">
                     {copy.imageFileLabel}
@@ -931,6 +954,93 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
                   ) : null}
                   {errors.imageTitle ? (
                     <p class="text-sm text-[var(--color-error)]">{errors.imageTitle}</p>
+                  ) : null}
+                </div>
+              ) : imageMode === "library" ? (
+                <StorageImageGallery
+                  appliedImage={libraryAppliedImage}
+                  disabled={isSubmitting}
+                  onUse={(img) => {
+                    setUseLinkedPostImage(false);
+                    setUseLinkedPostImageTouched(true);
+                    setInheritedImageSource(null);
+                    setImageUrl(img.url);
+                    setLibraryAppliedImage(img);
+                    setErrors((prev) => ({ ...prev, imageUrl: "" }));
+                  }}
+                  labels={{
+                    uploadNew: copy.imageSection.uploadNew,
+                    selectFromLibrary: copy.imageSection.selectFromLibrary,
+                    externalUrl: copy.imageSection.externalUrl,
+                    useThisImage: copy.imageSection.useThisImage,
+                    cancel: copy.imageSection.cancel,
+                    noImages: copy.imageSection.noImages,
+                    filenameReadOnly: copy.imageSection.filenameReadOnly,
+                    searchImages: copy.imageSection.searchImages,
+                    selectedImage: copy.imageSection.selectedImage,
+                    pickHint: copy.imageSection.pickHint,
+                    fileInfo: copy.imageSection.fileInfo,
+                    filename: copy.imageSection.filename,
+                    fileSize: copy.imageSection.fileSize,
+                    dimensions: copy.imageSection.dimensions,
+                    uploadedOn: copy.imageSection.uploadedOn,
+                    loading: copy.imageSection.loading,
+                    error: copy.imageSection.error,
+                    retry: copy.imageSection.retry,
+                    loadMore: copy.imageSection.loadMore,
+                    locale: language === "es" ? "es-ES" : "en-US",
+                  }}
+                />
+              ) : (
+                <div class="space-y-3">
+                  <div class="space-y-2">
+                    <label class="text-sm font-semibold" htmlFor="post-image-url">
+                      {copy.imageUrlLabel}
+                    </label>
+                    <input
+                      type="url"
+                      id="post-image-url"
+                      name="imageUrl"
+                      value={imageUrl}
+                      onInput={(event) => {
+                        if (useLinkedPostImage) {
+                          setUseLinkedPostImage(false);
+                          setUseLinkedPostImageTouched(true);
+                          setInheritedImageSource(null);
+                        }
+                        setLibraryAppliedImage(null);
+                        setImageUrl((event.currentTarget as HTMLInputElement).value);
+                      }}
+                      placeholder={copy.imageUrlPlaceholder}
+                      class="input-field"
+                    />
+                    {errors.imageUrl ? (
+                      <p class="text-sm text-[var(--color-error)]">{errors.imageUrl}</p>
+                    ) : null}
+                  </div>
+
+                  {trimmedImageUrl ? (
+                    <div class="space-y-2">
+                      <div class="w-full max-w-[400px] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] shadow-sm">
+                        <div class="max-h-[300px] min-h-[220px] flex items-center justify-center p-4">
+                          <img
+                            src={trimmedImageUrl}
+                            alt={copy.imageTitlePlaceholder}
+                            class="max-h-[260px] w-full object-contain"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-error)]"
+                        onClick={() => {
+                          setLibraryAppliedImage(null);
+                          setImageUrl("");
+                        }}
+                      >
+                        {copy.imageRemoveLabel}
+                      </button>
+                    </div>
                   ) : null}
                 </div>
               )}
@@ -1001,6 +1111,19 @@ function generateSlug(title: string): string {
     .trim()
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
+}
+
+function getStorageFilenameFromUrl(url: string): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const marker = "/storage/v1/object/public/blog-images/";
+    const index = parsed.pathname.indexOf(marker);
+    if (index === -1) return null;
+    return parsed.pathname.slice(index + marker.length);
+  } catch (_e) {
+    return null;
+  }
 }
 
 async function checkSlugExists(slug: string, language: string): Promise<boolean> {

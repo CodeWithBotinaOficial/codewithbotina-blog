@@ -14,6 +14,7 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ **Cookie consent (GDPR/CCPA) with consent tracking**
 - ✅ **WYSIWYG Markdown editor with live preview**
 - ✅ **Drag-and-drop image uploads with improved preview (aspect-safe, file info, hover actions)**
+- ✅ **Image library: reuse existing Supabase Storage images (no duplicate uploads)**
 - ✅ **Tag persistence in edit flows (no accidental unlinking)**
 - ✅ **Post translation linking (equivalent posts across languages)**
 - ✅ **Smart language switcher (redirects to translated post when available, translation-aware 404 when missing)**

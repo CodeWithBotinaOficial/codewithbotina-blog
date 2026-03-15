@@ -84,9 +84,23 @@ Supported Markdown syntax:
 
 - Use descriptive titles (becomes alt text)
 - Prefer uploads over URLs (auto-optimized)
+- Prefer **Select from Library** to reuse existing images and avoid duplicates
 - Recommended size: 1200x800px or similar aspect ratio
 - Max file size: 5MB (auto-compressed to <500KB)
 - Supported formats: JPG, PNG, WebP
+
+## Image Library (Supabase Storage)
+
+In the post editor image section, you can choose:
+
+1. **Upload New**: Upload and optimize a new image
+2. **Select from Library**: Pick an existing image already stored in Supabase
+3. **External URL**: Use an image hosted elsewhere
+
+Notes:
+
+- Filenames are **read-only** in the library (other posts may reference the same file).
+- Using the library prevents duplicate uploads and saves storage.
 
 ## Troubleshooting
 

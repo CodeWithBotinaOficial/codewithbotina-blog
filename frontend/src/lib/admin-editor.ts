@@ -41,6 +41,27 @@ export interface PostEditorLabels {
   translationsRemoveLabel: string;
   translationsLanguageLabel: string;
   translationsDateLabel: string;
+  imageSection: {
+    uploadNew: string;
+    selectFromLibrary: string;
+    externalUrl: string;
+    useThisImage: string;
+    cancel: string;
+    noImages: string;
+    filenameReadOnly: string;
+    searchImages: string;
+    selectedImage: string;
+    pickHint: string;
+    fileInfo: string;
+    filename: string;
+    fileSize: string;
+    dimensions: string;
+    uploadedOn: string;
+    loading: string;
+    error: string;
+    retry: string;
+    loadMore: string;
+  };
   submitCreate: string;
   submitUpdate: string;
   submitting: string;
@@ -129,6 +150,27 @@ export function getPostEditorLabels(language: SupportedLanguage): PostEditorLabe
     translationsRemoveLabel: t(language, "editor.translationsRemoveLabel", "admin"),
     translationsLanguageLabel: t(language, "editor.translationsLanguageLabel", "admin"),
     translationsDateLabel: t(language, "editor.translationsDateLabel", "admin"),
+    imageSection: {
+      uploadNew: t(language, "editor.imageSection.uploadNew", "admin"),
+      selectFromLibrary: t(language, "editor.imageSection.selectFromLibrary", "admin"),
+      externalUrl: t(language, "editor.imageSection.externalUrl", "admin"),
+      useThisImage: t(language, "editor.imageSection.useThisImage", "admin"),
+      cancel: t(language, "editor.imageSection.cancel", "admin"),
+      noImages: t(language, "editor.imageSection.noImages", "admin"),
+      filenameReadOnly: t(language, "editor.imageSection.filenameReadOnly", "admin"),
+      searchImages: t(language, "editor.imageSection.searchImages", "admin"),
+      selectedImage: t(language, "editor.imageSection.selectedImage", "admin"),
+      pickHint: t(language, "editor.imageSection.pickHint", "admin"),
+      fileInfo: t(language, "editor.imageSection.fileInfo", "admin"),
+      filename: t(language, "editor.imageSection.filename", "admin"),
+      fileSize: t(language, "editor.imageSection.fileSize", "admin"),
+      dimensions: t(language, "editor.imageSection.dimensions", "admin"),
+      uploadedOn: t(language, "editor.imageSection.uploadedOn", "admin"),
+      loading: t(language, "editor.imageSection.loading", "admin"),
+      error: t(language, "editor.imageSection.error", "admin"),
+      retry: t(language, "editor.imageSection.retry", "admin"),
+      loadMore: t(language, "editor.imageSection.loadMore", "admin"),
+    },
     submitCreate: t(language, "editor.submitCreate", "admin"),
     submitUpdate: t(language, "editor.submitUpdate", "admin"),
     submitting: t(language, "editor.submitting", "admin"),

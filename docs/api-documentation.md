@@ -104,6 +104,20 @@ Links one or more posts as translations.
 
 Unlinks one post from the translation group.
 
+## Storage Images (Admin)
+
+### GET `/api/storage/images` (Admin only)
+
+Lists images from the Supabase Storage bucket used for blog images (`blog-images`).
+
+**Query parameters:**
+- `limit` (optional) — default 48, max 100
+- `offset` (optional) — default 0
+- `q` (optional) — substring filter on filename (best-effort)
+
+**Response:**
+- `data.images`: Array of `{ name, url, size, mimetype, created_at, updated_at }`
+
 ## Validation Rules (Language)
 
 - Requests with unsupported language codes are rejected by the API and the database constraint.
