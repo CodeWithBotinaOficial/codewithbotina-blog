@@ -43,6 +43,7 @@ List posts with optional language filtering.
 
 **Query parameters:**
 - `language` (optional) — filters by language.
+- `q` (optional) — basic title/slug substring search (autocomplete-style).
 - `limit` (optional) — defaults to 20.
 - `offset` (optional) — defaults to 0.
 
@@ -59,6 +60,49 @@ Fetch a single post by slug.
 
 **Response notes:**
 - Includes a `tags` array with tag metadata for the post.
+
+## Post Translations
+
+These endpoints link equivalent posts across languages (different slugs) and are used by the language switcher and admin editor.
+
+### GET `/api/posts/:postId/translations`
+
+Returns all translations for a post (public).
+
+**Response:**
+
+- `data.translations`: Array of `{ post_id, language, slug, titulo, fecha, imagen_url, translation_group_id }`
+
+### GET `/api/posts/:postId/translation/:language`
+
+Returns the translation for a specific language (public).
+
+- `200` if found
+- `404` if the translation does not exist
+
+Used by the frontend language switcher to redirect to `/{lang}/posts/{translated_slug}`.
+
+### POST `/api/posts/:postId/translations` (Admin only)
+
+Links one or more posts as translations.
+
+**Request body (JSON):**
+
+- `linked_post_ids` (string[], required)
+
+**Validation:**
+
+- Cannot link a post to itself.
+- Only one post per language is allowed in a translation group.
+
+**Behavior:**
+
+- Merges translation groups as needed when linking posts that are already linked.
+- If `linked_post_ids` is an empty array, the API unlinks the current post from its translation group.
+
+### DELETE `/api/posts/:postId/translations/:linkedPostId` (Admin only)
+
+Unlinks one post from the translation group.
 
 ## Validation Rules (Language)
 

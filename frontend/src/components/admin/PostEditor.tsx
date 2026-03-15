@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { UploadCloud } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
 import { useSession } from "../../hooks/useSession";
 import MarkdownPreview from "./MarkdownPreview";
 import TagSelector from "./TagSelector";
+import TranslationLinker, { type TranslationPost } from "./TranslationLinker";
+import ImageUploadPreview from "./ImageUploadPreview";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Toast from "../ui/Toast";
 import { useToast } from "../../hooks/useToast";
@@ -12,6 +13,7 @@ import type { TagOption } from "./TagSelector";
 import type { PostEditorLabels, TagSelectorLabels } from "../../lib/admin-editor";
 
 interface EditorData {
+  id?: string;
   titulo: string;
   slug: string;
   body: string;
@@ -58,8 +60,20 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     imageDropSubtitle: "JPG, PNG, or WebP up to 5MB",
     imageDropActive: "Drop image to upload",
     imageReplaceLabel: "Change image",
+    imageRemoveLabel: "Remove image",
     imageFileName: "File",
     imageFileSize: "Size",
+    imageDimensions: "Dimensions",
+    useLinkedPostImage: "Use image from linked post",
+    inheritedImageFrom: "Image from: {{title}} ({{language}})",
+    translationsTitle: "Translations",
+    translationsEmpty: "No translations linked",
+    translationsSearchPlaceholder: "Search posts to link...",
+    translationsSearching: "Searching...",
+    translationsNoResults: "No posts found",
+    translationsRemoveLabel: "Remove translation",
+    translationsLanguageLabel: "Lang",
+    translationsDateLabel: "Date",
     submitCreate: "Create post",
     submitUpdate: "Update post",
     submitting: "Saving...",
@@ -106,6 +120,9 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [imageUrl, setImageUrl] = useState(initialData?.imagen_url ?? "");
   const [tags, setTags] = useState<TagOption[]>(initialData?.tags ?? []);
   const [language, setLanguage] = useState(initialData?.language ?? "es");
+  const [linkedPosts, setLinkedPosts] = useState<TranslationPost[]>([]);
+  const [initialLinkedPostIds, setInitialLinkedPostIds] = useState<string[]>([]);
+  const [translationsLoaded, setTranslationsLoaded] = useState(false);
 
   const [previewMode, setPreviewMode] = useState(false);
   const [imageMode, setImageMode] = useState<"url" | "upload">("url");
@@ -113,6 +130,9 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [imageTitle, setImageTitle] = useState("");
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [useLinkedPostImage, setUseLinkedPostImage] = useState(mode === "create");
+  const [useLinkedPostImageTouched, setUseLinkedPostImageTouched] = useState(false);
+  const [inheritedImageSource, setInheritedImageSource] = useState<TranslationPost | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -137,6 +157,39 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       window.location.href = "/?error=access_denied";
     }
   }, [sessionLoading, isAdmin]);
+
+  useEffect(() => {
+    if (mode !== "edit") return;
+    const postId = initialData?.id;
+    if (!postId) return;
+    if (translationsLoaded) return;
+    if (sessionLoading || !isAdmin) return;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/posts/${encodeURIComponent(postId)}/translations`, {
+          credentials: "include",
+        });
+        if (!res.ok) return;
+        const payload = await res.json();
+        const translations = (payload?.data?.translations ?? []) as TranslationPost[];
+        const filtered = translations
+          .filter((row) => row && row.post_id && row.post_id !== postId)
+          .map((row) => ({
+            post_id: row.post_id,
+            language: String(row.language ?? "").trim().toLowerCase(),
+            slug: row.slug,
+            titulo: row.titulo,
+            fecha: row.fecha ?? null,
+            imagen_url: row.imagen_url ?? null,
+          }));
+        setLinkedPosts(filtered);
+        setInitialLinkedPostIds(filtered.map((t) => t.post_id).sort());
+      } finally {
+        setTranslationsLoaded(true);
+      }
+    })();
+  }, [mode, initialData?.id, translationsLoaded, sessionLoading, isAdmin]);
 
   useEffect(() => {
     if (mode !== "create") return;
@@ -180,6 +233,11 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   useEffect(() => {
     if (imageMode === "upload") {
       setErrors((prev) => ({ ...prev, imageUrl: "" }));
+      if (useLinkedPostImage) {
+        setUseLinkedPostImage(false);
+        setUseLinkedPostImageTouched(true);
+      }
+      setInheritedImageSource(null);
       return;
     }
 
@@ -221,16 +279,6 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       }
     };
   }, [imageFile]);
-
-  const formatFileSize = (size: number) => {
-    if (size >= 1024 * 1024) {
-      return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-    }
-    if (size >= 1024) {
-      return `${(size / 1024).toFixed(1)} KB`;
-    }
-    return `${size} B`;
-  };
 
   const getImageFileError = (file: File) => {
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -309,6 +357,18 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const trimmedBody = body.trim();
   const trimmedImageUrl = imageUrl.trim();
   const trimmedImageTitle = imageTitle.trim();
+  const currentLinkedIdsKey = useMemo(
+    () => linkedPosts.map((p) => p.post_id).slice().sort().join(","),
+    [linkedPosts],
+  );
+  const initialLinkedIdsKey = useMemo(
+    () => initialLinkedPostIds.slice().sort().join(","),
+    [initialLinkedPostIds],
+  );
+  const translationsChanged = useMemo(
+    () => currentLinkedIdsKey !== initialLinkedIdsKey,
+    [currentLinkedIdsKey, initialLinkedIdsKey],
+  );
 
   const slugIsValid = Boolean(trimmedSlug) && /^[a-z0-9-]+$/.test(trimmedSlug);
   const languageIsValid = SUPPORTED_LANGUAGES.includes(language as "en" | "es");
@@ -347,7 +407,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     const imageUrlChanged = imageMode === "url"
       ? trimmedImageUrl !== (initialImageUrl ?? "").trim()
       : Boolean(imageFile);
-    return titleChanged || slugChanged || bodyChanged || languageChanged || tagsUpdated || imageUrlChanged;
+    return titleChanged || slugChanged || bodyChanged || languageChanged || tagsUpdated || imageUrlChanged || translationsChanged;
   }, [
     mode,
     trimmedTitle,
@@ -358,6 +418,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     tagsChanged,
     imageMode,
     imageFile,
+    translationsChanged,
     initialTitle,
     initialSlug,
     initialBody,
@@ -484,7 +545,18 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       }
 
       const responsePayload = await response.json();
+      const savedPostId = responsePayload?.data?.id as string | undefined;
       const nextSlug = responsePayload?.data?.slug ?? trimmedSlug;
+
+      if (savedPostId) {
+        await syncTranslations({
+          postId: savedPostId,
+          mode,
+          selected: linkedPosts.map((p) => p.post_id),
+          initial: initialLinkedPostIds,
+        });
+      }
+
       showToast(mode === "create" ? copy.toastSuccessCreate : copy.toastSuccessUpdate, "success");
       window.setTimeout(() => {
         window.location.href = `/${language}/posts/${nextSlug}`;
@@ -506,6 +578,70 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     if (!slug.trim()) return;
     setSlug(generateSlug(slug));
   };
+
+  const translationLabels = {
+    title: copy.translationsTitle,
+    empty: copy.translationsEmpty,
+    searchPlaceholder: copy.translationsSearchPlaceholder,
+    searching: copy.translationsSearching,
+    noResults: copy.translationsNoResults,
+    removeLabel: copy.translationsRemoveLabel,
+    languageLabel: copy.translationsLanguageLabel,
+    dateLabel: copy.translationsDateLabel,
+  };
+
+  const imageUploadLabels = {
+    dropTitle: copy.imageDropTitle,
+    dropSubtitle: copy.imageDropSubtitle,
+    dropActive: copy.imageDropActive,
+    changeLabel: copy.imageReplaceLabel,
+    removeLabel: copy.imageRemoveLabel,
+    fileNameLabel: copy.imageFileName,
+    fileSizeLabel: copy.imageFileSize,
+    dimensionsLabel: copy.imageDimensions,
+  };
+
+  const linkedImageCandidate = linkedPosts.length > 0 && linkedPosts[0]?.imagen_url ? linkedPosts[0] : null;
+  const canUseLinkedImage = Boolean(linkedImageCandidate?.imagen_url);
+
+  useEffect(() => {
+    if (!canUseLinkedImage) {
+      setInheritedImageSource(null);
+      if (mode === "create" && !useLinkedPostImageTouched) setUseLinkedPostImage(false);
+      return;
+    }
+
+    if (mode !== "create" && !useLinkedPostImageTouched) {
+      setUseLinkedPostImage(false);
+      setInheritedImageSource(null);
+      return;
+    }
+
+    if (mode === "create" && !useLinkedPostImageTouched) {
+      if (!trimmedImageUrl && !imageFile) {
+        setUseLinkedPostImage(true);
+      } else {
+        setUseLinkedPostImage(false);
+      }
+    }
+
+    if (!useLinkedPostImage) {
+      setInheritedImageSource(null);
+      return;
+    }
+
+    setInheritedImageSource(linkedImageCandidate);
+    setImageMode("url");
+    setImageUrl(linkedImageCandidate?.imagen_url ?? "");
+  }, [
+    canUseLinkedImage,
+    linkedImageCandidate?.post_id,
+    useLinkedPostImage,
+    useLinkedPostImageTouched,
+    mode,
+    trimmedImageUrl,
+    imageFile,
+  ]);
 
   return (
     <form onSubmit={handleSubmit} class="space-y-8">
@@ -562,6 +698,16 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         </select>
         {errors.language ? <p class="text-sm text-[var(--color-error)]">{errors.language}</p> : null}
       </div>
+
+      <TranslationLinker
+        currentPostId={initialData?.id}
+        currentPostLanguage={language}
+        selected={linkedPosts}
+        onChange={setLinkedPosts}
+        labels={translationLabels}
+        uiLocale={language === "es" ? "es-ES" : "en-US"}
+        disabled={isSubmitting}
+      />
 
       <div class="space-y-2">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -624,130 +770,173 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
       <div class="space-y-3">
         <label class="text-sm font-semibold">{copy.featuredImageLabel}</label>
-        <div class="flex flex-wrap gap-4">
+        <div class="space-y-3">
           <label class="flex items-center gap-2 text-sm">
             <input
-              type="radio"
-              name="imageMode"
-              id="image-mode-url"
-              checked={imageMode === "url"}
-              onChange={() => setImageMode("url")}
+              type="checkbox"
+              checked={useLinkedPostImage}
+              disabled={!canUseLinkedImage || isSubmitting}
+              onChange={(e) => {
+                setUseLinkedPostImageTouched(true);
+                const next = (e.currentTarget as HTMLInputElement).checked;
+                setUseLinkedPostImage(next);
+                if (!next) setInheritedImageSource(null);
+              }}
             />
-            {copy.imageUrlOption}
+            {copy.useLinkedPostImage}
           </label>
-          <label class="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="imageMode"
-              id="image-mode-upload"
-              checked={imageMode === "upload"}
-              onChange={() => setImageMode("upload")}
-            />
-            {copy.imageUploadOption}
-          </label>
-        </div>
 
-        {imageMode === "url" ? (
-          <div class="space-y-2">
-            <label class="text-sm font-semibold" htmlFor="post-image-url">
-              {copy.imageUrlLabel}
-            </label>
-            <input
-              type="url"
-              id="post-image-url"
-              name="imageUrl"
-              value={imageUrl}
-              onInput={(event) => setImageUrl((event.currentTarget as HTMLInputElement).value)}
-              placeholder={copy.imageUrlPlaceholder}
-              class="input-field"
-            />
-            {errors.imageUrl ? (
-              <p class="text-sm text-[var(--color-error)]">{errors.imageUrl}</p>
-            ) : null}
-          </div>
-        ) : (
-          <div class="space-y-2">
-            <label class="text-sm font-semibold" htmlFor="post-image-file">
-              {copy.imageFileLabel}
-            </label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              id="post-image-file"
-              name="imageFile"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(event) =>
-                handleImageFileSelection((event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
-              class="sr-only"
-            />
-            <button
-              type="button"
-              onClick={openFileDialog}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              aria-label={copy.imageDropTitle}
-              class={`group relative w-full rounded-xl border-2 border-dashed px-6 py-8 transition-colors ${
-                dragActive
-                  ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)]"
-                  : "border-[var(--color-border)] bg-[var(--color-bg-subtle)] hover:border-[var(--color-accent-primary)]"
-              }`}
-            >
-              {imagePreviewUrl ? (
-                <div class="relative">
+          {useLinkedPostImage && inheritedImageSource?.imagen_url ? (
+            <div class="space-y-2">
+              <div class="w-full max-w-[400px] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] shadow-sm">
+                <div class="max-h-[300px] min-h-[220px] flex items-center justify-center p-4">
                   <img
-                    src={imagePreviewUrl}
+                    src={inheritedImageSource.imagen_url}
                     alt={copy.imageTitlePlaceholder}
-                    class="w-full h-56 object-cover rounded-lg"
+                    class="max-h-[260px] w-full object-contain"
                   />
-                  <div class="absolute inset-0 rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
-                    <span class="text-xs font-semibold text-white uppercase tracking-wide">
-                      {copy.imageReplaceLabel}
-                    </span>
-                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-[var(--color-text-tertiary)]">
+                {formatTemplate(copy.inheritedImageFrom, {
+                  title: inheritedImageSource.titulo,
+                  language: String(inheritedImageSource.language ?? "").toUpperCase(),
+                })}
+              </p>
+              <div class="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  class="text-sm font-semibold text-[var(--color-accent-primary)] hover:underline"
+                  onClick={() => {
+                    setUseLinkedPostImageTouched(true);
+                    setUseLinkedPostImage(false);
+                    setInheritedImageSource(null);
+                  }}
+                >
+                  {copy.imageReplaceLabel}
+                </button>
+                <button
+                  type="button"
+                  class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-error)]"
+                  onClick={() => {
+                    setUseLinkedPostImageTouched(true);
+                    setUseLinkedPostImage(false);
+                    setInheritedImageSource(null);
+                    setImageUrl("");
+                  }}
+                >
+                  {copy.imageRemoveLabel}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div class="flex flex-wrap gap-4">
+                <label class="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="imageMode"
+                    id="image-mode-url"
+                    checked={imageMode === "url"}
+                    onChange={() => setImageMode("url")}
+                  />
+                  {copy.imageUrlOption}
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="imageMode"
+                    id="image-mode-upload"
+                    checked={imageMode === "upload"}
+                    onChange={() => setImageMode("upload")}
+                  />
+                  {copy.imageUploadOption}
+                </label>
+              </div>
+
+              {imageMode === "url" ? (
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold" htmlFor="post-image-url">
+                    {copy.imageUrlLabel}
+                  </label>
+                  <input
+                    type="url"
+                    id="post-image-url"
+                    name="imageUrl"
+                    value={imageUrl}
+                    onInput={(event) => {
+                      if (useLinkedPostImage) {
+                        setUseLinkedPostImage(false);
+                        setUseLinkedPostImageTouched(true);
+                        setInheritedImageSource(null);
+                      }
+                      setImageUrl((event.currentTarget as HTMLInputElement).value);
+                    }}
+                    placeholder={copy.imageUrlPlaceholder}
+                    class="input-field"
+                  />
+                  {errors.imageUrl ? (
+                    <p class="text-sm text-[var(--color-error)]">{errors.imageUrl}</p>
+                  ) : null}
                 </div>
               ) : (
-                <div class="flex flex-col items-center gap-2 text-center">
-                  <UploadCloud className="h-8 w-8 text-[var(--color-accent-primary)]" />
-                  <p class="text-sm font-semibold text-[var(--color-text-primary)]">
-                    {dragActive ? copy.imageDropActive : copy.imageDropTitle}
-                  </p>
+                <div class="space-y-2">
+                  <label class="text-sm font-semibold" htmlFor="post-image-file">
+                    {copy.imageFileLabel}
+                  </label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    id="post-image-file"
+                    name="imageFile"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) =>
+                      handleImageFileSelection((event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
+                    class="sr-only"
+                  />
+
+                  <ImageUploadPreview
+                    file={imageFile}
+                    previewUrl={imagePreviewUrl}
+                    dragActive={dragActive}
+                    onOpenFileDialog={openFileDialog}
+                    onRemove={() => {
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                      handleImageFileSelection(null);
+                    }}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    labels={imageUploadLabels}
+                    disabled={isSubmitting}
+                  />
+
+                  <label class="text-sm font-semibold" htmlFor="post-image-title">
+                    {copy.imageTitleLabel}
+                  </label>
+                  <input
+                    type="text"
+                    id="post-image-title"
+                    name="imageTitle"
+                    value={imageTitle}
+                    onInput={(event) => setImageTitle((event.currentTarget as HTMLInputElement).value)}
+                    placeholder={copy.imageTitlePlaceholder}
+                    class="input-field"
+                  />
                   <p class="text-xs text-[var(--color-text-tertiary)]">
-                    {copy.imageDropSubtitle}
+                    {copy.imageHelp}
                   </p>
+                  {errors.imageFile ? (
+                    <p class="text-sm text-[var(--color-error)]">{errors.imageFile}</p>
+                  ) : null}
+                  {errors.imageTitle ? (
+                    <p class="text-sm text-[var(--color-error)]">{errors.imageTitle}</p>
+                  ) : null}
                 </div>
               )}
-            </button>
-            {imageFile ? (
-              <div class="text-xs text-[var(--color-text-tertiary)] flex flex-wrap gap-2">
-                <span>{copy.imageFileName}: {imageFile.name}</span>
-                <span>•</span>
-                <span>{copy.imageFileSize}: {formatFileSize(imageFile.size)}</span>
-              </div>
-            ) : null}
-            <label class="text-sm font-semibold" htmlFor="post-image-title">
-              {copy.imageTitleLabel}
-            </label>
-            <input
-              type="text"
-              id="post-image-title"
-              name="imageTitle"
-              value={imageTitle}
-              onInput={(event) => setImageTitle((event.currentTarget as HTMLInputElement).value)}
-              placeholder={copy.imageTitlePlaceholder}
-              class="input-field"
-            />
-            <p class="text-xs text-[var(--color-text-tertiary)]">
-              {copy.imageHelp}
-            </p>
-            {errors.imageFile ? (
-              <p class="text-sm text-[var(--color-error)]">{errors.imageFile}</p>
-            ) : null}
-            {errors.imageTitle ? (
-              <p class="text-sm text-[var(--color-error)]">{errors.imageTitle}</p>
-            ) : null}
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -843,4 +1032,66 @@ async function uploadImage(
 
   const payload = await response.json();
   return payload?.data?.url as string;
+}
+
+async function syncTranslations(args: {
+  postId: string;
+  mode: "create" | "edit";
+  selected: string[];
+  initial: string[];
+}): Promise<void> {
+  const { postId, mode, selected, initial } = args;
+  const uniqueSelected = Array.from(new Set((selected ?? []).map((id) => String(id).trim()).filter(Boolean)));
+  const uniqueInitial = Array.from(new Set((initial ?? []).map((id) => String(id).trim()).filter(Boolean)));
+
+  const postLink = async (linkedIds: string[]) => {
+    const res = await fetch(`${API_URL}/api/posts/${encodeURIComponent(postId)}/translations`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ linked_post_ids: linkedIds }),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to link translations");
+    }
+  };
+
+  const unlinkOne = async (linkedPostId: string) => {
+    const res = await fetch(
+      `${API_URL}/api/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(linkedPostId)}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      },
+    );
+    if (!res.ok) {
+      throw new Error("Failed to unlink translation");
+    }
+  };
+
+  if (mode === "create") {
+    if (uniqueSelected.length === 0) return;
+    await postLink(uniqueSelected);
+    return;
+  }
+
+  // Edit mode
+  if (uniqueSelected.length === 0) {
+    if (uniqueInitial.length === 0) return;
+    // Unlink this post from its group (keeps other group members linked to each other).
+    await postLink([]);
+    return;
+  }
+
+  const initialSet = new Set(uniqueInitial);
+  const selectedSet = new Set(uniqueSelected);
+  const toAdd = uniqueSelected.filter((id) => !initialSet.has(id));
+  const toRemove = uniqueInitial.filter((id) => !selectedSet.has(id));
+
+  if (toAdd.length > 0) {
+    await postLink(toAdd);
+  }
+  for (const id of toRemove) {
+    await unlinkOne(id);
+  }
 }

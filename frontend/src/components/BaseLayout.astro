@@ -13,6 +13,7 @@ interface Props {
   canonical?: string;
   currentLanguage?: string;
   currentPath?: string;
+  currentPostId?: string;
   hideChrome?: boolean;
 }
 
@@ -24,6 +25,7 @@ const {
   canonical,
   currentLanguage = DEFAULT_LANGUAGE,
   currentPath = Astro.url.pathname,
+  currentPostId,
   hideChrome = false,
 } = Astro.props;
 
@@ -56,7 +58,7 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
   </head>
   <body class="min-h-screen flex flex-col">
     {!hideChrome && (
-      <Header currentLanguage={currentLanguage} currentPath={currentPath} />
+      <Header currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} />
     )}
     <main class="flex-1">
       <slot />

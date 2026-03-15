@@ -8,6 +8,12 @@ import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANG
 
 const { lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+const missingTranslation = ["true", "1", "yes"].includes((Astro.url.searchParams.get("missing_translation") ?? "").toLowerCase());
+const originParam = Astro.url.searchParams.get("origin");
+const originPath = originParam && originParam.startsWith("/") ? originParam : null;
+const originLangParam = Astro.url.searchParams.get("origin_lang");
+const originLang = isSupportedLanguage(originLangParam ?? "") ? (originLangParam as SupportedLanguage) : null;
+const targetLanguageName = t(language, `language.${language}`, "common");
 
 const siteUrl = getSiteUrl().replace(/\/$/, "");
 const canonicalUrl = `${siteUrl}/${language}/404`;
@@ -33,16 +39,53 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((entry) => ({
   </Fragment>
 
   <section class="container-responsive py-24 text-center">
-    <h1 class="text-4xl md:text-5xl font-bold mb-4">{t(language, "errors.notFoundTitle")}</h1>
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">
+      {missingTranslation ? t(language, "errors.missingTranslationTitle") : t(language, "errors.notFoundTitle")}
+    </h1>
     <p class="text-lg text-[var(--color-text-secondary)] max-w-2xl mx-auto">
-      {t(language, "errors.notFoundMessage")}
+      {missingTranslation
+        ? t(language, "errors.missingTranslationMessage", "common", { language: targetLanguageName })
+        : t(language, "errors.notFoundMessage")}
     </p>
-    <a
-      href={`/${language}/`}
-      class="mt-8 inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline"
-    >
-      <ArrowLeft size={18} />
-      {t(language, "errors.backHome")}
-    </a>
+
+    {missingTranslation ? (
+      <div class="mt-8 flex flex-col items-center gap-3">
+        {originPath ? (
+          <a
+            href={originPath}
+            class="inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline font-semibold"
+          >
+            {t(language, "errors.viewOriginalLanguage")}
+          </a>
+        ) : originLang ? (
+          <a
+            href={`/${originLang}/`}
+            class="inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline font-semibold"
+          >
+            {t(language, "errors.viewOriginalLanguage")}
+          </a>
+        ) : null}
+        <a
+          href={`/${language}/`}
+          class="inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline"
+        >
+          {t(language, "errors.returnHome")}
+        </a>
+        <a
+          href={`/${language}/`}
+          class="inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline"
+        >
+          {t(language, "errors.browsePosts", "common", { language: targetLanguageName })}
+        </a>
+      </div>
+    ) : (
+      <a
+        href={`/${language}/`}
+        class="mt-8 inline-flex items-center gap-2 text-[var(--color-accent-primary)] hover:underline"
+      >
+        <ArrowLeft size={18} />
+        {t(language, "errors.backHome")}
+      </a>
+    )}
   </section>
 </BaseLayout>

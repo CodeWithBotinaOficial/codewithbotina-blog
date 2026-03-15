@@ -7,6 +7,7 @@ import { errorResponse, successResponse } from "../../../utils/responses.ts";
 const SUPPORTED_LANGUAGES = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
+const MAX_QUERY_LENGTH = 80;
 
 export const handler: Handlers = {
   OPTIONS(req) {
@@ -19,12 +20,16 @@ export const handler: Handlers = {
     const headers = corsHeaders(origin);
     const url = new URL(req.url);
     const language = url.searchParams.get("language") ?? "";
+    const q = (url.searchParams.get("q") ?? "").trim();
     const limitParam = url.searchParams.get("limit");
     const offsetParam = url.searchParams.get("offset");
 
     try {
       if (language && !SUPPORTED_LANGUAGES.has(language)) {
         throw new ValidationError("Unsupported language");
+      }
+      if (q.length > MAX_QUERY_LENGTH) {
+        throw new ValidationError("Query too long");
       }
 
       const limit = Math.min(
@@ -40,6 +45,11 @@ export const handler: Handlers = {
 
       if (language) {
         query = query.eq("language", language);
+      }
+      if (q) {
+        // Basic autocomplete search: title/slug substring match.
+        // Note: PostgREST "or" syntax. Supabase client escapes values.
+        query = query.or(`titulo.ilike.%${q}%,slug.ilike.%${q}%`);
       }
 
       const { data, error } = await query.range(offset, offset + limit - 1);

@@ -27,8 +27,20 @@ export interface PostEditorLabels {
   imageDropSubtitle: string;
   imageDropActive: string;
   imageReplaceLabel: string;
+  imageRemoveLabel: string;
   imageFileName: string;
   imageFileSize: string;
+  imageDimensions: string;
+  useLinkedPostImage: string;
+  inheritedImageFrom: string;
+  translationsTitle: string;
+  translationsEmpty: string;
+  translationsSearchPlaceholder: string;
+  translationsSearching: string;
+  translationsNoResults: string;
+  translationsRemoveLabel: string;
+  translationsLanguageLabel: string;
+  translationsDateLabel: string;
   submitCreate: string;
   submitUpdate: string;
   submitting: string;
@@ -103,8 +115,20 @@ export function getPostEditorLabels(language: SupportedLanguage): PostEditorLabe
     imageDropSubtitle: t(language, "editor.imageDropSubtitle", "admin"),
     imageDropActive: t(language, "editor.imageDropActive", "admin"),
     imageReplaceLabel: t(language, "editor.imageReplaceLabel", "admin"),
+    imageRemoveLabel: t(language, "editor.imageRemoveLabel", "admin"),
     imageFileName: t(language, "editor.imageFileName", "admin"),
     imageFileSize: t(language, "editor.imageFileSize", "admin"),
+    imageDimensions: t(language, "editor.imageDimensions", "admin"),
+    useLinkedPostImage: t(language, "editor.useLinkedPostImage", "admin"),
+    inheritedImageFrom: t(language, "editor.inheritedImageFrom", "admin"),
+    translationsTitle: t(language, "editor.translationsTitle", "admin"),
+    translationsEmpty: t(language, "editor.translationsEmpty", "admin"),
+    translationsSearchPlaceholder: t(language, "editor.translationsSearchPlaceholder", "admin"),
+    translationsSearching: t(language, "editor.translationsSearching", "admin"),
+    translationsNoResults: t(language, "editor.translationsNoResults", "admin"),
+    translationsRemoveLabel: t(language, "editor.translationsRemoveLabel", "admin"),
+    translationsLanguageLabel: t(language, "editor.translationsLanguageLabel", "admin"),
+    translationsDateLabel: t(language, "editor.translationsDateLabel", "admin"),
     submitCreate: t(language, "editor.submitCreate", "admin"),
     submitUpdate: t(language, "editor.submitUpdate", "admin"),
     submitting: t(language, "editor.submitting", "admin"),

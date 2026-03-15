@@ -13,8 +13,10 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ **Tag landing pages + tag-based sitemap entries**
 - ✅ **Cookie consent (GDPR/CCPA) with consent tracking**
 - ✅ **WYSIWYG Markdown editor with live preview**
-- ✅ **Drag-and-drop image uploads with preview (upload on submit only)**
+- ✅ **Drag-and-drop image uploads with improved preview (aspect-safe, file info, hover actions)**
 - ✅ **Tag persistence in edit flows (no accidental unlinking)**
+- ✅ **Post translation linking (equivalent posts across languages)**
+- ✅ **Smart language switcher (redirects to translated post when available, translation-aware 404 when missing)**
 - ✅ Hybrid rendering (dynamic content without rebuilds)
 - ✅ SEO optimized (JSON-LD, Open Graph, keywords, RSS, sitemaps)
 - ✅ Bilingual i18n (English/Spanish) with language detection + hreflang

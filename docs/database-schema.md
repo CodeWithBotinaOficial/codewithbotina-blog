@@ -31,6 +31,14 @@ This document summarizes the core database schema for the blog, with emphasis on
 - `tags`: SEO-friendly tags
 - `post_tags`: Many-to-many relationship between posts and tags
 
+## Post Translations (Cross-Language Linking)
+
+Equivalent posts across languages are linked via:
+
+- `post_translations`: Junction table connecting posts into translation groups (one post per language per group)
+
+See: `docs/database/post-translations-schema.md`
+
 ## Validation Rules
 
 - Only supported language codes are allowed by the database constraint.

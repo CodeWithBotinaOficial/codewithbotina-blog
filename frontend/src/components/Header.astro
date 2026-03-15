@@ -7,9 +7,10 @@ import { getRoutePath, t, type SupportedLanguage } from "../lib/i18n";
 interface Props {
   currentLanguage: SupportedLanguage;
   currentPath: string;
+  currentPostId?: string;
 }
 
-const { currentLanguage, currentPath } = Astro.props;
+const { currentLanguage, currentPath, currentPostId } = Astro.props;
 
 const navLinks = [
   { name: t(currentLanguage, "nav.home"), href: `/${currentLanguage}/` },
@@ -37,7 +38,7 @@ const navLinks = [
     </nav>
 
     <div class="hidden md:flex items-center gap-4">
-      <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} client:load />
+      <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} client:load />
       <HeaderAuth currentLanguage={currentLanguage} />
     </div>
 
@@ -64,7 +65,7 @@ const navLinks = [
         </a>
       ))}
       <div class="pt-2 border-t border-[var(--color-border)] flex flex-col gap-3">
-        <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} client:load />
+        <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} client:load />
         <HeaderAuth currentLanguage={currentLanguage} />
       </div>
     </nav>

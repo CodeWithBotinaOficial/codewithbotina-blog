@@ -50,7 +50,12 @@
     "fetchPosts": "Error al cargar publicaciones. Por favor intenta de nuevo.",
     "notFoundTitle": "Página no encontrada",
     "notFoundMessage": "No pudimos encontrar la página que buscas. Puede que se haya movido o cambiado de nombre.",
-    "backHome": "Volver al inicio"
+    "backHome": "Volver al inicio",
+    "missingTranslationTitle": "Traducción no disponible",
+    "missingTranslationMessage": "Esta publicación aún no está disponible en {{language}}. ¿Deseas:",
+    "viewOriginalLanguage": "Ver en idioma original",
+    "returnHome": "Volver a la página principal",
+    "browsePosts": "Explorar todas las publicaciones en {{language}}"
   },
   "cookieConsent": {
     "bannerTitle": "Usamos cookies",

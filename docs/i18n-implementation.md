@@ -83,12 +83,44 @@ const { data } = await supabase
 
 Slug uniqueness checks are scoped by language in the backend.
 
+## Post Translation Linking
+
+To connect equivalent posts across languages (different slugs per language), the system uses a junction table:
+
+- `public.post_translations (post_id, translation_group_id, language)`
+
+All posts in the same `translation_group_id` are treated as translations of the same article.
+
+Database details: `docs/database/post-translations-schema.md`
+
+### Language Switcher Enhancement
+
+On post detail pages, the language switcher:
+
+1. Calls `GET /api/posts/:postId/translation/:language`
+2. If found, redirects to `/{lang}/posts/{translated_slug}`
+3. If missing, redirects to `/{lang}/404?missing_translation=true&origin=...`
+
+The `/{lang}/404` page shows a translation-specific message and offers links to:
+
+- View in the original language
+- Return to the target language homepage
+- Browse posts in the target language
+
 ## Admin Workflow
 
 - The post editor includes a language selector.
 - Slug uniqueness is checked per language.
 - After saving, the editor redirects to `/${language}/posts/${slug}`.
 - Admin entry points include `?lang=en|es` to preselect language.
+
+### Admin Translation Linking
+
+The post editor includes a **Translations** section:
+
+- Search and select posts in other languages.
+- Enforces one linked post per language.
+- On create/edit, linked posts can optionally provide the featured image via **Use image from linked post**.
 
 ## Static Content by Language
 

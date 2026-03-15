@@ -25,6 +25,36 @@ Get your `user_id` from the `users` table after logging in with Google.
 2. **Modify:** Update any field (title, content, image)
 3. **Save:** Click "Update Post" → Confirm → Changes live immediately
 
+## Linking Translations (Equivalent Posts Across Languages)
+
+Use the **Translations** section in the post editor to connect equivalent articles across languages (so the language switcher can take readers to the matching post instead of a 404).
+
+### How To Link
+
+1. Open **Create Post** or **Edit Post**
+2. In **Translations**, type at least 2 characters in the search box
+3. Select the matching post(s) in other languages
+4. Save the post
+
+### Rules
+
+- You cannot link a post in the **same language** as the current post.
+- You can link **multiple** posts, but **only one per language**.
+- If you remove a linked post and save, that post is **unlinked from the translation group**.
+
+### Best Practices
+
+- Link translations as soon as you publish the second language version.
+- Keep slugs language-specific; translation links handle navigation between them.
+
+## Featured Image Inheritance From Linked Posts
+
+When creating a translated post, you can inherit the featured image from the first linked post:
+
+- If the first linked post has an image, **Use image from linked post** can auto-fill the featured image on create.
+- You can click **Change image** to override with a different URL or an upload.
+- Unlinking translations later does not remove an image that was already saved to the post.
+
 ## Deleting Posts
 
 ⚠️ **Warning:** Deleting a post permanently removes:

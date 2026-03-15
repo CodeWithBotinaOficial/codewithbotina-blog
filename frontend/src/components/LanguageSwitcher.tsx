@@ -1,14 +1,18 @@
 import { Globe } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
+import { getApiUrl } from "../lib/env";
 import { getLocalizedPath, LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../lib/i18n";
 import type { SupportedLanguage } from "../lib/i18n";
 
 interface Props {
   currentLanguage: SupportedLanguage;
   currentPath: string;
+  currentPostId?: string;
 }
 
-export default function LanguageSwitcher({ currentLanguage, currentPath }: Props) {
+const API_URL = getApiUrl().replace(/\/$/, "");
+
+export default function LanguageSwitcher({ currentLanguage, currentPath, currentPostId }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -18,10 +22,36 @@ export default function LanguageSwitcher({ currentLanguage, currentPath }: Props
     return () => document.removeEventListener("click", handleClick);
   }, [isOpen]);
 
-  const switchLanguage = (newLang: SupportedLanguage) => {
+  const switchLanguage = async (newLang: SupportedLanguage) => {
     document.cookie = `preferred_language=${newLang}; path=/; max-age=31536000; SameSite=Lax; Secure`;
-    const nextPath = getLocalizedPath(currentPath, newLang);
-    window.location.href = nextPath;
+
+    // On post pages, attempt to resolve an equivalent post before redirecting.
+    if (currentPostId && currentPath.includes("/posts/")) {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/posts/${encodeURIComponent(currentPostId)}/translation/${encodeURIComponent(newLang)}`,
+        );
+        if (res.ok) {
+          const payload = await res.json();
+          const data = payload?.data ?? payload;
+          const translatedSlug = data?.slug as string | undefined;
+          if (translatedSlug) {
+            window.location.href = `/${newLang}/posts/${translatedSlug}`;
+            return;
+          }
+        }
+        if (res.status === 404) {
+          const origin = window.location.pathname;
+          window.location.href =
+            `/${newLang}/404?missing_translation=true&origin=${encodeURIComponent(origin)}&origin_lang=${encodeURIComponent(currentLanguage)}&target_lang=${encodeURIComponent(newLang)}`;
+          return;
+        }
+      } catch (_err) {
+        // Fall back to localized path below.
+      }
+    }
+
+    window.location.href = getLocalizedPath(currentPath, newLang);
   };
 
   return (

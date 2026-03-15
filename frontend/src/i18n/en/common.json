@@ -50,7 +50,12 @@
     "fetchPosts": "Error fetching posts. Please try again later.",
     "notFoundTitle": "Page not found",
     "notFoundMessage": "We couldn’t find the page you’re looking for. It may have been moved or renamed.",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "missingTranslationTitle": "Translation unavailable",
+    "missingTranslationMessage": "This post is not yet available in {{language}}. Would you like to:",
+    "viewOriginalLanguage": "View in original language",
+    "returnHome": "Return to homepage",
+    "browsePosts": "Browse all {{language}} posts"
   },
   "cookieConsent": {
     "bannerTitle": "We use cookies",
