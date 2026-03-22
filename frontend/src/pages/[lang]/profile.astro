@@ -62,8 +62,10 @@ const labels = {
   currentLanguage={language}
   currentPath={Astro.url.pathname}
 >
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
   <section class="container-responsive py-12">
     <ProfilePageClient language={language} labels={labels} client:load />
   </section>
 </BaseLayout>
-
