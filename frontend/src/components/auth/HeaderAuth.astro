@@ -13,6 +13,8 @@ const labels = {
   signOut: t(currentLanguage, "signOut", "auth"),
   loading: t(currentLanguage, "loading", "auth"),
 };
+
+const profileHref = `/${currentLanguage}/profile`;
 ---
 
-<HeaderAuthControls labels={labels} client:load />
+<HeaderAuthControls labels={labels} profileHref={profileHref} client:load />

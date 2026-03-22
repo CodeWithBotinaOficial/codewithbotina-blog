@@ -66,3 +66,21 @@ All existing posts are set to Spanish (`es`) during migration. See the migration
 - `docs/i18n-implementation.md`
 - `docs/tag-system.md`
 - `docs/SEO.md`
+
+## Account Deletion (Profile Page)
+
+Users can delete their own account from `/{lang}/profile`. The backend endpoint `POST /api/users/delete-account` calls a database function that performs deletion in a single transaction.
+
+### Key Tables and Relationships
+
+- `auth.users` (Supabase Auth): the canonical account record
+- `public.users`: profile mirror (FK to `auth.users(id)` with `ON DELETE CASCADE`)
+- `public.comments`: FK `user_id -> public.users(id)` with `ON DELETE CASCADE`
+- `public.post_reactions`: FK `user_id -> public.users(id)` with `ON DELETE CASCADE`
+- `public.admin_users`: FK `user_id -> public.users(id)` with `ON DELETE CASCADE`
+
+### Transaction Requirement
+
+Deletion must be atomic to prevent partial removal (data integrity). This is implemented via:
+
+- `public.delete_user_account(uuid)` (SECURITY DEFINER): deletes user-owned rows (comments, reactions, admin status, optional session tables) and then deletes `auth.users`, allowing cascades to clean up dependent records.

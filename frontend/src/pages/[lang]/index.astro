@@ -30,6 +30,8 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+
+const accountDeleted = Astro.url.searchParams.get("accountDeleted") === "1";
 ---
 
 <BaseLayout
@@ -47,6 +49,13 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   </Fragment>
   <section class="bg-[var(--color-bg-subtle)] py-20 border-b border-[var(--color-border)]">
     <div class="container-responsive text-center">
+      {accountDeleted ? (
+        <div class="mx-auto mb-8 max-w-xl rounded-xl border border-[var(--color-success)]/25 bg-green-50 px-4 py-3 text-left">
+          <p class="text-sm font-semibold text-[var(--color-success)]">
+            {t(language, "deleteAccount.success")}
+          </p>
+        </div>
+      ) : null}
       <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-[var(--color-text-primary)]">
         {t(language, "site.title")}
       </h1>

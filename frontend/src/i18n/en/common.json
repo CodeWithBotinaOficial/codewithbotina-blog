@@ -77,5 +77,40 @@
     "alwaysActive": "Always active",
     "save": "Save preferences",
     "cancel": "Cancel"
+  },
+  "profile": {
+    "title": "My Profile",
+    "adminBadge": "Admin",
+    "email": "Email",
+    "statistics": "Activity Statistics",
+    "likesGiven": "Likes Given",
+    "dislikesGiven": "Dislikes Given",
+    "commentsPosted": "Comments Posted",
+    "likedPosts": "Posts You've Liked",
+    "noLikedPosts": "You haven't liked any posts yet",
+    "viewAll": "View All",
+    "deleteAccount": "Delete Account",
+    "dangerZone": "Danger Zone",
+    "deleteWarning": "Permanently delete your account and all associated data"
+  },
+  "deleteAccount": {
+    "modalTitle": "Delete Your Account?",
+    "warning": "This action is permanent and cannot be undone. Deleting your account will remove:",
+    "deletedItems": {
+      "profile": "Profile information (name, email, photo)",
+      "comments": "All comments you've posted",
+      "reactions": "All reactions (likes and dislikes)",
+      "sessions": "Session history",
+      "tokens": "Authentication tokens"
+    },
+    "additionalWarning": "Other users will no longer see your comments on posts.",
+    "confirmationPrompt": "Type DELETE to confirm",
+    "confirmationPlaceholder": "Type DELETE",
+    "confirmationWord": "DELETE",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete My Account",
+    "processing": "Deleting account...",
+    "success": "Account deleted successfully",
+    "error": "Failed to delete account. Please try again."
   }
 }

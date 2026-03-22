@@ -7,6 +7,8 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ Google OAuth authentication
 - ✅ Comment system with admin pinning
 - ✅ Like/dislike reactions
+- ✅ User profile page with activity statistics
+- ✅ Self-serve account deletion from profile page (permanent)
 - ✅ **Admin post management (create, edit, delete)**
 - ✅ **Localized admin editor (English/Spanish)**
 - ✅ **AI-powered tag suggestions + tag autocomplete**

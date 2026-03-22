@@ -123,6 +123,40 @@ Lists images from the Supabase Storage bucket used for blog images (`blog-images
 - Requests with unsupported language codes are rejected by the API and the database constraint.
 - The default language for existing content is `es`.
 
+## Users (Authenticated)
+
+### GET `/api/users/profile`
+
+Fetch the current user's profile dashboard data.
+
+**Authentication:** Required (cookie-based session).
+
+**Query parameters:**
+- `limit` (optional) — liked posts to return, defaults to 20, max 200.
+- `offset` (optional) — pagination offset, defaults to 0.
+
+**Response:**
+- `data.stats.likes_given` (number)
+- `data.stats.dislikes_given` (number)
+- `data.stats.comments_posted` (number)
+- `data.liked_posts_total` (number)
+- `data.liked_posts` (array) — items contain `liked_at` and a `post` object (`id`, `titulo`, `slug`, `language`, `imagen_url`)
+
+### POST `/api/users/delete-account`
+
+Permanently delete the current user's account and all associated data.
+
+**Authentication:** Required (cookie-based session). A user can only delete their own account.
+
+**Request body:** none
+
+**Response:**
+- `data.deleted` (boolean)
+
+**Notes:**
+- The backend clears auth cookies on success, signing the user out immediately.
+- Deletion is executed transactionally via a database function (`delete_user_account`).
+
 ## Related Docs
 
 - `docs/database-schema.md`

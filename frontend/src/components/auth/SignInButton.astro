@@ -10,9 +10,22 @@ const { label = "Sign in with Google" } = Astro.props;
   import { getAuthRoute } from "../../lib/auth-endpoints";
   const button = document.querySelector('[data-auth="signin"]');
 
+  const resolveNext = () => {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next");
+    if (!next) return window.location.href;
+    try {
+      const resolved = new URL(next, window.location.origin);
+      if (resolved.origin !== window.location.origin) return window.location.href;
+      return resolved.toString();
+    } catch (_error) {
+      return window.location.href;
+    }
+  };
+
   if (button) {
     button.addEventListener("click", () => {
-      const next = encodeURIComponent(window.location.href);
+      const next = encodeURIComponent(resolveNext());
       window.location.assign(`${getAuthRoute("/google")}?next=${next}`);
     });
   }

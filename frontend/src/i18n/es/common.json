@@ -77,5 +77,40 @@
     "alwaysActive": "Siempre activas",
     "save": "Guardar preferencias",
     "cancel": "Cancelar"
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "adminBadge": "Administrador",
+    "email": "Correo electrónico",
+    "statistics": "Estadísticas de Actividad",
+    "likesGiven": "Me Gusta Dados",
+    "dislikesGiven": "No Me Gusta Dados",
+    "commentsPosted": "Comentarios Publicados",
+    "likedPosts": "Publicaciones que te Gustaron",
+    "noLikedPosts": "Aún no has dado me gusta a ninguna publicación",
+    "viewAll": "Ver Todas",
+    "deleteAccount": "Eliminar Cuenta",
+    "dangerZone": "Zona de Peligro",
+    "deleteWarning": "Eliminar permanentemente tu cuenta y todos los datos asociados"
+  },
+  "deleteAccount": {
+    "modalTitle": "¿Eliminar Tu Cuenta?",
+    "warning": "Esta acción es permanente y no se puede deshacer. Eliminar tu cuenta eliminará:",
+    "deletedItems": {
+      "profile": "Información de perfil (nombre, correo, foto)",
+      "comments": "Todos los comentarios que has publicado",
+      "reactions": "Todas las reacciones (me gusta y no me gusta)",
+      "sessions": "Historial de sesiones",
+      "tokens": "Tokens de autenticación"
+    },
+    "additionalWarning": "Otros usuarios ya no verán tus comentarios en las publicaciones.",
+    "confirmationPrompt": "Escribe ELIMINAR para confirmar",
+    "confirmationPlaceholder": "Escribe ELIMINAR",
+    "confirmationWord": "ELIMINAR",
+    "cancel": "Cancelar",
+    "confirmDelete": "Eliminar Mi Cuenta",
+    "processing": "Eliminando cuenta...",
+    "success": "Cuenta eliminada exitosamente",
+    "error": "Error al eliminar la cuenta. Por favor intenta de nuevo."
   }
 }
