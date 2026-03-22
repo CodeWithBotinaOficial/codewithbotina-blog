@@ -20,6 +20,12 @@ export const handler: Handlers = {
 
     try {
       const user = await requireAuth(req);
+      const uuidLike =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          .test(user.id);
+      if (!uuidLike) {
+        throw new AppError("Invalid user id", 400);
+      }
 
       // Transactional deletion is implemented in the database via a SECURITY DEFINER function.
       const { error } = await supabase.rpc("delete_user_account", {
@@ -31,9 +37,12 @@ export const handler: Handlers = {
         const missingFn = String(error.message ?? "").toLowerCase().includes(
           "function delete_user_account",
         );
+        const typeMismatch = error.code === "42883";
         throw new AppError(
           missingFn
             ? "Account deletion is not configured on the database (missing delete_user_account function)"
+            : typeMismatch
+            ? "Account deletion function is misconfigured (type mismatch). Please update delete_user_account and retry."
             : "Failed to delete account",
           500,
         );
@@ -59,4 +68,3 @@ export const handler: Handlers = {
     }
   },
 };
-
