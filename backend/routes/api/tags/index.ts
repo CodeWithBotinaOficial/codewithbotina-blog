@@ -19,7 +19,8 @@ export const handler: Handlers = {
     try {
       const { data: tags, error } = await supabase
         .from("tags")
-        .select("id, name, slug, description, updated_at, created_at, usage_count")
+        // Some environments do not have tags.updated_at; only select stable columns.
+        .select("id, name, slug, description, created_at, usage_count")
         .order("usage_count", { ascending: false });
 
       if (error) {

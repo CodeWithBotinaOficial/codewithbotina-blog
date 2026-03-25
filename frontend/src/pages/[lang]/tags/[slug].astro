@@ -127,6 +127,19 @@ if (!tag || hasTagError) {
 const siteUrl = getSiteUrl().replace(/\/$/, "");
 const totalPages = totalPagesFor(totalPosts, perPage);
 const currentPage = normalizePage(requestedPage, totalPages);
+const invalidPerPageProvided = Astro.url.searchParams.has("per_page") && !requestedPerPage;
+const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageRaw === null;
+const outOfRange = currentPage !== requestedPage;
+const missingPageForCustomPerPage = perPage !== DEFAULT_PER_PAGE && !Astro.url.searchParams.has("page");
+const paginationKeys = new Set(["page", "per_page"]);
+const hasOtherParams = Array.from(Astro.url.searchParams.keys()).some((key) => !paginationKeys.has(key));
+const canonicalizeBase = !hasOtherParams && currentPage === 1 && perPage === DEFAULT_PER_PAGE &&
+  (Astro.url.searchParams.has("page") || Astro.url.searchParams.has("per_page"));
+
+if (invalidPerPageProvided || invalidPageProvided || outOfRange || missingPageForCustomPerPage || canonicalizeBase) {
+  return Astro.redirect(buildPageHref(`/${language}/tags/${tag.slug}`, currentPage, perPage), 302);
+}
+
 const canonicalPath = currentPage === 1 && perPage === DEFAULT_PER_PAGE
   ? `/${language}/tags/${tag.slug}`
   : buildPageHref(`/${language}/tags/${tag.slug}`, currentPage, perPage);

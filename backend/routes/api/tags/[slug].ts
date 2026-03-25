@@ -40,7 +40,8 @@ export const handler: Handlers = {
 
       const { data: tag, error: tagError } = await supabase
         .from("tags")
-        .select("id, name, slug, description, updated_at, created_at")
+        // Some environments do not have tags.updated_at; only select stable columns.
+        .select("id, name, slug, description, created_at")
         .eq("slug", slug)
         .maybeSingle();
 
@@ -64,7 +65,7 @@ export const handler: Handlers = {
       let postsQuery = supabase
         .from("posts")
         .select(
-          "id, titulo, slug, body, imagen_url, fecha, updated_at, language, post_tags!inner(tag_id)",
+          "id, titulo, slug, body, imagen_url, fecha, language, post_tags!inner(tag_id)",
         )
         .eq("post_tags.tag_id", tag.id)
         .order("fecha", { ascending: false })
@@ -92,7 +93,6 @@ export const handler: Handlers = {
         body: row.body,
         imagen_url: row.imagen_url,
         fecha: row.fecha,
-        updated_at: row.updated_at ?? null,
         language: row.language,
       }));
 
