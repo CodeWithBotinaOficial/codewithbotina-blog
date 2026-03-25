@@ -51,7 +51,7 @@ export default function LanguageSwitcher({ currentLanguage, currentPath, current
       }
     }
 
-    window.location.href = getLocalizedPath(currentPath, newLang);
+    window.location.href = `${getLocalizedPath(currentPath, newLang)}${window.location.search || ""}`;
   };
 
   return (

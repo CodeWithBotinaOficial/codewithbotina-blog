@@ -20,6 +20,19 @@ All post pages and tag pages set canonical URLs to prevent duplicates.
 - Posts: `https://blog.codewithbotina.com/posts/{slug}`
 - Tags: `https://blog.codewithbotina.com/tags/{slug}`
 
+## 2.1 Pagination SEO (Home and Tag Pages)
+
+Homepage and tag pages support query-based pagination:
+
+- `/{lang}/?page=N&per_page=10|50|100`
+- `/{lang}/tags/{slug}?page=N&per_page=10|50|100`
+
+SEO behavior:
+
+- Page 1 with the default density (10 per page) uses the base canonical URL (no query params).
+- Page 2+ and/or custom `per_page` values use a self-referential canonical URL including query params.
+- `rel="prev"` / `rel="next"` links are rendered when applicable.
+
 ## 3. Meta Tags
 
 **Post pages** (`/posts/[slug]`):

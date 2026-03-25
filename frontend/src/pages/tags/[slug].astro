@@ -9,5 +9,5 @@ const language = detectLanguage(
   Astro.request.headers.get("accept-language"),
 );
 
-return Astro.redirect(`/${language}/tags/${slug}`, 302);
+return Astro.redirect(`/${language}/tags/${slug}${Astro.url.search}`, 302);
 ---

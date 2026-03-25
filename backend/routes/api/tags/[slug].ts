@@ -15,12 +15,20 @@ export const handler: Handlers = {
   async GET(req, ctx) {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
-    const languageParam = new URL(req.url).searchParams.get("language");
+    const url = new URL(req.url);
+    const languageParam = url.searchParams.get("language");
     const normalizedLanguage = languageParam ? languageParam.trim().toLowerCase() : null;
     const supportedLanguages = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
     const language = normalizedLanguage && supportedLanguages.has(normalizedLanguage)
       ? normalizedLanguage
       : null;
+    const allowedPerPage = new Set([10, 50, 100]);
+    const limitRaw = Number(url.searchParams.get("limit") ?? "20");
+    const offsetRaw = Number(url.searchParams.get("offset") ?? "0");
+    const limit = Number.isFinite(limitRaw) && allowedPerPage.has(limitRaw)
+      ? Math.trunc(limitRaw)
+      : 20;
+    const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.trunc(offsetRaw)) : 0;
 
     try {
       const slug = ctx.params.slug?.trim();
@@ -48,70 +56,47 @@ export const handler: Handlers = {
         return response;
       }
 
-      let postTags:
-        | Array<{ post?: unknown }>
-        | null = null;
+      let countQuery = supabase
+        .from("posts")
+        .select("id, post_tags!inner(tag_id)", { count: "exact", head: true })
+        .eq("post_tags.tag_id", tag.id);
 
-      let withUpdatedQuery = supabase
-        .from("post_tags")
-        .select(`
-          post:posts (
-            id,
-            titulo,
-            slug,
-            body,
-            imagen_url,
-            fecha,
-            updated_at,
-            language
-          )
-        `)
-        .eq("tag_id", tag.id);
+      let postsQuery = supabase
+        .from("posts")
+        .select(
+          "id, titulo, slug, body, imagen_url, fecha, updated_at, language, post_tags!inner(tag_id)",
+        )
+        .eq("post_tags.tag_id", tag.id)
+        .order("fecha", { ascending: false })
+        .range(offset, offset + limit - 1);
 
       if (language) {
-        withUpdatedQuery = withUpdatedQuery.eq("post.language", language);
+        countQuery = countQuery.eq("language", language);
+        postsQuery = postsQuery.eq("language", language);
       }
 
-      const withUpdated = await withUpdatedQuery
-        .order("created_at", { ascending: false });
+      const [{ count: total_posts, error: countErr }, { data, error: postsErr }] =
+        await Promise.all([countQuery, postsQuery]);
 
-      if (withUpdated.error) {
-        const message = String(withUpdated.error?.message || "");
-        if (message.includes("updated_at")) {
-          let withoutUpdatedQuery = supabase
-            .from("post_tags")
-            .select(`
-              post:posts (
-                id,
-                titulo,
-                slug,
-                body,
-                imagen_url,
-                fecha,
-                language
-              )
-            `)
-            .eq("tag_id", tag.id);
-
-          if (language) {
-            withoutUpdatedQuery = withoutUpdatedQuery.eq("post.language", language);
-          }
-
-          const withoutUpdated = await withoutUpdatedQuery
-            .order("created_at", { ascending: false });
-          postTags = withoutUpdated.data ?? [];
-        } else {
-          postTags = [];
-        }
-      } else {
-        postTags = withUpdated.data ?? [];
+      if (countErr || postsErr) {
+        console.error("Supabase error:", countErr || postsErr);
+        const response = errorResponse("Failed to fetch tag posts", 500);
+        headers.forEach((value, key) => response.headers.set(key, value));
+        return response;
       }
 
-      const posts = (postTags ?? [])
-        .map((item: { post?: unknown }) => item.post)
-        .filter(Boolean);
+      const posts = (data ?? []).map((row: any) => ({
+        id: row.id,
+        titulo: row.titulo,
+        slug: row.slug,
+        body: row.body,
+        imagen_url: row.imagen_url,
+        fecha: row.fecha,
+        updated_at: row.updated_at ?? null,
+        language: row.language,
+      }));
 
-      const response = successResponse({ tag, posts });
+      const response = successResponse({ tag, posts, total_posts: total_posts ?? 0 });
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {

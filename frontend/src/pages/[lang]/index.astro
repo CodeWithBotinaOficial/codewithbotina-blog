@@ -5,10 +5,21 @@ import BaseLayout from "../../components/BaseLayout.astro";
 import PostCard from "../../components/PostCard.astro";
 import SearchBar from "../../components/SearchBar.astro";
 import AdminCreatePostButton from "../../components/admin/AdminCreatePostButton";
+import PaginationControls from "../../components/pagination/PaginationControls";
 import { supabase } from "../../lib/supabase";
 import { getSiteUrl } from "../../lib/env";
 import type { Post } from "../../types/post";
-import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
+import {
+  DEFAULT_PER_PAGE,
+  buildPageHref,
+  normalizePage,
+  offsetFor,
+  parsePage,
+  parsePerPage,
+  totalPagesFor,
+  type AllowedPerPage,
+} from "../../lib/pagination";
 
 const { lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
@@ -17,21 +28,67 @@ if (!lang || !isSupportedLanguage(lang)) {
   return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
 }
 
+const requestedPerPage = parsePerPage(Astro.url.searchParams.get("per_page"));
+const perPage = (requestedPerPage ?? DEFAULT_PER_PAGE) as AllowedPerPage;
+const requestedPageRaw = parsePage(Astro.url.searchParams.get("page"));
+const requestedPage = requestedPageRaw ?? 1;
+
+const { count: totalPostsCount, error: countError } = await supabase
+  .from("posts")
+  .select("id", { count: "exact", head: true })
+  .eq("language", language);
+
+const totalPosts = totalPostsCount ?? 0;
+const totalPages = totalPagesFor(totalPosts, perPage);
+const currentPage = normalizePage(requestedPage, totalPages);
+
+const invalidPerPageProvided = Astro.url.searchParams.has("per_page") && !requestedPerPage;
+const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageRaw === null;
+const outOfRange = currentPage !== requestedPage;
+const missingPageForCustomPerPage = perPage !== DEFAULT_PER_PAGE && !Astro.url.searchParams.has("page");
+
+const paginationKeys = new Set(["page", "per_page"]);
+const hasOtherParams = Array.from(Astro.url.searchParams.keys()).some((key) => !paginationKeys.has(key));
+const canonicalizeBase = !hasOtherParams && currentPage === 1 && perPage === DEFAULT_PER_PAGE &&
+  (Astro.url.searchParams.has("page") || Astro.url.searchParams.has("per_page"));
+
+if (invalidPerPageProvided || invalidPageProvided || outOfRange || missingPageForCustomPerPage || canonicalizeBase) {
+  return Astro.redirect(buildPageHref(`/${language}/`, currentPage, perPage), 302);
+}
+
+const offset = offsetFor(currentPage, perPage);
 const { data: posts, error } = await supabase
   .from("posts")
   .select("id, titulo, slug, body, imagen_url, fecha, language")
   .eq("language", language)
-  .order("fecha", { ascending: false });
+  .order("fecha", { ascending: false })
+  .range(offset, offset + perPage - 1);
 
 const allPosts = (posts || []) as Post[];
 const siteUrl = getSiteUrl().replace(/\/$/, "");
-const canonicalUrl = `${siteUrl}/${language}/`;
+const canonicalPath = currentPage === 1 && perPage === DEFAULT_PER_PAGE
+  ? `/${language}/`
+  : buildPageHref(`/${language}/`, currentPage, perPage);
+const canonicalUrl = `${siteUrl}${canonicalPath}`;
+const prevPath = currentPage > 1 ? buildPageHref(`/${language}/`, currentPage - 1, perPage) : null;
+const nextPath = currentPage < totalPages ? buildPageHref(`/${language}/`, currentPage + 1, perPage) : null;
+
 const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
-  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+  href: `${siteUrl}${buildPageHref(`/${lang}/`, currentPage, perPage)}`,
 }));
 
 const accountDeleted = Astro.url.searchParams.get("accountDeleted") === "1";
+const paginationLabels = {
+  previous: t(language, "pagination.previous"),
+  next: t(language, "pagination.next"),
+  page: t(language, "pagination.page"),
+  of: t(language, "pagination.of"),
+  postsPerPage: t(language, "pagination.postsPerPage"),
+  show: t(language, "pagination.show"),
+  goToPage: t(language, "pagination.goToPage"),
+  currentPage: t(language, "pagination.currentPage"),
+};
 ---
 
 <BaseLayout
@@ -46,6 +103,8 @@ const accountDeleted = Astro.url.searchParams.get("accountDeleted") === "1";
       <link rel="alternate" hreflang={link.lang} href={link.href} />
     ))}
     <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/`} />
+    {prevPath ? <link rel="prev" href={`${siteUrl}${prevPath}`} /> : null}
+    {nextPath ? <link rel="next" href={`${siteUrl}${nextPath}`} /> : null}
   </Fragment>
   <section class="bg-[var(--color-bg-subtle)] py-20 border-b border-[var(--color-border)]">
     <div class="container-responsive text-center">
@@ -77,33 +136,52 @@ const accountDeleted = Astro.url.searchParams.get("accountDeleted") === "1";
 
   <section class="py-16">
     <div class="container-responsive">
-      {error && (
+      {(countError || error) && (
         <div class="text-center py-20">
           <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
         </div>
       )}
-      {!error && (
+      {!(countError || error) && (
         <>
-          <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {allPosts.map((post) => (
-              <div class="post-card-wrapper" data-title={post.titulo} data-excerpt={post.body}>
-                <PostCard post={post} language={language} />
+          {totalPosts === 0 ? (
+            <div class="text-center py-20">
+              <p class="text-xl text-[var(--color-text-secondary)]">
+                {t(language, "pagination.noPosts")}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {allPosts.map((post) => (
+                  <div class="post-card-wrapper" data-title={post.titulo} data-excerpt={post.body}>
+                    <PostCard post={post} language={language} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div id="no-results" class="hidden text-center py-20">
-            <p class="text-xl text-[var(--color-text-secondary)]">
-              {t(language, "search.noResults")}
-            </p>
-            <button
-              id="reset-search"
-              class="mt-4 text-[var(--color-accent-primary)] hover:underline"
-              onclick="document.getElementById('clear-search').click()"
-            >
-              {t(language, "search.clear")}
-            </button>
-          </div>
+              <div id="no-results" class="hidden text-center py-20">
+                <p class="text-xl text-[var(--color-text-secondary)]">
+                  {t(language, "search.noResults")}
+                </p>
+                <button
+                  id="reset-search"
+                  class="mt-4 text-[var(--color-accent-primary)] hover:underline"
+                  onclick="document.getElementById('clear-search').click()"
+                >
+                  {t(language, "search.clear")}
+                </button>
+              </div>
+
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                perPage={perPage}
+                baseUrl={`/${language}/`}
+                labels={paginationLabels}
+                client:load
+              />
+            </>
+          )}
         </>
       )}
     </div>

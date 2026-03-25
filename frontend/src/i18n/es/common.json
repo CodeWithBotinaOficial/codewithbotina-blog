@@ -112,5 +112,21 @@
     "processing": "Eliminando cuenta...",
     "success": "Cuenta eliminada exitosamente",
     "error": "Error al eliminar la cuenta. Por favor intenta de nuevo."
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página",
+    "of": "de",
+    "postsPerPage": "Posts por página:",
+    "show": "Mostrar:",
+    "showing": "Mostrando",
+    "to": "a",
+    "posts": "publicaciones",
+    "goToPage": "Ir a la página {{page}}",
+    "currentPage": "Página actual, página {{page}}",
+    "firstPage": "Ir a la primera página",
+    "lastPage": "Ir a la última página",
+    "noPosts": "No se encontraron publicaciones"
   }
 }

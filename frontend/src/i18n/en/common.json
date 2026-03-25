@@ -112,5 +112,21 @@
     "processing": "Deleting account...",
     "success": "Account deleted successfully",
     "error": "Failed to delete account. Please try again."
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of",
+    "postsPerPage": "Posts per page:",
+    "show": "Show:",
+    "showing": "Showing",
+    "to": "to",
+    "posts": "posts",
+    "goToPage": "Go to page {{page}}",
+    "currentPage": "Current page, page {{page}}",
+    "firstPage": "Go to first page",
+    "lastPage": "Go to last page",
+    "noPosts": "No posts found"
   }
 }
