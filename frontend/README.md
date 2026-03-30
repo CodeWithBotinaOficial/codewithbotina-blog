@@ -41,16 +41,19 @@ Administrators can create, edit, and delete posts directly from the frontend.
 **Creating Posts:**
 1. Navigate to homepage (must be logged in as admin)
 2. Click "Create New Post" button
-3. Fill in title, content (Markdown), language, tags, and optional image
-4. Preview content before publishing
-5. Click "Create Post" and confirm
+3. Select a primary language and optionally add translations (create multiple languages in one interface)
+4. Fill in title/content for each selected language
+5. Choose shared or per-language tags/images as needed
+6. Preview content before publishing
+7. Click "Create Post" and confirm
 
 **Editing Posts:**
 1. Navigate to post detail page (must be admin)
 2. Click three-dot menu → "Edit Post"
-3. Modify content, language, tags, or image
-4. Click "Update Post" and confirm
-5. Existing tags load automatically and persist unless changed
+3. If the post has linked translations, all versions load into a multi-language editor
+4. Modify one or more versions (titles, slugs, content, tags, images)
+5. Optionally add a new translation or unlink an existing translation
+6. Click "Update Post" and confirm
 
 **Deleting Posts:**
 1. Navigate to post detail page (must be admin)
@@ -80,6 +83,30 @@ Admin editor supports English and Spanish routes:
 - `/es/admin/create-post`
 - `/en/admin/edit-post/[slug]`
 - `/es/admin/edit-post/[slug]`
+
+---
+
+## Multi-Language Post Editor
+
+### Create Post Page
+
+- Select a primary language.
+- Optionally select additional translation languages.
+- Fill fields per language section.
+- Submit to create all language versions and link them via `post_translations`.
+
+### Edit Post Page
+
+- If translations are linked, the editor loads all linked versions.
+- You can update multiple language records in one save.
+- You can add a new translation (creates a new post record and links it).
+- You can unlink a translation (removes the link but does not delete the post).
+
+### Components
+
+- `src/components/admin/MultiLanguagePostEditor.tsx`
+- `src/components/admin/TagSelector.tsx`
+- `src/components/admin/StorageImageGallery.tsx`
 
 ---
 

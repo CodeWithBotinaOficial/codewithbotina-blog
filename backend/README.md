@@ -204,6 +204,9 @@ ALLOWED_ORIGIN=https://blog.codewithbotina.com
 
 - `GET /api/posts` (optional `language`, `limit`, `offset`)
 - `GET /api/posts/:slug` (optional `language`, includes tags)
+- `POST /api/posts/create` (single post) or `{ "posts": [...] }` batch create (links via `post_translations`)
+- `PUT /api/posts/:slug/update` (single post update)
+- `PUT /api/posts/bulk-update` (bulk update/create/unlink translations, best-effort transactional rollback)
 
 ### Endpoints
 

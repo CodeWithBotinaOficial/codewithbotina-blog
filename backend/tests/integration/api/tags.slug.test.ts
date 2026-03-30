@@ -26,28 +26,41 @@ Deno.test("Integration: GET /api/tags/:slug returns tag and posts", async () => 
       };
     }
 
-    if (table === "post_tags") {
+    if (table === "posts") {
       return {
-        select: () => ({
-          eq: () => ({
-            order: () =>
-              Promise.resolve({
-                data: [
-                  {
-                    post: {
-                      id: "post-1",
-                      titulo: "React intro",
-                      slug: "react-intro",
-                      body: "Body",
-                      fecha: new Date().toISOString(),
-                      language: "en",
-                    },
-                  },
-                ],
-                error: null,
+        select: (_columns: unknown, opts?: { count?: string; head?: boolean }) => {
+          const isCountQuery = Boolean(opts?.head) && opts?.count === "exact";
+
+          // countQuery: .select(..., { count:"exact", head:true }).eq(...)
+          if (isCountQuery) {
+            return {
+              eq: () => Promise.resolve({ count: 1, error: null }),
+            };
+          }
+
+          // postsQuery: .select(...).eq(...).order(...).range(...)
+          return {
+            eq: () => ({
+              order: () => ({
+                range: () =>
+                  Promise.resolve({
+                    data: [
+                      {
+                        id: "post-1",
+                        titulo: "React intro",
+                        slug: "react-intro",
+                        body: "Body",
+                        imagen_url: null,
+                        fecha: new Date().toISOString(),
+                        language: "en",
+                      },
+                    ],
+                    error: null,
+                  }),
               }),
-          }),
-        }),
+            }),
+          };
+        },
       };
     }
 
