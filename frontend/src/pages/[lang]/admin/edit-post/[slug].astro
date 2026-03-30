@@ -2,12 +2,12 @@
 export const prerender = false;
 
 import BaseLayout from "../../../../components/BaseLayout.astro";
-import PostEditor from "../../../../components/admin/PostEditor";
+import MultiLanguagePostEditor from "../../../../components/admin/MultiLanguagePostEditor";
 import { supabase } from "../../../../lib/supabase";
 import { formatDate } from "../../../../lib/utils";
 import { getApiUrl } from "../../../../lib/env";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, t, type SupportedLanguage } from "../../../../lib/i18n";
-import { getPostEditorLabels, getTagSelectorLabels } from "../../../../lib/admin-editor";
+import { getTagSelectorLabels } from "../../../../lib/admin-editor";
 
 const { slug, lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
@@ -83,8 +83,7 @@ const tags = Array.isArray(post?.tags)
       .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
       .filter(Boolean))
   : [];
-const initialData = { ...post, tags, language };
-const editorLabels = getPostEditorLabels(language);
+const initialData = { ...post, tags, language: post.language ?? language };
 const tagLabels = getTagSelectorLabels(language);
 const pageTitle = t(language, "editPost", "admin");
 ---
@@ -99,11 +98,11 @@ const pageTitle = t(language, "editPost", "admin");
       </p>
     </div>
 
-    <PostEditor
+    <MultiLanguagePostEditor
       mode="edit"
+      uiLanguage={language}
       initialData={initialData}
       cancelHref={`/${language}/posts/${post.slug}`}
-      labels={editorLabels}
       tagLabels={tagLabels}
       client:load
     />

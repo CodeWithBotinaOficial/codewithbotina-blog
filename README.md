@@ -19,11 +19,29 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ **Image library: reuse existing Supabase Storage images (no duplicate uploads)**
 - ✅ **Tag persistence in edit flows (no accidental unlinking)**
 - ✅ **Post translation linking (equivalent posts across languages)**
+- ✅ **Simultaneous Post Translation: create/edit multiple language versions in one admin interface**
 - ✅ **Smart language switcher (redirects to translated post when available, translation-aware 404 when missing)**
 - ✅ Hybrid rendering (dynamic content without rebuilds)
 - ✅ SEO optimized (JSON-LD, Open Graph, keywords, RSS, sitemaps)
 - ✅ Bilingual i18n (English/Spanish) with language detection + hreflang
 - ✅ Fully responsive design
+
+## Multi-Language Post Management
+
+The blog supports creating and editing posts in multiple languages simultaneously.
+
+### Features
+
+- Create posts in multiple languages from a single interface
+- Edit all language versions together
+- Share tags across languages or customize per language
+- Use the same image for all versions or customize per language
+- Automatic translation linking via `post_translations`
+
+### Supported Languages
+
+- English (`en`)
+- Spanish (`es`)
 
 ## 🚀 Tech Stack
 
@@ -114,6 +132,7 @@ deno task start
 - [SEO](docs/SEO.md)
 - [Tag System](docs/tag-system.md)
 - [Database Schema](docs/database-schema.md)
+- [Multi-Language Posts](docs/multi-language-posts.md)
 - [i18n Implementation](docs/i18n-implementation.md)
 - [API Documentation](docs/api-documentation.md)
 

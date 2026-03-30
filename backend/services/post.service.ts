@@ -3,10 +3,30 @@ import { marked } from "marked";
 import { supabase } from "../lib/supabase.ts";
 import { sanitizeInput } from "../lib/validation.ts";
 import { ServiceResult } from "../types/api.types.ts";
-import { DeleteInfo, DeleteResult, PostCreate, PostLanguage, PostRecord, PostUpdate } from "../types/post.types.ts";
+import {
+  BulkPostUpdateRequest,
+  BulkPostUpdateResponse,
+  DeleteInfo,
+  DeleteResult,
+  PostCreate,
+  PostCreateBatchRequest,
+  PostCreateBatchResponse,
+  PostLanguage,
+  PostRecord,
+  PostUpdate,
+} from "../types/post.types.ts";
 import { AppError, DatabaseError, ValidationError } from "../utils/errors.ts";
 import { AuthService } from "./auth.service.ts";
 import { ImageService } from "./image.service.ts";
+import { PostTranslationService } from "./post-translation.service.ts";
+
+type SanitizedPost = {
+  titulo: string;
+  slug: string;
+  body: string;
+  imagen_url: string | null;
+  language: PostLanguage;
+};
 
 export class PostService {
   private authService: AuthService;
@@ -80,6 +100,474 @@ export class PostService {
     }
   }
 
+  async createPostsBatch(
+    data: PostCreateBatchRequest,
+    userId: string,
+  ): Promise<ServiceResult<PostCreateBatchResponse>> {
+    const translationService = new PostTranslationService();
+
+    const createdPostIds: string[] = [];
+    let createdGroupId: string | null = null;
+
+    try {
+      const isAdmin = await this.authService.isAdmin(userId);
+      if (!isAdmin) {
+        return { success: false, error: new AppError("Forbidden", 403) };
+      }
+
+      const posts = Array.isArray(data?.posts) ? data.posts : [];
+      if (posts.length < 1) {
+        return { success: false, error: new ValidationError("At least one post is required") };
+      }
+
+      const sanitizedPosts = posts.map((post) => {
+        const fallbackLanguage = this.normalizeLanguage(post.language) ?? "es";
+        return this.validateAndSanitize(post, fallbackLanguage);
+      });
+
+      // Ensure one post per language in the request.
+      const seenLangs = new Set<string>();
+      for (const post of sanitizedPosts) {
+        const lang = post.language;
+        if (seenLangs.has(lang)) {
+          return { success: false, error: new ValidationError("Only one post per language can be created") };
+        }
+        seenLangs.add(lang);
+      }
+
+      // Ensure slugs are unique per language in DB (and within the payload).
+      const seenSlugKeys = new Set<string>();
+      for (const post of sanitizedPosts) {
+        const key = `${post.language}:${post.slug}`;
+        if (seenSlugKeys.has(key)) {
+          return { success: false, error: new ValidationError("Duplicate slug detected in request") };
+        }
+        seenSlugKeys.add(key);
+
+        const unique = await this.isSlugUnique(post.slug, undefined, post.language);
+        if (!unique) {
+          return { success: false, error: new ValidationError("Slug already exists") };
+        }
+      }
+
+      const now = new Date().toISOString();
+      const insertRows = sanitizedPosts.map((post) => ({
+        titulo: post.titulo,
+        slug: post.slug,
+        body: post.body,
+        imagen_url: post.imagen_url ?? null,
+        fecha: now,
+        language: post.language,
+      }));
+
+      const { data: createdRows, error } = await supabase
+        .from("posts")
+        .insert(insertRows as any)
+        .select("id, titulo, slug, body, imagen_url, fecha, language");
+
+      if (error || !createdRows || createdRows.length !== insertRows.length) {
+        console.error("Supabase error:", error);
+        throw new DatabaseError("Failed to create posts");
+      }
+
+      // Map (language, slug) -> created post id for tag linking.
+      const idByKey = new Map<string, string>();
+      for (const row of createdRows as any[]) {
+        idByKey.set(`${row.language}:${row.slug}`, row.id);
+        createdPostIds.push(row.id);
+      }
+
+      for (const original of posts) {
+        const fallbackLanguage = this.normalizeLanguage(original.language) ?? "es";
+        const normalized = this.validateAndSanitize(original, fallbackLanguage);
+        const postId = idByKey.get(`${normalized.language}:${normalized.slug}`);
+        if (!postId) continue;
+        const tagIds = this.normalizeTagIds(original.tag_ids);
+        if (tagIds.length > 0) {
+          await this.safeInsertPostTags(postId, tagIds);
+        }
+      }
+
+      if (createdPostIds.length > 1) {
+        const baseId = createdPostIds[0];
+        const linkResult = await translationService.linkTranslations(baseId, createdPostIds.slice(1));
+        if (!linkResult.success) {
+          throw linkResult.error ?? new DatabaseError("Failed to link translations");
+        }
+        createdGroupId = linkResult.data?.translation_group_id ?? null;
+      }
+
+      return {
+        success: true,
+        data: {
+          posts: createdRows as PostRecord[],
+          translation_group_id: createdGroupId,
+        },
+      };
+    } catch (error) {
+      // Best-effort rollback for multi-step operations.
+      if (createdPostIds.length > 0) {
+        try {
+          await supabase.from("post_translations").delete().in("post_id", createdPostIds);
+        } catch (_e) {
+          // ignore
+        }
+        try {
+          await supabase.from("post_tags").delete().in("post_id", createdPostIds);
+        } catch (_e) {
+          // ignore
+        }
+        try {
+          await supabase.from("posts").delete().in("id", createdPostIds);
+        } catch (_e) {
+          // ignore
+        }
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error : new AppError("Internal server error"),
+      };
+    }
+  }
+
+  async bulkUpdatePosts(
+    data: BulkPostUpdateRequest,
+    userId: string,
+  ): Promise<ServiceResult<BulkPostUpdateResponse>> {
+    const translationService = new PostTranslationService();
+
+    const updatedPostIds: string[] = [];
+    const createdPostIds: string[] = [];
+    const unlinkedPostIds: string[] = [];
+    const translationGroupByBase: Record<string, string | null> = {};
+
+    // Rollback snapshots.
+    const postSnapshotById = new Map<string, PostRecord>();
+    const tagSnapshotByPostId = new Map<string, string[]>();
+    const translationSnapshotByGroupId = new Map<string, Array<{ post_id: string; translation_group_id: string; language: string }>>();
+    const translationGroupIdsCreated = new Set<string>();
+
+    try {
+      const isAdmin = await this.authService.isAdmin(userId);
+      if (!isAdmin) {
+        return { success: false, error: new AppError("Forbidden", 403) };
+      }
+
+      const updates = Array.isArray(data?.updates) ? data.updates : [];
+      const creates = Array.isArray(data?.creates) ? data.creates : [];
+      const unlinks = Array.isArray(data?.unlinks) ? data.unlinks : [];
+
+      const updateIds = Array.from(new Set(updates.map((u) => String(u.post_id ?? "").trim()).filter(Boolean)));
+      if (updateIds.some((id) => !this.isValidUuid(id))) {
+        return { success: false, error: new ValidationError("Invalid post_id") };
+      }
+
+      const baseIds = Array.from(
+        new Set(creates.map((c) => String(c.base_post_id ?? "").trim()).filter(Boolean)),
+      );
+      if (baseIds.some((id) => !this.isValidUuid(id))) {
+        return { success: false, error: new ValidationError("Invalid base_post_id") };
+      }
+
+      for (const unlink of unlinks) {
+        const postId = String(unlink?.post_id ?? "").trim();
+        const linkedId = String(unlink?.linked_post_id ?? "").trim();
+        if (!this.isValidUuid(postId) || !this.isValidUuid(linkedId)) {
+          return { success: false, error: new ValidationError("Invalid unlink post_id") };
+        }
+      }
+
+      // Load snapshots for rollback.
+      for (const postId of updateIds) {
+        const existing = await this.getPostById(postId);
+        if (!existing) {
+          return { success: false, error: new AppError("Post not found", 404) };
+        }
+        postSnapshotById.set(postId, existing);
+        tagSnapshotByPostId.set(postId, await this.getPostTagIds(postId));
+      }
+
+      // Snapshot translation groups that might be affected by create/unlink operations.
+      const touchedTranslationPostIds = new Set<string>();
+      for (const baseId of baseIds) touchedTranslationPostIds.add(baseId);
+      for (const unlink of unlinks) {
+        touchedTranslationPostIds.add(String(unlink.post_id ?? "").trim());
+        touchedTranslationPostIds.add(String(unlink.linked_post_id ?? "").trim());
+      }
+
+      if (touchedTranslationPostIds.size > 0) {
+        const ids = Array.from(touchedTranslationPostIds).filter((id) => id && this.isValidUuid(id));
+        const { data: touchedLinks, error: touchedError } = await supabase
+          .from("post_translations")
+          .select("post_id, translation_group_id, language")
+          .in("post_id", ids);
+        if (touchedError) {
+          console.error("Supabase error:", touchedError);
+          throw new DatabaseError("Failed to load translation links");
+        }
+        const groupIds = Array.from(
+          new Set((touchedLinks ?? []).map((row: any) => String(row.translation_group_id ?? "").trim()).filter(Boolean)),
+        );
+        for (const groupId of groupIds) {
+          const { data: groupRows, error: groupError } = await supabase
+            .from("post_translations")
+            .select("post_id, translation_group_id, language")
+            .eq("translation_group_id", groupId);
+          if (groupError) {
+            console.error("Supabase error:", groupError);
+            throw new DatabaseError("Failed to load translation group");
+          }
+          translationSnapshotByGroupId.set(
+            groupId,
+            (groupRows ?? []).map((row: any) => ({
+              post_id: String(row.post_id),
+              translation_group_id: String(row.translation_group_id),
+              language: String(row.language),
+            })),
+          );
+        }
+      }
+
+      // Validate all updates first (including slug uniqueness).
+      const sanitizedUpdates = new Map<string, SanitizedPost>(); // normalized and validated
+      const updateSlugKeys = new Set<string>();
+      for (const item of updates) {
+        const postId = String(item.post_id ?? "").trim();
+        if (!postId) continue;
+        const existing = postSnapshotById.get(postId);
+        if (!existing) continue;
+        const sanitized = this.validateAndSanitize(item.post as PostUpdate, existing.language);
+
+        const key = `${sanitized.language}:${sanitized.slug}`;
+        if (updateSlugKeys.has(key)) {
+          return { success: false, error: new ValidationError("Duplicate slug detected in request") };
+        }
+        updateSlugKeys.add(key);
+
+        const unique = await this.isSlugUnique(sanitized.slug, postId, sanitized.language);
+        if (!unique) {
+          return { success: false, error: new ValidationError("Slug already exists") };
+        }
+
+        sanitizedUpdates.set(postId, sanitized);
+      }
+
+      // Apply updates.
+      for (const item of updates) {
+        const postId = String(item.post_id ?? "").trim();
+        if (!postId) continue;
+        const sanitized = sanitizedUpdates.get(postId);
+        if (!sanitized) continue;
+
+        const { data: updated, error } = await supabase
+          .from("posts")
+          .update({
+            titulo: sanitized.titulo,
+            slug: sanitized.slug,
+            body: sanitized.body,
+            imagen_url: sanitized.imagen_url ?? null,
+            language: sanitized.language,
+          })
+          .eq("id", postId)
+          .select("id, titulo, slug, body, imagen_url, fecha, language")
+          .single();
+
+        if (error || !updated) {
+          console.error("Supabase error:", error);
+          throw new DatabaseError("Failed to update post");
+        }
+
+        updatedPostIds.push(postId);
+
+        // Sync tags if provided.
+        const tagIds = Array.isArray(item.tag_ids)
+          ? this.normalizeTagIds(item.tag_ids)
+          : Array.isArray(item.post?.tag_ids)
+          ? this.normalizeTagIds(item.post.tag_ids)
+          : null;
+        if (tagIds) {
+          await this.syncPostTags(postId, tagIds);
+        }
+
+        // Keep post_translations language column consistent if this post is linked.
+        await this.syncTranslationLanguage(postId, sanitized.language);
+      }
+
+      // Create and link translations.
+      const createsByBase = new Map<string, PostCreate[]>();
+      for (const item of creates) {
+        const baseId = String(item.base_post_id ?? "").trim();
+        if (!baseId) continue;
+        const list = createsByBase.get(baseId) ?? [];
+        list.push(item.post);
+        createsByBase.set(baseId, list);
+      }
+
+      for (const [basePostId, newPosts] of createsByBase.entries()) {
+        const basePost = await this.getPostById(basePostId);
+        if (!basePost) {
+          return { success: false, error: new AppError("Post not found", 404) };
+        }
+
+        const { data: baseLinkRow } = await supabase
+          .from("post_translations")
+          .select("translation_group_id")
+          .eq("post_id", basePostId)
+          .maybeSingle();
+        const baseHadGroup = Boolean((baseLinkRow as any)?.translation_group_id);
+
+        // Determine which languages are already linked to this base post.
+        const existingLinks = await translationService.getTranslations(basePostId);
+        const languagesInGroup = new Set<string>();
+        languagesInGroup.add(basePost.language);
+        if (existingLinks.success) {
+          for (const row of existingLinks.data ?? []) {
+            languagesInGroup.add(row.language);
+          }
+        }
+
+        const sanitizedNewPosts: SanitizedPost[] = newPosts.map((post) => {
+          const fallbackLanguage = this.normalizeLanguage(post.language) ?? basePost.language;
+          return this.validateAndSanitize(post, fallbackLanguage);
+        });
+
+        for (const post of sanitizedNewPosts) {
+          if (languagesInGroup.has(post.language)) {
+            return { success: false, error: new ValidationError("Only one post per language can be linked") };
+          }
+          languagesInGroup.add(post.language);
+
+          const unique = await this.isSlugUnique(post.slug, undefined, post.language);
+          if (!unique) {
+            return { success: false, error: new ValidationError("Slug already exists") };
+          }
+        }
+
+        const now = new Date().toISOString();
+        const insertRows = sanitizedNewPosts.map((post) => ({
+          titulo: post.titulo,
+          slug: post.slug,
+          body: post.body,
+          imagen_url: post.imagen_url ?? null,
+          fecha: now,
+          language: post.language,
+        }));
+
+        const { data: createdRows, error } = await supabase
+          .from("posts")
+          .insert(insertRows as any)
+          .select("id, titulo, slug, body, imagen_url, fecha, language");
+
+        if (error || !createdRows || createdRows.length !== insertRows.length) {
+          console.error("Supabase error:", error);
+          throw new DatabaseError("Failed to create post");
+        }
+
+        const idByKey = new Map<string, string>();
+        for (const row of createdRows as any[]) {
+          idByKey.set(`${row.language}:${row.slug}`, row.id);
+          createdPostIds.push(row.id);
+        }
+
+        // Tag linking (best-effort).
+        for (const original of newPosts) {
+          const fallbackLanguage = this.normalizeLanguage(original.language) ?? basePost.language;
+          const normalized = this.validateAndSanitize(original, fallbackLanguage);
+          const postId = idByKey.get(`${normalized.language}:${normalized.slug}`);
+          if (!postId) continue;
+          const tagIds = this.normalizeTagIds(original.tag_ids);
+          if (tagIds.length > 0) {
+            await this.safeInsertPostTags(postId, tagIds);
+          }
+        }
+
+        const baseLinkResult = await translationService.linkTranslations(basePostId, Array.from(idByKey.values()));
+        if (!baseLinkResult.success) {
+          throw baseLinkResult.error ?? new DatabaseError("Failed to link translations");
+        }
+        const groupId = baseLinkResult.data?.translation_group_id ?? null;
+        translationGroupByBase[basePostId] = groupId;
+        if (!baseHadGroup && groupId) {
+          translationGroupIdsCreated.add(groupId);
+        }
+      }
+
+      // Unlink translations (does not delete posts).
+      for (const unlink of unlinks) {
+        const postId = String(unlink.post_id ?? "").trim();
+        const linkedPostId = String(unlink.linked_post_id ?? "").trim();
+        if (!postId || !linkedPostId) continue;
+        const result = await translationService.unlinkTranslation(postId, linkedPostId);
+        if (!result.success) {
+          throw result.error ?? new DatabaseError("Failed to unlink translation");
+        }
+        unlinkedPostIds.push(linkedPostId);
+      }
+
+      return {
+        success: true,
+        data: {
+          updated_post_ids: updatedPostIds,
+          created_post_ids: createdPostIds,
+          unlinked_post_ids: unlinkedPostIds,
+          translation_group_id_by_base_post_id: translationGroupByBase,
+        },
+      };
+    } catch (error) {
+      // Best-effort rollback: restore updated posts + tags and delete created posts.
+      try {
+        for (const postId of updatedPostIds) {
+          const snapshot = postSnapshotById.get(postId);
+          if (!snapshot) continue;
+          await supabase
+            .from("posts")
+            .update({
+              titulo: snapshot.titulo,
+              slug: snapshot.slug,
+              body: snapshot.body,
+              imagen_url: snapshot.imagen_url ?? null,
+              language: snapshot.language,
+            })
+            .eq("id", postId);
+
+          await this.syncTranslationLanguage(postId, snapshot.language);
+
+          const tags = tagSnapshotByPostId.get(postId) ?? [];
+          await this.syncPostTags(postId, tags);
+        }
+
+        if (createdPostIds.length > 0) {
+          await supabase.from("post_translations").delete().in("post_id", createdPostIds);
+          await supabase.from("post_tags").delete().in("post_id", createdPostIds);
+          await supabase.from("posts").delete().in("id", createdPostIds);
+        }
+
+        // Restore translation groups that were modified.
+        if (translationGroupIdsCreated.size > 0) {
+          await supabase
+            .from("post_translations")
+            .delete()
+            .in("translation_group_id", Array.from(translationGroupIdsCreated));
+        }
+
+        for (const [groupId, snapshotRows] of translationSnapshotByGroupId.entries()) {
+          await supabase.from("post_translations").delete().eq("translation_group_id", groupId);
+          if (snapshotRows.length > 0) {
+            await supabase.from("post_translations").insert(snapshotRows as any);
+          }
+        }
+      } catch (_rollbackError) {
+        // ignore
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error : new AppError("Internal server error"),
+      };
+    }
+  }
+
   async updatePost(
     slug: string,
     data: PostUpdate,
@@ -134,6 +622,7 @@ export class PostService {
         await this.syncPostTags(existing.id, tagIds);
       }
 
+      await this.syncTranslationLanguage(existing.id, updated.language);
       return { success: true, data: updated as PostRecord };
     } catch (error) {
       return {
@@ -319,10 +808,19 @@ export class PostService {
     }
   }
 
+  private typeGuardLanguage(value: unknown, fallback: PostLanguage): PostLanguage {
+    if (typeof value === "string" && value.trim()) {
+      const normalized = this.normalizeLanguage(value);
+      if (!normalized) throw new ValidationError("Language is not supported");
+      return normalized;
+    }
+    return fallback;
+  }
+
   private validateAndSanitize(
     data: PostCreate | PostUpdate,
     fallbackLanguage: PostLanguage,
-  ): PostCreate {
+  ): SanitizedPost {
     const errors: Record<string, string> = {};
 
     const titulo = sanitizeInput(data.titulo ?? "");
@@ -364,14 +862,7 @@ export class PostService {
       );
     }
 
-    let language = fallbackLanguage;
-    if (typeof data.language === "string" && data.language.trim()) {
-      const normalized = this.normalizeLanguage(data.language);
-      if (!normalized) {
-        throw new ValidationError("Language is not supported");
-      }
-      language = normalized;
-    }
+    const language = this.typeGuardLanguage((data as any).language, fallbackLanguage);
 
     return {
       titulo,
@@ -478,5 +969,50 @@ export class PostService {
       return normalized as PostLanguage;
     }
     return null;
+  }
+
+  private async getPostById(id: string): Promise<PostRecord | null> {
+    const postId = String(id ?? "").trim();
+    if (!postId || !this.isValidUuid(postId)) return null;
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id, titulo, slug, body, imagen_url, fecha, language")
+      .eq("id", postId)
+      .maybeSingle();
+    if (error) {
+      console.error("Supabase error:", error);
+      throw new DatabaseError("Failed to fetch post");
+    }
+    return data as PostRecord | null;
+  }
+
+  private async getPostTagIds(postId: string): Promise<string[]> {
+    const id = String(postId ?? "").trim();
+    if (!id || !this.isValidUuid(id)) return [];
+    const { data, error } = await supabase
+      .from("post_tags")
+      .select("tag_id")
+      .eq("post_id", id);
+    if (error) {
+      console.error("Supabase error:", error);
+      return [];
+    }
+    const ids = (data ?? []).map((row: any) => String(row.tag_id ?? "").trim()).filter(Boolean);
+    return Array.from(new Set(ids));
+  }
+
+  private async syncTranslationLanguage(postId: string, language: PostLanguage): Promise<void> {
+    const id = String(postId ?? "").trim();
+    if (!id || !this.isValidUuid(id)) return;
+    const lang = this.normalizeLanguage(language) ?? null;
+    if (!lang) return;
+    const { error } = await supabase
+      .from("post_translations")
+      .update({ language: lang })
+      .eq("post_id", id);
+    if (error) {
+      // Not all posts are linked; ignore not found errors.
+      console.error("Failed to sync translation language:", error);
+    }
   }
 }

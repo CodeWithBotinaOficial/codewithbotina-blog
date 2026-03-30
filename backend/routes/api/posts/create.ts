@@ -49,9 +49,14 @@ export const handler: Handlers = {
         slug: body?.slug,
         bodyLength: typeof body?.body === "string" ? body.body.length : 0,
         hasImage: Boolean(body?.imagen_url),
+        batchCount: Array.isArray(body?.posts) ? body.posts.length : null,
       });
 
-      const result = await postService.createPost(body, user.id);
+      const isBatch = Array.isArray(body?.posts);
+      const result = isBatch
+        ? await postService.createPostsBatch(body, user.id)
+        : await postService.createPost(body, user.id);
+
       if (!result.success || !result.data) {
         console.error("Create post failed", result.error);
         const statusCode = result.error instanceof AppError
@@ -65,17 +70,42 @@ export const handler: Handlers = {
         return response;
       }
 
+      if (isBatch) {
+        const payload = result.data as any;
+        console.log("Create posts batch succeeded", {
+          count: Array.isArray(payload.posts) ? payload.posts.length : 0,
+          translation_group_id: payload.translation_group_id ?? null,
+        });
+        const response = successResponse(
+          {
+            posts: (payload.posts ?? []).map((p: any) => ({
+              id: p.id,
+              titulo: p.titulo,
+              slug: p.slug,
+              fecha: p.fecha,
+              language: p.language,
+            })),
+            translation_group_id: payload.translation_group_id ?? null,
+          },
+          "Posts created successfully",
+          201,
+        );
+        headers.forEach((value, key) => response.headers.set(key, value));
+        return response;
+      }
+
       console.log("Create post succeeded", {
-        postId: result.data.id,
-        slug: result.data.slug,
+        postId: (result.data as any).id,
+        slug: (result.data as any).slug,
       });
 
+      const single = result.data as any;
       const response = successResponse(
         {
-          id: result.data.id,
-          titulo: result.data.titulo,
-          slug: result.data.slug,
-          fecha: result.data.fecha,
+          id: single.id,
+          titulo: single.titulo,
+          slug: single.slug,
+          fecha: single.fecha,
         },
         "Post created successfully",
         201,

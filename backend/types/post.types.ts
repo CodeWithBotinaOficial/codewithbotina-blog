@@ -29,6 +29,44 @@ export interface PostUpdate {
   language?: PostLanguage;
 }
 
+export interface PostCreateBatchRequest {
+  posts: PostCreate[];
+}
+
+export interface PostCreateBatchResponse {
+  posts: PostRecord[];
+  translation_group_id: string | null;
+}
+
+export interface BulkPostUpdateItem {
+  post_id: string;
+  post: PostUpdate;
+  tag_ids?: string[]; // overrides post.tag_ids when provided
+}
+
+export interface BulkPostCreateTranslationItem {
+  base_post_id: string;
+  post: PostCreate;
+}
+
+export interface BulkPostUnlinkTranslationItem {
+  post_id: string;
+  linked_post_id: string;
+}
+
+export interface BulkPostUpdateRequest {
+  updates?: BulkPostUpdateItem[];
+  creates?: BulkPostCreateTranslationItem[];
+  unlinks?: BulkPostUnlinkTranslationItem[];
+}
+
+export interface BulkPostUpdateResponse {
+  updated_post_ids: string[];
+  created_post_ids: string[];
+  unlinked_post_ids: string[];
+  translation_group_id_by_base_post_id: Record<string, string | null>;
+}
+
 export interface DeleteResult {
   post_id: string;
   comments_deleted: number;
