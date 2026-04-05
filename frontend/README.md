@@ -34,6 +34,48 @@
 
 ## Admin Features
 
+## Markdown Content Features
+
+Markdown content is enhanced automatically in published posts and in the admin preview.
+
+### Diagram Rendering (Mermaid)
+
+Use Mermaid fenced code blocks:
+
+````markdown
+```mermaid
+graph TD
+  A[Start] --> B[End]
+```
+````
+
+Features:
+
+- Toggle between diagram view and code view
+- Pan and zoom (mouse + touch pinch-zoom)
+- Download as PNG or SVG
+- Fullscreen mode
+- Lazy rendering (IntersectionObserver) and cached renders
+
+Implementation:
+
+- Library: Mermaid.js `11.14.0`
+- Components: `src/components/markdown/DiagramRenderer.tsx`, `src/components/markdown/MarkdownEnhancer.tsx`
+
+### Enhanced Tables
+
+Markdown tables are rendered with:
+
+- Visible cell borders and header styling
+- Zebra striping and hover state
+- Horizontal scrolling on mobile
+- Copy-to-clipboard (Markdown, TSV, CSV)
+
+Implementation:
+
+- Component: `src/components/markdown/TableWrapper.tsx`
+- Styling: `src/styles/global.css` (scoped to markdown tables via `.md-table`)
+
 ### Post Management
 
 Administrators can create, edit, and delete posts directly from the frontend.

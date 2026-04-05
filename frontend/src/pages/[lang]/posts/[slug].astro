@@ -10,9 +10,11 @@ import { supabase } from "../../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { formatDate, calculateReadTime, stripMarkdown, truncateText } from "../../../lib/utils";
 import { Calendar, Clock, ArrowLeft, Share2 } from "lucide-astro";
-import { marked } from "marked";
+import { renderMarkdownHtml } from "../../../lib/markdown";
 import type { Post } from "../../../types/post";
 import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+import MarkdownEnhancer from "../../../components/markdown/MarkdownEnhancer";
+import { getMarkdownFeatureLabels } from "../../../lib/markdown-labels";
 
 const { slug, lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
@@ -71,7 +73,7 @@ try {
 }
 
 const currentPost = post as Post;
-const content = marked.parse(currentPost.body);
+const content = renderMarkdownHtml(currentPost.body);
 const readTime = calculateReadTime(currentPost.body);
 const locale = language === "es" ? "es-ES" : "en-US";
 const siteUrl = getSiteUrl().replace(/\/$/, "");
@@ -242,6 +244,8 @@ const adminLabels = {
   confirmText: t(language, "deletePost", "admin"),
   cancelText: t(language, "cancel", "admin"),
 };
+
+const markdownLabels = getMarkdownFeatureLabels(language);
 ---
 
 <BaseLayout
@@ -326,8 +330,18 @@ const adminLabels = {
       )}
     </header>
 
-    <div class="prose prose-lg max-w-none prose-headings:text-[var(--color-text-primary)] prose-a:text-[var(--color-accent-primary)] prose-img:rounded-xl">
+    <div
+      id="post-markdown"
+      class="prose prose-lg max-w-none prose-headings:text-[var(--color-text-primary)] prose-a:text-[var(--color-accent-primary)] prose-img:rounded-xl"
+    >
       <Fragment set:html={content} />
+      <MarkdownEnhancer
+        containerId="post-markdown"
+        language={language}
+        labels={markdownLabels}
+        title={currentPost.titulo}
+        client:load
+      />
     </div>
 
     <section class="reaction-section">

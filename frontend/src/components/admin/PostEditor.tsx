@@ -12,6 +12,7 @@ import ConfirmDialog from "../ui/ConfirmDialog";
 import Toast from "../ui/Toast";
 import { useToast } from "../../hooks/useToast";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../../lib/i18n";
+import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
 import type { TagOption } from "./TagSelector";
 import type { PostEditorLabels, TagSelectorLabels } from "../../lib/admin-editor";
 
@@ -191,6 +192,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   );
 
   const uiLanguage = SUPPORTED_LANGUAGES.includes(language as "en" | "es") ? (language as "en" | "es") : "en";
+  const markdownLabels = useMemo(() => getMarkdownFeatureLabels(uiLanguage), [uiLanguage]);
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -880,7 +882,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
             class="input-field min-h-[360px]"
           />
         ) : (
-          <MarkdownPreview content={body} />
+          <MarkdownPreview content={body} language={uiLanguage} labels={markdownLabels} title={title} />
         )}
 
         <div class="text-xs text-[var(--color-text-tertiary)]">

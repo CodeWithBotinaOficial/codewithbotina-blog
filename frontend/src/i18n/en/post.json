@@ -49,5 +49,27 @@
   "commentPostErrorRetry": "Failed to post comment. Please try again.",
   "commentAuthError": "You must be signed in to comment.",
   "topics": "Topics",
-  "backToPosts": "Back to all posts"
+  "backToPosts": "Back to all posts",
+  "diagram": {
+    "viewDiagram": "View Diagram",
+    "viewCode": "View Code",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "resetZoom": "Reset Zoom",
+    "download": "Download",
+    "downloadPNG": "Download as PNG",
+    "downloadSVG": "Download as SVG",
+    "fullscreen": "Fullscreen",
+    "rendering": "Rendering diagram...",
+    "error": "Unable to render diagram",
+    "errorDetail": "Check diagram syntax"
+  },
+  "table": {
+    "copy": "Copy table",
+    "copied": "Table copied!",
+    "copyAsMarkdown": "Copy as Markdown",
+    "copyAsTSV": "Copy as TSV",
+    "copyAsCSV": "Copy as CSV",
+    "scrollToSee": "Scroll to see more"
+  }
 }

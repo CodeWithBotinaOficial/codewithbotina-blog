@@ -3,6 +3,7 @@ import { Lock, ShieldX, X } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { t, type SupportedLanguage, LANGUAGE_NAMES, SUPPORTED_LANGUAGES as UI_LANGS } from "../../lib/i18n";
+import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
 import ConfirmDialog from "../ui/ConfirmDialog";
@@ -101,6 +102,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
   const interfaceLanguage = uiLanguage;
   const locale = interfaceLanguage === "es" ? "es-ES" : "en-US";
+  const markdownLabels = useMemo(() => getMarkdownFeatureLabels(interfaceLanguage), [interfaceLanguage]);
 
   const [signingIn, setSigningIn] = useState(false);
   const [redirectSeconds, setRedirectSeconds] = useState(5);
@@ -932,7 +934,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     }}
                   />
                 ) : (
-                  <MarkdownPreview content={section.body} />
+                  <MarkdownPreview
+                    content={section.body}
+                    language={interfaceLanguage}
+                    labels={markdownLabels}
+                    title={section.titulo}
+                  />
                 )}
 
                 <div class="text-xs text-[var(--color-text-tertiary)]">
