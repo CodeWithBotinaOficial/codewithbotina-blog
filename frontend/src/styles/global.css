@@ -176,6 +176,198 @@
     @apply rounded-xl my-8 w-full h-auto;
   }
 
+  /* Enhanced Markdown Tables (scoped to markdown only via .md-table wrapper) */
+  .prose .md-table {
+    @apply my-8;
+  }
+
+  .prose .md-table__container {
+    @apply relative;
+  }
+
+  .prose .md-table__scroller {
+    @apply relative overflow-x-auto rounded-xl border border-[var(--color-border)] bg-white;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .prose .md-table table {
+    @apply w-full border-collapse text-sm;
+    min-width: 560px;
+  }
+
+  @media (max-width: 768px) {
+    .prose .md-table table {
+      min-width: 640px;
+    }
+  }
+
+  .prose .md-table th,
+  .prose .md-table td {
+    @apply border border-[var(--color-border)] px-3 py-2 align-top text-left leading-relaxed text-[var(--color-text-secondary)];
+  }
+
+  .prose .md-table thead th {
+    @apply bg-[var(--color-bg-subtle)] font-bold text-[var(--color-text-primary)];
+    border-bottom-width: 2px;
+  }
+
+  .prose .md-table tbody tr:nth-child(even) {
+    background-color: color-mix(in oklab, var(--color-bg-subtle) 55%, white);
+  }
+
+  .prose .md-table tbody tr:hover {
+    background-color: color-mix(in oklab, var(--color-accent-light) 70%, white);
+  }
+
+  .md-table__toolbar {
+    @apply pointer-events-auto sticky right-2 top-2 z-10 ml-auto flex w-max items-center gap-1 rounded-full border border-[var(--color-border)] bg-white/80 p-1 shadow-sm backdrop-blur;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .md-table__scroller:hover .md-table__toolbar,
+  .md-table__scroller:focus-within .md-table__toolbar {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .md-table__toolbar {
+      opacity: 1;
+    }
+  }
+
+  .md-table__btn {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)];
+  }
+
+  .md-table__menu {
+    @apply absolute right-0 top-10 w-44 overflow-hidden rounded-xl border border-[var(--color-border)] bg-white shadow-lg;
+  }
+
+  .md-table__menuitem {
+    @apply block w-full px-3 py-2 text-left text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)];
+  }
+
+  .md-table__hint {
+    @apply mt-2 text-xs font-semibold text-[var(--color-text-tertiary)];
+  }
+
+  /* Mermaid Diagram Blocks */
+  .prose .md-diagram {
+    @apply my-8 rounded-xl border border-[var(--color-border)] bg-white shadow-sm;
+  }
+
+  .md-diagram__container {
+    @apply relative;
+  }
+
+  .md-diagram__topbar {
+    @apply flex items-center justify-end gap-2 border-b border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-2;
+  }
+
+  .md-diagram__toggles {
+    @apply flex items-center gap-1;
+  }
+
+  .md-diagram__toggle {
+    @apply inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)];
+    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+
+  .md-diagram__toggle.is-active {
+    @apply border-[var(--color-accent-primary)] bg-white text-[var(--color-text-primary)];
+  }
+
+  @media (max-width: 520px) {
+    .md-diagram__toggletext {
+      display: none;
+    }
+  }
+
+  .md-diagram__loading {
+    @apply flex items-center gap-3 px-4 py-6 text-sm font-semibold text-[var(--color-text-secondary)];
+  }
+
+  .md-diagram__spinner {
+    @apply h-4 w-4 rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-accent-primary)];
+    animation: md-spin 900ms linear infinite;
+  }
+
+  @keyframes md-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .md-diagram__error {
+    @apply px-4 py-4;
+  }
+
+  .md-diagram__errorrow {
+    @apply flex flex-col gap-1;
+  }
+
+  .md-diagram__errorhint {
+    @apply text-sm text-[var(--color-text-tertiary)];
+  }
+
+  .md-diagram__code {
+    @apply m-0 rounded-none border-0 bg-gray-950 p-4 text-gray-100;
+    overflow: auto;
+  }
+
+  .md-diagram__viewer {
+    @apply relative;
+  }
+
+  .md-diagram__toolbar {
+    @apply absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-white/80 p-1 shadow-sm backdrop-blur;
+  }
+
+  .md-diagram__group {
+    @apply flex items-center gap-1;
+  }
+
+  .md-diagram__btn {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)];
+  }
+
+  .md-diagram__menu {
+    @apply absolute right-0 top-10 w-52 overflow-hidden rounded-xl border border-[var(--color-border)] bg-white shadow-lg;
+  }
+
+  .md-diagram__menuitem {
+    @apply block w-full px-3 py-2 text-left text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)];
+  }
+
+  .md-diagram__viewport {
+    @apply relative overflow-hidden bg-white;
+    height: 360px;
+    cursor: grab;
+    touch-action: none;
+    width: 100%;
+    border: 0;
+    padding: 0;
+    text-align: left;
+  }
+
+  .md-diagram__viewport.is-dragging {
+    cursor: grabbing;
+  }
+
+  .md-diagram__content {
+    transform-origin: 0 0;
+    transition: transform 120ms ease;
+  }
+
+  .md-diagram__viewport.is-dragging .md-diagram__content {
+    transition: none;
+  }
+
+  .md-diagram__fullscreen .md-diagram__viewport {
+    height: min(70vh, 720px);
+  }
+
   .comment-section {
     @apply mt-16 pt-8 border-t border-[var(--color-border)];
   }

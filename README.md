@@ -15,6 +15,8 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ **Tag landing pages + tag-based sitemap entries**
 - ✅ **Cookie consent (GDPR/CCPA) with consent tracking**
 - ✅ **WYSIWYG Markdown editor with live preview**
+- ✅ **Interactive Mermaid diagrams in Markdown (view/code toggle, pan/zoom, download, fullscreen)**
+- ✅ **Enhanced Markdown tables (borders, zebra striping, responsive scroll, copy-to-clipboard)**
 - ✅ **Drag-and-drop image uploads with improved preview (aspect-safe, file info, hover actions)**
 - ✅ **Image library: reuse existing Supabase Storage images (no duplicate uploads)**
 - ✅ **Tag persistence in edit flows (no accidental unlinking)**
@@ -46,6 +48,7 @@ The blog supports creating and editing posts in multiple languages simultaneousl
 ## 🚀 Tech Stack
 
 - **Frontend:** Astro 5 (Static Site Generation)
+- **Markdown Enhancements:** Mermaid.js (diagrams) + custom table wrappers (copy-to-clipboard)
 - **Backend:** Deno + Fresh (Edge Functions)
 - **Database:** PostgreSQL (Supabase)
 - **Storage:** Supabase Storage

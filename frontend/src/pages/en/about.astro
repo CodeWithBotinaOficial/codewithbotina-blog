@@ -1,22 +1,25 @@
 ---
 import BaseLayout from "../../components/BaseLayout.astro";
 import { ArrowRight } from "lucide-astro";
-import { marked } from "marked";
 import fs from "node:fs";
 import path from "node:path";
 import { getSiteUrl } from "../../lib/env";
 import { getLocalizedPath, SUPPORTED_LANGUAGES } from "../../lib/i18n";
+import { renderMarkdownHtml } from "../../lib/markdown";
+import MarkdownEnhancer from "../../components/markdown/MarkdownEnhancer";
+import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
 
 const language = "en";
 const aboutPath = path.join(process.cwd(), "..", "content", "en", "about.md");
 const markdown = fs.readFileSync(aboutPath, "utf-8");
-const html = marked.parse(markdown);
+const html = renderMarkdownHtml(markdown);
 const siteUrl = getSiteUrl().replace(/\/$/, "");
 const canonicalUrl = `${siteUrl}${Astro.url.pathname}`;
 const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+const markdownLabels = getMarkdownFeatureLabels(language);
 ---
 
 <BaseLayout
@@ -50,7 +53,10 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
 
   <section class="py-16">
     <div class="container-responsive max-w-3xl">
-      <article class="prose prose-lg mb-16" set:html={html} />
+      <article id="about-markdown" class="prose prose-lg mb-16">
+        <Fragment set:html={html} />
+        <MarkdownEnhancer containerId="about-markdown" language={language} labels={markdownLabels} client:load />
+      </article>
 
       <div class="bg-[var(--color-bg-subtle)] rounded-2xl p-8 md:p-12 text-center">
         <h2 class="text-3xl font-bold mb-6">Let’s connect</h2>

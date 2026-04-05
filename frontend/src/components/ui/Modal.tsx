@@ -8,9 +8,10 @@ interface ModalProps {
   title: string;
   children: ComponentChildren;
   footer?: ComponentChildren;
+  maxWidthClass?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, footer, maxWidthClass = "max-w-lg" }: ModalProps) {
   useLayoutEffect(() => {
     if (typeof document === "undefined") return;
     document.body.style.overflow = isOpen ? "hidden" : "unset";
@@ -28,7 +29,7 @@ export default function Modal({ isOpen, onClose, title, children, footer }: Moda
       data-modal-backdrop
     >
       <div
-        class="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-xl"
+        class={`w-full ${maxWidthClass} overflow-hidden rounded-xl bg-white shadow-xl`}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

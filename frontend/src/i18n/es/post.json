@@ -49,5 +49,27 @@
   "commentPostErrorRetry": "No se pudo publicar el comentario. Intenta de nuevo.",
   "commentAuthError": "Debes iniciar sesión para comentar.",
   "topics": "Temas",
-  "backToPosts": "Volver a todas las publicaciones"
+  "backToPosts": "Volver a todas las publicaciones",
+  "diagram": {
+    "viewDiagram": "Ver Diagrama",
+    "viewCode": "Ver Código",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "resetZoom": "Restablecer Zoom",
+    "download": "Descargar",
+    "downloadPNG": "Descargar como PNG",
+    "downloadSVG": "Descargar como SVG",
+    "fullscreen": "Pantalla Completa",
+    "rendering": "Renderizando diagrama...",
+    "error": "No se puede renderizar el diagrama",
+    "errorDetail": "Verifica la sintaxis del diagrama"
+  },
+  "table": {
+    "copy": "Copiar tabla",
+    "copied": "¡Tabla copiada!",
+    "copyAsMarkdown": "Copiar como Markdown",
+    "copyAsTSV": "Copiar como TSV",
+    "copyAsCSV": "Copiar como CSV",
+    "scrollToSee": "Desplázate para ver más"
+  }
 }

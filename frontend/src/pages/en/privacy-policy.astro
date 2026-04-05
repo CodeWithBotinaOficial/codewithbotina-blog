@@ -1,21 +1,24 @@
 ---
 import BaseLayout from "../../components/BaseLayout.astro";
-import { marked } from "marked";
 import fs from "node:fs";
 import path from "node:path";
 import { getSiteUrl } from "../../lib/env";
 import { getLocalizedPath, SUPPORTED_LANGUAGES } from "../../lib/i18n";
+import { renderMarkdownHtml } from "../../lib/markdown";
+import MarkdownEnhancer from "../../components/markdown/MarkdownEnhancer";
+import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
 
 const language = "en";
 const policyPath = path.join(process.cwd(), "..", "legal-docs", "en", "privacy-policy.md");
 const markdown = fs.readFileSync(policyPath, "utf-8");
-const html = marked.parse(markdown);
+const html = renderMarkdownHtml(markdown);
 const siteUrl = getSiteUrl().replace(/\/$/, "");
 const canonicalUrl = `${siteUrl}${Astro.url.pathname}`;
 const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+const markdownLabels = getMarkdownFeatureLabels(language);
 ---
 
 <BaseLayout
@@ -32,6 +35,9 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
     <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/privacy-policy`} />
   </Fragment>
   <section class="container-responsive py-12">
-    <article class="prose prose-lg max-w-none" set:html={html} />
+    <article id="privacy-policy-markdown" class="prose prose-lg max-w-none">
+      <Fragment set:html={html} />
+      <MarkdownEnhancer containerId="privacy-policy-markdown" language={language} labels={markdownLabels} client:load />
+    </article>
   </section>
 </BaseLayout>
