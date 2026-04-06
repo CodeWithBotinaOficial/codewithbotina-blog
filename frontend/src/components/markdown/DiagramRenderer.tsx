@@ -461,28 +461,49 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
     const node = rootRef.current;
     if (!node) return;
 
-    if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
+    const margin = 200;
+    const forceStart = () => setInView(true);
+
+    // Immediate check (avoids relying on IntersectionObserver firing).
+    try {
+      const rect = node.getBoundingClientRect();
+      const withinViewport =
+        rect.top < (window.innerHeight || 0) + margin && rect.bottom > -margin;
+      if (withinViewport) {
+        forceStart();
+        return;
+      }
+    } catch (_err) {
+      forceStart();
       return;
     }
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setInView(true);
-            io.disconnect();
-          }
-        }
-      },
-      { rootMargin: "200px 0px" },
-    );
+    let io: IntersectionObserver | null = null;
+    try {
+      if (typeof IntersectionObserver !== "undefined") {
+        io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                forceStart();
+                io?.disconnect();
+                io = null;
+              }
+            }
+          },
+          { rootMargin: `${margin}px 0px` },
+        );
+        io.observe(node);
+      }
+    } catch (_err) {
+      // If IO is broken, do not block rendering.
+      forceStart();
+    }
 
-    io.observe(node);
-    // Fallback in case IO never fires due to layout quirks or browser bugs.
-    const timer = window.setTimeout(() => setInView(true), 1500);
+    // Hard fallback to ensure we start within ~1s even if observers don't fire.
+    const timer = window.setTimeout(forceStart, 900);
     return () => {
-      io.disconnect();
+      io?.disconnect();
       window.clearTimeout(timer);
     };
   }, []);
@@ -526,11 +547,28 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
         const mermaid = await loadMermaid();
         initMermaid(mermaid);
 
-        const { svg: renderedSvg, bindFunctions } = await mermaid.render(mermaidIdRef.current, trimmed);
+        const hiddenHost = document.createElement("div");
+        hiddenHost.style.position = "fixed";
+        hiddenHost.style.left = "-9999px";
+        hiddenHost.style.top = "0";
+        hiddenHost.style.width = "1px";
+        hiddenHost.style.height = "1px";
+        hiddenHost.style.overflow = "hidden";
+        document.body.appendChild(hiddenHost);
+
+        let renderedSvg = "";
+        let bindFunctions: any = undefined;
+        try {
+          const result = await mermaid.render(mermaidIdRef.current, trimmed, hiddenHost);
+          renderedSvg = String(result?.svg ?? "");
+          bindFunctions = result?.bindFunctions;
+        } finally {
+          hiddenHost.remove();
+        }
+
         if (renderIdRef.current !== currentRenderId) return;
-        const finalSvg = String(renderedSvg ?? "");
-        mermaidCache.set(cacheKey, finalSvg);
-        setSvg(finalSvg);
+        mermaidCache.set(cacheKey, renderedSvg);
+        setSvg(renderedSvg);
         setStatus("ready");
 
         // Some diagram types attach interactivity (links, callbacks) via bindFunctions.
