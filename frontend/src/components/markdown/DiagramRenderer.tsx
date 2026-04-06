@@ -21,6 +21,16 @@ const mermaidCache = new Map<string, string>();
 let mermaidImportPromise: Promise<any> | null = null;
 let mermaidInitialized = false;
 
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timer: number | undefined;
+  const timeout = new Promise<T>((_, reject) => {
+    timer = window.setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) window.clearTimeout(timer);
+  }) as Promise<T>;
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -129,6 +139,11 @@ async function loadMermaid() {
 
 function initMermaid(mermaid: any) {
   if (mermaidInitialized) return;
+  try {
+    mermaid.startOnLoad = false;
+  } catch (_err) {
+    // ignore
+  }
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: "strict",
@@ -443,13 +458,14 @@ interface Props {
   filenameBase?: string;
 }
 
-export default function DiagramRenderer({ code, diagramLang, labels, filenameBase }: Props) {
+export default function DiagramRenderer({ code, diagramLang, labels, language, filenameBase }: Props) {
   const [mode, setMode] = useState<ViewMode>("diagram");
   const [svg, setSvg] = useState<string>("");
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [error, setError] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [inView, setInView] = useState(() => typeof IntersectionObserver === "undefined");
+  const [attempt, setAttempt] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const renderIdRef = useRef(0);
   const mermaidIdRef = useRef(`mdm_${Math.random().toString(36).slice(2)}`);
@@ -518,7 +534,7 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
     setStatus("idle");
     setError("");
     setSvg("");
-  }, [code, isMermaid, inView, labels.errorDetail]);
+  }, [code, isMermaid, labels.errorDetail]);
 
   useEffect(() => {
     if (!isMermaid) return;
@@ -542,26 +558,50 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
     const currentRenderId = (renderIdRef.current += 1);
     setStatus("loading");
 
+    const watchdog = window.setTimeout(() => {
+      if (renderIdRef.current !== currentRenderId) return;
+      setStatus("error");
+      setError("Diagram rendering timed out.");
+    }, 2000);
+
     const timer = window.setTimeout(async () => {
       try {
-        const mermaid = await loadMermaid();
+        const mermaid = await withTimeout(loadMermaid(), 1500, "Failed to load Mermaid");
         initMermaid(mermaid);
 
         const hiddenHost = document.createElement("div");
         hiddenHost.style.position = "fixed";
         hiddenHost.style.left = "-9999px";
         hiddenHost.style.top = "0";
-        hiddenHost.style.width = "1px";
-        hiddenHost.style.height = "1px";
+        hiddenHost.style.width = "800px";
+        hiddenHost.style.height = "600px";
         hiddenHost.style.overflow = "hidden";
+        hiddenHost.style.visibility = "hidden";
         document.body.appendChild(hiddenHost);
 
         let renderedSvg = "";
         let bindFunctions: any = undefined;
         try {
-          const result = await mermaid.render(mermaidIdRef.current, trimmed, hiddenHost);
+          const result = await withTimeout(
+            mermaid.render(mermaidIdRef.current, trimmed, hiddenHost),
+            1500,
+            "Mermaid render timed out",
+          );
           renderedSvg = String(result?.svg ?? "");
           bindFunctions = result?.bindFunctions;
+        } catch (err) {
+          // Fallback: bypass Mermaid's queued wrapper if it gets stuck.
+          if (mermaid?.mermaidAPI?.render) {
+            const result = await withTimeout(
+              mermaid.mermaidAPI.render(mermaidIdRef.current, trimmed, hiddenHost),
+              1500,
+              "Mermaid API render timed out",
+            );
+            renderedSvg = String(result?.svg ?? "");
+            bindFunctions = result?.bindFunctions;
+          } else {
+            throw err;
+          }
         } finally {
           hiddenHost.remove();
         }
@@ -585,13 +625,19 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
         if (renderIdRef.current !== currentRenderId) return;
         setStatus("error");
         setError(e?.message ? String(e.message) : labels.errorDetail);
+      } finally {
+        window.clearTimeout(watchdog);
       }
-    }, 350);
+    }, 75);
 
-    return () => window.clearTimeout(timer);
-  }, [code, isMermaid, labels.errorDetail]);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(watchdog);
+    };
+  }, [code, isMermaid, inView, labels.errorDetail, attempt]);
 
   const toggleMode = (next: ViewMode) => setMode(next);
+  const retryLabel = language === "es" ? "Reintentar" : "Retry";
 
   return (
     <div class="md-diagram__container" ref={rootRef}>
@@ -634,6 +680,20 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
           <div class="md-diagram__errorrow">
             <strong>{labels.error}</strong>
             <span class="md-diagram__errorhint">{error || labels.errorDetail}</span>
+          </div>
+          <div class="mt-3">
+            <button
+              type="button"
+              class="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)]"
+              onClick={() => {
+                setError("");
+                setSvg("");
+                setStatus("idle");
+                setAttempt((v) => v + 1);
+              }}
+            >
+              {retryLabel}
+            </button>
           </div>
           <pre class="md-diagram__code">
             <code>{code}</code>
