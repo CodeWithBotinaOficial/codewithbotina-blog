@@ -27,6 +27,7 @@ build/
 
 # Deno
 deno.lock
+!backend/deno.lock
 
 # Fresh
 _fresh/
