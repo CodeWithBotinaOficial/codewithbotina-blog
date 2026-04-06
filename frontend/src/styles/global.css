@@ -257,6 +257,16 @@
     @apply my-8 rounded-xl border border-[var(--color-border)] bg-white shadow-sm;
   }
 
+  /* If enhanced, the SSR fallback code block should never be visible. */
+  .prose .md-diagram[data-enhanced="1"] > pre {
+    display: none;
+  }
+
+  /* If enhanced, the SSR table is replaced by TableWrapper. */
+  .prose .md-table[data-enhanced="1"] > table {
+    display: none;
+  }
+
   .md-diagram__container {
     @apply relative;
   }

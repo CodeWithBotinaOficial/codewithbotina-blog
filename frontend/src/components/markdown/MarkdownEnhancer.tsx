@@ -26,19 +26,41 @@ export default function MarkdownEnhancer({ containerId, language, labels, title,
     const root = document.getElementById(containerId);
     if (!root) return;
 
-    const diagramNodes = Array.from(
-      root.querySelectorAll<HTMLElement>(".md-diagram[data-diagram-code]:not([data-enhanced])"),
-    );
+    const diagramNodes = Array.from(root.querySelectorAll<HTMLElement>(".md-diagram"));
     for (const node of diagramNodes) {
-      const diagramLang = String(node.dataset.diagramLang ?? "").trim().toLowerCase();
-      const codeB64 = String(node.dataset.diagramCode ?? "");
-      if (!codeB64) continue;
+      if (node.dataset.enhanced) continue;
+      const diagramLangRaw = String(node.getAttribute("data-diagram-lang") ?? node.dataset.diagramLang ?? "");
+      const diagramLang = diagramLangRaw.trim().toLowerCase();
+
+      const codeB64 = String(node.getAttribute("data-diagram-code") ?? node.dataset.diagramCode ?? "");
+      const fallbackCodeEl = node.querySelector("pre code") as HTMLElement | null;
+      const fallbackCode = String(fallbackCodeEl?.textContent ?? "");
+
+      let code = "";
+      if (codeB64) {
+        try {
+          code = decodeBase64Utf8(codeB64);
+        } catch (_err) {
+          code = "";
+        }
+      }
+      if (!code) code = fallbackCode;
+      if (!code.trim()) continue;
+
+      const fallbackClassLang = (() => {
+        const className = String(fallbackCodeEl?.className ?? "");
+        const match = className.match(/(?:^|\s)language-([a-z0-9_-]+)(?:\s|$)/i);
+        return match?.[1] ? String(match[1]).toLowerCase() : "";
+      })();
+
+      const effectiveLang = diagramLang || fallbackClassLang || "mermaid";
       node.dataset.enhanced = "1";
-      const code = decodeBase64Utf8(codeB64);
+      // Remove the SSR fallback <pre><code> so only the toggle-controlled code view is visible.
+      node.innerHTML = "";
       render(
         <DiagramRenderer
           code={code}
-          diagramLang={diagramLang || "mermaid"}
+          diagramLang={effectiveLang}
           labels={labels.diagram}
           language={language}
           filenameBase={title}
@@ -47,13 +69,14 @@ export default function MarkdownEnhancer({ containerId, language, labels, title,
       );
     }
 
-    const tableNodes = Array.from(
-      root.querySelectorAll<HTMLElement>(".md-table[data-table-html]:not([data-enhanced])"),
-    );
+    const tableNodes = Array.from(root.querySelectorAll<HTMLElement>(".md-table"));
     for (const node of tableNodes) {
-      const tableB64 = String(node.dataset.tableHtml ?? "");
+      if (node.dataset.enhanced) continue;
+      const tableB64 = String(node.getAttribute("data-table-html") ?? node.dataset.tableHtml ?? "");
       if (!tableB64) continue;
       node.dataset.enhanced = "1";
+      // Replace SSR HTML with the interactive wrapper (copy controls, scroll hint).
+      node.innerHTML = "";
       const tableHtml = decodeBase64Utf8(tableB64);
       render(<TableWrapper tableHtml={tableHtml} labels={labels.table} language={language} />, node);
     }
@@ -61,4 +84,3 @@ export default function MarkdownEnhancer({ containerId, language, labels, title,
 
   return null;
 }
-
