@@ -449,7 +449,7 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [error, setError] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(() => typeof IntersectionObserver === "undefined");
   const rootRef = useRef<HTMLDivElement | null>(null);
   const renderIdRef = useRef(0);
   const mermaidIdRef = useRef(`mdm_${Math.random().toString(36).slice(2)}`);
@@ -460,6 +460,11 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
   useEffect(() => {
     const node = rootRef.current;
     if (!node) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -474,7 +479,12 @@ export default function DiagramRenderer({ code, diagramLang, labels, filenameBas
     );
 
     io.observe(node);
-    return () => io.disconnect();
+    // Fallback in case IO never fires due to layout quirks or browser bugs.
+    const timer = window.setTimeout(() => setInView(true), 1500);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
