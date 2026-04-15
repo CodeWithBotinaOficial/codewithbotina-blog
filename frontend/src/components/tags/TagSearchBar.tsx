@@ -24,6 +24,7 @@ export default function TagSearchBar({
   const [sort, setSort] = useState<Sort>(initialSort);
   const [language, setLanguage] = useState(initialLanguageFilter);
   const debounceRef = useRef<number | null>(null);
+  const didMountRef = useRef(false);
 
   useEffect(() => {
     setQuery(initialQuery);
@@ -50,11 +51,22 @@ export default function TagSearchBar({
     else params.delete("language");
 
     const qs = params.toString();
-    window.location.assign(qs ? `${basePath}?${qs}` : basePath);
+    const href = qs ? `${basePath}?${qs}` : basePath;
+    const current = `${window.location.pathname}${window.location.search}`;
+    const nextUrl = new URL(href, window.location.origin);
+    const currentUrl = new URL(current, window.location.origin);
+    if (nextUrl.pathname === currentUrl.pathname && nextUrl.search === currentUrl.search) {
+      return;
+    }
+    window.location.assign(nextUrl.toString());
   };
 
   // Debounced live filtering for tag name search.
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(() => applyWith({ query, sort, language }), 450);
     return () => {
