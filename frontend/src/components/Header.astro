@@ -2,6 +2,7 @@
 import { Menu, X } from "lucide-astro";
 import HeaderAuth from "./auth/HeaderAuth.astro";
 import LanguageSwitcher from "./LanguageSwitcher.tsx";
+import GlobalSearchModal from "./search/GlobalSearchModal";
 import { getRoutePath, t, type SupportedLanguage } from "../lib/i18n";
 
 interface Props {
@@ -17,6 +18,8 @@ const navLinks = [
   { name: t(currentLanguage, "nav.about"), href: getRoutePath(currentLanguage, "about") },
   { name: t(currentLanguage, "nav.contact"), href: getRoutePath(currentLanguage, "contact") },
 ];
+
+const isHome = currentPath === `/${currentLanguage}/` || currentPath === `/${currentLanguage}`;
 ---
 
 <header class="sticky top-0 z-50 w-full bg-[var(--color-bg-base)]/90 backdrop-blur-md border-b border-[var(--color-border)]">
@@ -38,19 +41,23 @@ const navLinks = [
     </nav>
 
     <div class="hidden md:flex items-center gap-4">
+      {!isHome ? <GlobalSearchModal currentLanguage={currentLanguage} client:load /> : null}
       <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} client:load />
       <HeaderAuth currentLanguage={currentLanguage} />
     </div>
 
     <!-- Mobile Menu Button -->
-    <button
-      id="mobile-menu-btn"
-      class="md:hidden p-2 text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)] rounded-lg"
-      aria-label="Toggle menu"
-    >
-      <Menu size={24} class="menu-icon" />
-      <X size={24} class="close-icon hidden" />
-    </button>
+    <div class="md:hidden flex items-center gap-2">
+      {!isHome ? <GlobalSearchModal currentLanguage={currentLanguage} client:load /> : null}
+      <button
+        id="mobile-menu-btn"
+        class="p-2 text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)] rounded-lg"
+        aria-label="Toggle menu"
+      >
+        <Menu size={24} class="menu-icon" />
+        <X size={24} class="close-icon hidden" />
+      </button>
+    </div>
   </div>
 
   <!-- Mobile Navigation -->

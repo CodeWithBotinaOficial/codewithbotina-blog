@@ -27,4 +27,22 @@ export const handlers = [
     }
     return HttpResponse.json({ success: true, data: { id: '123' } }, { status: 201 });
   }),
+
+  // Backend tag endpoints used by the search UI
+  http.get('http://localhost:8000/api/tags', ({ request }) => {
+    const url = new URL(request.url);
+    const q = url.searchParams.get('q') ?? '';
+    const tags = q
+      ? [{ id: 'tag-1', name: q, slug: q.toLowerCase(), usage_count: 1 }]
+      : [];
+    return HttpResponse.json({ success: true, data: { tags, total: tags.length, limit: 10, offset: 0 } });
+  }),
+  http.get('http://localhost:8000/api/tags/autocomplete', ({ request }) => {
+    const url = new URL(request.url);
+    const q = (url.searchParams.get('q') ?? '').trim();
+    const tags = q.length >= 2
+      ? [{ id: 'tag-1', name: q, slug: q.toLowerCase(), usage_count: 1 }]
+      : [];
+    return HttpResponse.json({ success: true, data: { tags } });
+  }),
 ];

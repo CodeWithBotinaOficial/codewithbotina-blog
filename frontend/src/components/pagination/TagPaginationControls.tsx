@@ -1,21 +1,19 @@
 import { useEffect, useState } from "preact/hooks";
 import { ChevronLeft, ChevronRight } from "lucide-preact";
 import {
-  ALLOWED_PER_PAGE,
-  DEFAULT_PER_PAGE,
-  buildPageHref,
-  generatePageItems,
-  parsePage,
-  parsePerPage,
-  type AllowedPerPage,
-} from "../../lib/pagination";
+  ALLOWED_TAGS_PER_PAGE,
+  DEFAULT_TAGS_PER_PAGE,
+  buildTagsPageHref,
+  getTagsPageItems,
+  type AllowedTagsPerPage,
+} from "../../lib/tag-pagination";
 
 interface Labels {
   previous: string;
   next: string;
   page: string;
   of: string;
-  postsPerPage: string;
+  perPage: string;
   show: string;
   goToPage: string; // expects {{page}}
   currentPage: string; // expects {{page}}
@@ -24,8 +22,8 @@ interface Labels {
 interface Props {
   currentPage: number;
   totalPages: number;
-  perPage: AllowedPerPage;
-  baseUrl: string; // e.g. "/en/" or "/en/tags/react"
+  perPage: AllowedTagsPerPage;
+  baseUrl: string;
   labels: Labels;
 }
 
@@ -35,7 +33,7 @@ function formatTemplate(template: string, data: Record<string, string | number>)
   }, template);
 }
 
-export default function PaginationControls({
+export default function TagPaginationControls({
   currentPage,
   totalPages,
   perPage,
@@ -43,7 +41,7 @@ export default function PaginationControls({
   labels,
 }: Props) {
   const [isNavigating, setIsNavigating] = useState(false);
-  const [selectedPerPage, setSelectedPerPage] = useState<AllowedPerPage>(perPage);
+  const [selectedPerPage, setSelectedPerPage] = useState<AllowedTagsPerPage>(perPage);
 
   const hasPrev = currentPage > 1;
   const hasNext = currentPage < totalPages;
@@ -52,7 +50,7 @@ export default function PaginationControls({
     const params = typeof window !== "undefined"
       ? new URLSearchParams(window.location.search)
       : undefined;
-    return buildPageHref(baseUrl, page, nextPerPage, params);
+    return buildTagsPageHref(baseUrl, page, nextPerPage, params);
   };
 
   const navigate = (href: string) => {
@@ -64,20 +62,19 @@ export default function PaginationControls({
   useEffect(() => {
     // Sync preference from URL or localStorage.
     const params = new URLSearchParams(window.location.search);
-    const urlPerPage = parsePerPage(params.get("per_page"));
-    const storedRaw = window.localStorage.getItem("posts_per_page");
-    const stored = parsePerPage(storedRaw);
+    const urlPerPageRaw = params.get("per_page");
+    const urlPerPage = urlPerPageRaw ? Number(urlPerPageRaw) : NaN;
+    const storedRaw = window.localStorage.getItem("tags_per_page");
+    const stored = storedRaw ? Number(storedRaw) : NaN;
 
-    if (urlPerPage) {
-      window.localStorage.setItem("posts_per_page", String(urlPerPage));
-      setSelectedPerPage(urlPerPage);
+    if (Number.isFinite(urlPerPage) && (ALLOWED_TAGS_PER_PAGE as readonly number[]).includes(urlPerPage)) {
+      window.localStorage.setItem("tags_per_page", String(urlPerPage));
+      setSelectedPerPage(urlPerPage as AllowedTagsPerPage);
       return;
     }
 
-    if (stored && stored !== perPage) {
-      const pageFromUrl = parsePage(params.get("page")) ?? 1;
-      const target = hrefFor(Math.max(1, pageFromUrl), stored);
-      // Avoid infinite loop if the URL already matches.
+    if (Number.isFinite(stored) && (ALLOWED_TAGS_PER_PAGE as readonly number[]).includes(stored) && stored !== perPage) {
+      const target = hrefFor(1, stored);
       if (target !== `${window.location.pathname}${window.location.search}`) {
         navigate(target);
       }
@@ -88,15 +85,12 @@ export default function PaginationControls({
     setSelectedPerPage(perPage);
   }, [perPage]);
 
-  const pageItems = generatePageItems(currentPage, totalPages);
+  const pageItems = getTagsPageItems(currentPage, totalPages);
 
   return (
     <div class="mt-12 flex flex-col gap-4 border-t border-[var(--color-border)] pt-8">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <nav
-          class="flex items-center justify-center sm:justify-start gap-2 flex-wrap"
-          aria-label="Pagination"
-        >
+        <nav class="flex items-center justify-center sm:justify-start gap-2 flex-wrap" aria-label="Pagination">
           <button
             type="button"
             class={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
@@ -119,11 +113,7 @@ export default function PaginationControls({
             {pageItems.map((item, idx) => {
               if (item === "ellipsis") {
                 return (
-                  <span
-                    key={`e-${idx}`}
-                    class="px-2 text-sm text-[var(--color-text-tertiary)]"
-                    aria-hidden="true"
-                  >
+                  <span key={`e-${idx}`} class="px-2 text-sm text-[var(--color-text-tertiary)]" aria-hidden="true">
                     ...
                   </span>
                 );
@@ -180,7 +170,7 @@ export default function PaginationControls({
 
         <div class="flex items-center justify-center sm:justify-end gap-2">
           <span class="hidden sm:inline text-sm font-semibold text-[var(--color-text-secondary)]">
-            {labels.postsPerPage}
+            {labels.perPage}
           </span>
           <span class="sm:hidden text-sm font-semibold text-[var(--color-text-secondary)]">
             {labels.show}
@@ -190,22 +180,16 @@ export default function PaginationControls({
             value={String(selectedPerPage)}
             onChange={(event) => {
               const next = Number((event.target as HTMLSelectElement).value);
-              const allowed = (ALLOWED_PER_PAGE as readonly number[]).includes(next);
-              const nextPerPage = (allowed ? next : DEFAULT_PER_PAGE) as AllowedPerPage;
+              const allowed = (ALLOWED_TAGS_PER_PAGE as readonly number[]).includes(next);
+              const nextPerPage = (allowed ? next : DEFAULT_TAGS_PER_PAGE) as AllowedTagsPerPage;
               setSelectedPerPage(nextPerPage);
-
-              window.localStorage.setItem("posts_per_page", String(nextPerPage));
-
-              // Reset to page 1 when changing density.
-              const href = nextPerPage === DEFAULT_PER_PAGE
-                ? hrefFor(1, DEFAULT_PER_PAGE)
-                : hrefFor(1, nextPerPage);
-              navigate(href);
+              window.localStorage.setItem("tags_per_page", String(nextPerPage));
+              navigate(hrefFor(1, nextPerPage));
             }}
             disabled={isNavigating}
-            aria-label={labels.postsPerPage}
+            aria-label={labels.perPage}
           >
-            {ALLOWED_PER_PAGE.map((value) => (
+            {ALLOWED_TAGS_PER_PAGE.map((value) => (
               <option key={value} value={String(value)}>
                 {value}
               </option>
@@ -216,3 +200,4 @@ export default function PaginationControls({
     </div>
   );
 }
+

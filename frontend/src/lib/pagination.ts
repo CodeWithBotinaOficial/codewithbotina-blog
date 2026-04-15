@@ -36,9 +36,18 @@ export function offsetFor(page: number, perPage: number): number {
   return (page - 1) * perPage;
 }
 
-export function buildPageHref(baseUrl: string, page: number, perPage: number): string {
+export function buildPageHref(
+  baseUrl: string,
+  page: number,
+  perPage: number,
+  existingParams?: URLSearchParams,
+): string {
   const url = new URL(baseUrl, "https://blog.codewithbotina.com");
-  const params = new URLSearchParams();
+  const params = new URLSearchParams(existingParams ? existingParams.toString() : "");
+
+  // Always rebuild pagination params; preserve everything else.
+  params.delete("page");
+  params.delete("per_page");
 
   if (perPage !== DEFAULT_PER_PAGE) {
     params.set("page", String(page));
@@ -93,4 +102,3 @@ export function generatePageItems(currentPage: number, totalPages: number): Page
 
   return items;
 }
-

@@ -26,6 +26,30 @@ This document summarizes the core database schema for the blog, with emphasis on
 - `idx_posts_language` on `posts(language)`
 - `idx_posts_language_fecha` on `posts(language, fecha DESC)`
 
+## Search & Discovery Indexes
+
+The advanced search system benefits from additional indexes on frequently filtered and joined columns. Apply these in your Supabase SQL editor (or migrations, if you manage schema as code):
+
+```sql
+-- Post searches
+CREATE INDEX IF NOT EXISTS idx_posts_titulo ON posts(titulo);
+CREATE INDEX IF NOT EXISTS idx_posts_language_fecha ON posts(language, fecha DESC);
+
+-- Optional: full-text search for body (adjust language config as needed)
+CREATE INDEX IF NOT EXISTS idx_posts_body_fulltext
+  ON posts USING gin(to_tsvector('spanish', body));
+
+-- Tag searches
+CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
+CREATE INDEX IF NOT EXISTS idx_tags_usage_count ON tags(usage_count DESC);
+
+-- Reaction counts
+CREATE INDEX IF NOT EXISTS idx_reactions_post_type ON post_reactions(post_id, reaction_type);
+
+-- Comment counts
+CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
+```
+
 ## Tags and Junction Table
 
 - `tags`: SEO-friendly tags
