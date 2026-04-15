@@ -5,7 +5,9 @@ import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
 import { FreshContext } from "$fresh/server.ts";
 
 Deno.test("Integration: GET /api/posts returns list with language filter", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const queryBuilder = {
     order: () => queryBuilder,
     eq: () => queryBuilder,

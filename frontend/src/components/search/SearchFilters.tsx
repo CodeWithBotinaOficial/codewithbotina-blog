@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Search as SearchIcon, X, Calendar, SlidersHorizontal } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
 import { clearFiltersFromStorage, loadFiltersFromStorage, saveFiltersToStorage } from "../../lib/search-filters";
-import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
+import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, t } from "../../lib/i18n";
 import { DEFAULT_SEARCH_FILTERS, type SearchFilters as SearchFiltersType } from "../../types/search";
 
 type Tag = { id?: string; name: string; slug: string; usage_count?: number | null };
 
 export interface SearchFiltersProps {
-  onSearch: (filters: SearchFiltersType) => void;
+  onSearch: (_filters: SearchFiltersType) => void;
   showLanguageFilter?: boolean;
   showScopeFilter?: boolean;
   compact?: boolean;
@@ -17,6 +17,8 @@ export interface SearchFiltersProps {
   showTagFilter?: boolean;
   // If enabled, typing in the main search box will trigger an apply after a debounce.
   autoApplySearch?: boolean;
+  // Controls whether the filter panel starts open; if omitted, defaults to `!compact`.
+  defaultFiltersOpen?: boolean;
 }
 
 const API_URL = getApiUrl().replace(/\/$/, "");
@@ -50,13 +52,17 @@ export default function SearchFilters({
   compact = false,
   initialFilters,
   autoApplySearch = true,
+  defaultFiltersOpen,
 }: SearchFiltersProps) {
   const uiLanguage = initialFilters?.uiLanguage ?? "en";
   const defaultFilters = useMemo(() => DEFAULT_SEARCH_FILTERS(uiLanguage), [uiLanguage]);
 
   const [filters, setFilters] = useState<SearchFiltersType>(() => initialFilters ?? defaultFilters);
   const [errors, setErrors] = useState<{ date?: string }>({});
-  const [filtersOpen, setFiltersOpen] = useState(!compact);
+  const [filtersOpen, setFiltersOpen] = useState(() => {
+    if (typeof defaultFiltersOpen === "boolean") return defaultFiltersOpen;
+    return !compact;
+  });
 
   // Tags UI state.
   const [tagQuery, setTagQuery] = useState("");

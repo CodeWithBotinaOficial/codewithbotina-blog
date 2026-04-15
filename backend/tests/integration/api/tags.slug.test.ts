@@ -9,7 +9,9 @@ const mockContext = {
 } as unknown as FreshContext;
 
 Deno.test("Integration: GET /api/tags/:slug returns tag and posts", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const _fromStub = stub(supabaseAny, "from", (...args: unknown[]) => {
     const table = String(args[0] ?? "");
     if (table === "tags") {
@@ -28,7 +30,10 @@ Deno.test("Integration: GET /api/tags/:slug returns tag and posts", async () => 
 
     if (table === "posts") {
       return {
-        select: (_columns: unknown, opts?: { count?: string; head?: boolean }) => {
+        select: (
+          _columns: unknown,
+          opts?: { count?: string; head?: boolean },
+        ) => {
           const isCountQuery = Boolean(opts?.head) && opts?.count === "exact";
 
           // countQuery: .select(..., { count:"exact", head:true }).eq(...)

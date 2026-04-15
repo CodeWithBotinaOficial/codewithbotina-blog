@@ -13,7 +13,9 @@ export class AuthRepository {
   async getUserById(userId: string): Promise<UserProfile | null> {
     const { data, error } = await this.db
       .from("users")
-      .select("id, email, full_name, avatar_url, google_id, created_at, last_login")
+      .select(
+        "id, email, full_name, avatar_url, google_id, created_at, last_login",
+      )
       .eq("id", userId)
       .maybeSingle();
 
@@ -28,7 +30,9 @@ export class AuthRepository {
   async getUserByEmail(email: string): Promise<UserProfile | null> {
     const { data, error } = await this.db
       .from("users")
-      .select("id, email, full_name, avatar_url, google_id, created_at, last_login")
+      .select(
+        "id, email, full_name, avatar_url, google_id, created_at, last_login",
+      )
       .eq("email", email)
       .maybeSingle();
 
@@ -43,7 +47,9 @@ export class AuthRepository {
   async getUserByGoogleId(googleId: string): Promise<UserProfile | null> {
     const { data, error } = await this.db
       .from("users")
-      .select("id, email, full_name, avatar_url, google_id, created_at, last_login")
+      .select(
+        "id, email, full_name, avatar_url, google_id, created_at, last_login",
+      )
       .eq("google_id", googleId)
       .maybeSingle();
 

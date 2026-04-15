@@ -17,10 +17,16 @@ const adminUser = {
 };
 
 Deno.test("Integration: GET /api/storage/images lists images (admin only)", async () => {
-  const _authStub = stub(AuthService.prototype, "getUserFromToken", () => Promise.resolve(adminUser));
+  const _authStub = stub(
+    AuthService.prototype,
+    "getUserFromToken",
+    () => Promise.resolve(adminUser),
+  );
 
-  const storageAny = (supabase as any).storage;
-  const _fromStub = stub(storageAny, "from", (..._args: unknown[]) => ({
+  const storage =
+    (supabase as unknown as { storage: { from: (bucket: string) => unknown } })
+      .storage;
+  const _fromStub = stub(storage, "from", (..._args: unknown[]) => ({
     list: () =>
       Promise.resolve({
         data: [
@@ -33,7 +39,9 @@ Deno.test("Integration: GET /api/storage/images lists images (admin only)", asyn
         ],
         error: null,
       }),
-    getPublicUrl: (name: string) => ({ data: { publicUrl: `https://example.com/${name}` } }),
+    getPublicUrl: (name: string) => ({
+      data: { publicUrl: `https://example.com/${name}` },
+    }),
   }));
 
   const req = new Request("http://localhost/api/storage/images?limit=10", {

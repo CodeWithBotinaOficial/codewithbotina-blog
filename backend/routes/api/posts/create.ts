@@ -4,6 +4,10 @@ import { corsHeaders } from "../../../middleware/cors.ts";
 import { requireAdmin } from "../../../middleware/auth.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../utils/responses.ts";
+import type {
+  PostCreateBatchResponse,
+  PostRecord,
+} from "../../../types/post.types.ts";
 
 const postService = new PostService();
 
@@ -27,7 +31,10 @@ export const handler: Handlers = {
         url: req.url,
       });
 
-      console.log("Create post auth header present:", Boolean(req.headers.get("Authorization")));
+      console.log(
+        "Create post auth header present:",
+        Boolean(req.headers.get("Authorization")),
+      );
 
       const user = await requireAdmin(req);
       console.log("Create post admin verified", {
@@ -71,18 +78,19 @@ export const handler: Handlers = {
       }
 
       if (isBatch) {
-        const payload = result.data as any;
+        const payload = result.data as PostCreateBatchResponse;
+
         console.log("Create posts batch succeeded", {
-          count: Array.isArray(payload.posts) ? payload.posts.length : 0,
+          count: payload.posts.length,
           translation_group_id: payload.translation_group_id ?? null,
         });
         const response = successResponse(
           {
-            posts: (payload.posts ?? []).map((p: any) => ({
+            posts: payload.posts.map((p) => ({
               id: p.id,
               titulo: p.titulo,
               slug: p.slug,
-              fecha: p.fecha,
+              fecha: p.fecha ?? null,
               language: p.language,
             })),
             translation_group_id: payload.translation_group_id ?? null,
@@ -94,18 +102,20 @@ export const handler: Handlers = {
         return response;
       }
 
+      const single = result.data as PostRecord;
+      const singleId = single.id;
+      const singleSlug = single.slug;
       console.log("Create post succeeded", {
-        postId: (result.data as any).id,
-        slug: (result.data as any).slug,
+        postId: singleId,
+        slug: singleSlug,
       });
 
-      const single = result.data as any;
       const response = successResponse(
         {
-          id: single.id,
+          id: singleId,
           titulo: single.titulo,
-          slug: single.slug,
-          fecha: single.fecha,
+          slug: singleSlug,
+          fecha: single.fecha ?? null,
         },
         "Post created successfully",
         201,

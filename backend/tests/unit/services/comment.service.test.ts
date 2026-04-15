@@ -20,7 +20,11 @@ Deno.test("CommentService creates comment successfully", async () => {
   const auth = new AuthService();
 
   const postStub = stub(repo, "postExists", () => Promise.resolve(true));
-  const createStub = stub(repo, "createComment", () => Promise.resolve(baseComment));
+  const createStub = stub(
+    repo,
+    "createComment",
+    () => Promise.resolve(baseComment),
+  );
 
   const service = new CommentService(repo, auth);
   const result = await service.createComment(
@@ -59,8 +63,16 @@ Deno.test("CommentService enforces author-only update", async () => {
   const repo = new CommentRepository();
   const auth = new AuthService();
 
-  const getStub = stub(repo, "getCommentById", () => Promise.resolve(baseComment));
-  const updateStub = stub(repo, "updateComment", () => Promise.resolve(baseComment));
+  const getStub = stub(
+    repo,
+    "getCommentById",
+    () => Promise.resolve(baseComment),
+  );
+  const updateStub = stub(
+    repo,
+    "updateComment",
+    () => Promise.resolve(baseComment),
+  );
 
   const service = new CommentService(repo, auth);
   const result = await service.updateComment(
@@ -80,11 +92,19 @@ Deno.test("CommentService allows admin delete", async () => {
   const repo = new CommentRepository();
   const auth = new AuthService();
 
-  const getStub = stub(repo, "getCommentById", () => Promise.resolve(baseComment));
+  const getStub = stub(
+    repo,
+    "getCommentById",
+    () => Promise.resolve(baseComment),
+  );
   const deleteStub = stub(repo, "deleteComment", () => Promise.resolve(true));
 
   const service = new CommentService(repo, auth);
-  const result = await service.deleteComment(baseComment.id, "admin-user", true);
+  const result = await service.deleteComment(
+    baseComment.id,
+    "admin-user",
+    true,
+  );
 
   assertEquals(result.success, true);
   assertEquals(result.data, true);

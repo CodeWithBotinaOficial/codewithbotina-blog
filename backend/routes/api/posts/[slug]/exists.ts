@@ -22,7 +22,11 @@ export const handler: Handlers = {
     const language = new URL(req.url).searchParams.get("language") ?? undefined;
 
     try {
-      const isUnique = await postService.isSlugUnique(slug, undefined, language ?? undefined);
+      const isUnique = await postService.isSlugUnique(
+        slug,
+        undefined,
+        language ?? undefined,
+      );
       headers.set("Content-Type", "application/json");
       return new Response(JSON.stringify({ exists: !isUnique }), {
         status: 200,

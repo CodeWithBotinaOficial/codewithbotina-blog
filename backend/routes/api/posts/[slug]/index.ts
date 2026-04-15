@@ -77,12 +77,17 @@ export const handler: Handlers = {
         body: data.body,
         imagen_url: data.imagen_url,
         fecha: data.fecha,
-        updated_at: (data as { updated_at?: string | null }).updated_at ?? data.fecha ?? null,
+        updated_at: (data as { updated_at?: string | null }).updated_at ??
+          data.fecha ?? null,
         language: data.language,
         tags,
       };
 
-      const response = successResponse(payload, "Post fetched successfully", 200);
+      const response = successResponse(
+        payload,
+        "Post fetched successfully",
+        200,
+      );
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {

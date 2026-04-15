@@ -33,7 +33,9 @@ export const handler: Handlers = {
 
       const payload = await req.json();
       const name = typeof payload?.name === "string" ? payload.name.trim() : "";
-      const description = typeof payload?.description === "string" ? payload.description.trim() : null;
+      const description = typeof payload?.description === "string"
+        ? payload.description.trim()
+        : null;
 
       if (!name || name.length < 2 || name.length > 50) {
         const response = errorResponse("Tag name must be 2-50 characters", 400);

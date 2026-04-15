@@ -2,7 +2,6 @@ import { Handlers } from "$fresh/server.ts";
 import { getCookies } from "$std/http/cookie.ts";
 import { corsHeaders } from "../../../middleware/cors.ts";
 import { AuthService } from "../../../services/auth.service.ts";
-import { errorResponse } from "../../../utils/responses.ts";
 
 const authService = new AuthService();
 

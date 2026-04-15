@@ -2,7 +2,7 @@ import { Handlers } from "$fresh/server.ts";
 import { corsHeaders } from "../../../../middleware/cors.ts";
 import { AppError } from "../../../../utils/errors.ts";
 import { errorResponse } from "../../../../utils/responses.ts";
-import { getReactionCounts } from "../_helpers.ts";
+import { getReactionCounts } from "../../../../lib/reactions.helpers.ts";
 
 export const handler: Handlers = {
   OPTIONS(req) {

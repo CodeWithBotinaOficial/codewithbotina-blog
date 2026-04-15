@@ -1,7 +1,9 @@
-import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.216.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.216.0/assert/mod.ts";
 import { handler } from "../../../routes/api/auth/google.ts";
-import { AuthService } from "../../../services/auth.service.ts";
-import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
+import { restore } from "https://deno.land/std@0.216.0/testing/mock.ts";
 import { FreshContext } from "$fresh/server.ts";
 
 const mockContext = (hostname: string) =>
@@ -19,7 +21,10 @@ Deno.test("Integration: GET /api/auth/google redirects to Google OAuth", async (
 
   assertEquals(res.status, 302);
   const location = res.headers.get("Location") || "";
-  assertEquals(location.startsWith("https://placeholder.supabase.co/auth/v1/authorize"), true);
+  assertEquals(
+    location.startsWith("https://placeholder.supabase.co/auth/v1/authorize"),
+    true,
+  );
 
   restore();
 });

@@ -9,7 +9,9 @@ const mockContext = {
 } as unknown as FreshContext;
 
 Deno.test("Integration: GET /api/reactions/:postId returns counts", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const _fromStub = stub(supabaseAny, "from", () => ({
     select: () => ({
       eq: () =>

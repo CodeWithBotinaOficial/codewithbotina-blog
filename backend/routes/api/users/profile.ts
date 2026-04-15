@@ -41,7 +41,9 @@ export const handler: Handlers = {
       const rawLimit = Number(url.searchParams.get("limit") ?? "20");
       const rawOffset = Number(url.searchParams.get("offset") ?? "0");
 
-      const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 200) : 20;
+      const limit = Number.isFinite(rawLimit)
+        ? Math.min(Math.max(rawLimit, 1), 200)
+        : 20;
       const offset = Number.isFinite(rawOffset) ? Math.max(rawOffset, 0) : 0;
 
       const [
@@ -81,7 +83,8 @@ export const handler: Handlers = {
           .range(offset, offset + limit - 1),
       ]);
 
-      const firstError = likesCount.error || dislikesCount.error || commentsCount.error || likedTotal.error || likedPosts.error;
+      const firstError = likesCount.error || dislikesCount.error ||
+        commentsCount.error || likedTotal.error || likedPosts.error;
       if (firstError) {
         console.error("Supabase error:", firstError);
         throw new AppError("Failed to fetch profile data", 500);
@@ -91,7 +94,9 @@ export const handler: Handlers = {
       const liked_posts: LikedPostItem[] = rows
         .map((row) => {
           const post = Array.isArray(row.post) ? row.post[0] ?? null : row.post;
-          return post ? ({ liked_at: row.created_at, post } as LikedPostItem) : null;
+          return post
+            ? ({ liked_at: row.created_at, post } as LikedPostItem)
+            : null;
         })
         .filter((value): value is LikedPostItem => Boolean(value));
 

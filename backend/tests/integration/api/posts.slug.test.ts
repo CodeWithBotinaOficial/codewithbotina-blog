@@ -9,7 +9,9 @@ const mockContext = {
 } as unknown as FreshContext;
 
 Deno.test("Integration: GET /api/posts/:slug returns post with tags", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const queryBuilder = {
     eq: () => queryBuilder,
     maybeSingle: () =>
@@ -24,7 +26,14 @@ Deno.test("Integration: GET /api/posts/:slug returns post with tags", async () =
           updated_at: null,
           language: "es",
           post_tags: [
-            { tag: { id: "tag-1", name: "Tag One", slug: "tag-one", usage_count: 2 } },
+            {
+              tag: {
+                id: "tag-1",
+                name: "Tag One",
+                slug: "tag-one",
+                usage_count: 2,
+              },
+            },
           ],
         },
         error: null,

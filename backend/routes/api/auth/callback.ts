@@ -83,7 +83,10 @@ export const handler: Handlers = {
       const { frontendUrl } = getEnvironmentConfig();
       const redirectUrl = isValidNext(next, frontendUrl)
         ? new URL(next)
-        : new URL(`/${extractLanguageFromNext(next, frontendUrl) ?? "en"}/`, frontendUrl);
+        : new URL(
+          `/${extractLanguageFromNext(next, frontendUrl) ?? "en"}/`,
+          frontendUrl,
+        );
 
       headers.set("Location", redirectUrl.toString());
       return new Response(null, {

@@ -30,7 +30,9 @@ export const handler: Handlers = {
       const analytics = Boolean(payload?.analytics_cookies);
       const marketing = Boolean(payload?.marketing_cookies);
       const functional = payload?.functional_cookies === false ? false : true;
-      const sessionId = typeof payload?.session_id === "string" ? payload.session_id.trim() : "";
+      const sessionId = typeof payload?.session_id === "string"
+        ? payload.session_id.trim()
+        : "";
 
       if (!user && !sessionId) {
         const response = errorResponse("Missing session_id", 400);

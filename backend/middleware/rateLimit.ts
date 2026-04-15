@@ -26,7 +26,12 @@ export function isRateLimited(ip: string): boolean {
 }
 
 export function isAuthRateLimited(ip: string): boolean {
-  return isRateLimitedWithStore(ip, AUTH_RATE_LIMIT, AUTH_WINDOW_MS, authIpRequests);
+  return isRateLimitedWithStore(
+    ip,
+    AUTH_RATE_LIMIT,
+    AUTH_WINDOW_MS,
+    authIpRequests,
+  );
 }
 
 export function isUserCommentRateLimited(userId: string): boolean {

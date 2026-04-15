@@ -32,7 +32,6 @@ import * as $api_posts_upload_image from "./routes/api/posts/upload-image.ts";
 import * as $api_reactions_postId_dislike from "./routes/api/reactions/[postId]/dislike.ts";
 import * as $api_reactions_postId_index from "./routes/api/reactions/[postId]/index.ts";
 import * as $api_reactions_postId_like from "./routes/api/reactions/[postId]/like.ts";
-import * as $api_reactions_helpers from "./routes/api/reactions/_helpers.ts";
 import * as $api_reactions_user_postId_ from "./routes/api/reactions/user/[postId].ts";
 import * as $api_storage_images from "./routes/api/storage/images.ts";
 import * as $api_tags_slug_ from "./routes/api/tags/[slug].ts";
@@ -80,7 +79,6 @@ const manifest = {
     "./routes/api/reactions/[postId]/dislike.ts": $api_reactions_postId_dislike,
     "./routes/api/reactions/[postId]/index.ts": $api_reactions_postId_index,
     "./routes/api/reactions/[postId]/like.ts": $api_reactions_postId_like,
-    "./routes/api/reactions/_helpers.ts": $api_reactions_helpers,
     "./routes/api/reactions/user/[postId].ts": $api_reactions_user_postId_,
     "./routes/api/storage/images.ts": $api_storage_images,
     "./routes/api/tags/[slug].ts": $api_tags_slug_,

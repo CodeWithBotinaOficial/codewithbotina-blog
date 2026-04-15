@@ -133,7 +133,10 @@ Deno.test("Integration: POST /api/posts/create supports batch payload", async ()
   assertEquals(res.status, 201);
   assertEquals(body.success, true);
   assertEquals(body.data.posts.length, 2);
-  assertEquals(body.data.translation_group_id, "22222222-2222-2222-2222-222222222222");
+  assertEquals(
+    body.data.translation_group_id,
+    "22222222-2222-2222-2222-222222222222",
+  );
 
   restore();
 });

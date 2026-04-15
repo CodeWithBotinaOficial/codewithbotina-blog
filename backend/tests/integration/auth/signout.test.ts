@@ -1,4 +1,7 @@
-import { assertEquals, assertMatch } from "https://deno.land/std@0.216.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertMatch,
+} from "https://deno.land/std@0.216.0/assert/mod.ts";
 import { handler } from "../../../routes/api/auth/signout.ts";
 import { AuthService } from "../../../services/auth.service.ts";
 import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";

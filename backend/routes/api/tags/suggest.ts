@@ -26,7 +26,10 @@ export const handler: Handlers = {
       const body = typeof payload?.body === "string" ? payload.body : "";
 
       if (!title && !body) {
-        const response = successResponse({ suggestions: [] }, "No content provided");
+        const response = successResponse(
+          { suggestions: [] },
+          "No content provided",
+        );
         headers.forEach((value, key) => response.headers.set(key, value));
         return response;
       }
@@ -52,11 +55,16 @@ export const handler: Handlers = {
           if (title.toLowerCase().includes(tagName)) score += 100;
           if (body.toLowerCase().includes(tagName)) score += 50;
 
-          const wordBoundary = new RegExp(`\\b${escapeRegExp(tagName)}\\b`, "i");
+          const wordBoundary = new RegExp(
+            `\\b${escapeRegExp(tagName)}\\b`,
+            "i",
+          );
           if (wordBoundary.test(text)) score += 30;
           if (text.includes(tagName)) score += 10;
 
-          const usage = typeof tag.usage_count === "number" ? tag.usage_count : 0;
+          const usage = typeof tag.usage_count === "number"
+            ? tag.usage_count
+            : 0;
           score += Math.log(usage + 1) * 2;
 
           return {
@@ -67,19 +75,32 @@ export const handler: Handlers = {
             score,
           };
         })
-        .filter((tag): tag is { id: string; name: string; slug: string; usage_count: number; score: number } =>
-          Boolean(tag && tag.score > 0)
-        )
+        .filter((
+          tag,
+        ): tag is {
+          id: string;
+          name: string;
+          slug: string;
+          usage_count: number;
+          score: number;
+        } => Boolean(tag && tag.score > 0))
         .sort((a, b) => b.score - a.score)
         .slice(0, 10)
-        .map(({ id, name, slug, usage_count }) => ({ id, name, slug, usage_count }));
+        .map(({ id, name, slug, usage_count }) => ({
+          id,
+          name,
+          slug,
+          usage_count,
+        }));
 
       const response = successResponse({ suggestions });
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {
       const response = errorResponse(
-        error instanceof Error ? error.message : "Failed to generate suggestions",
+        error instanceof Error
+          ? error.message
+          : "Failed to generate suggestions",
         500,
       );
       headers.forEach((value, key) => response.headers.set(key, value));

@@ -24,7 +24,9 @@ async function generatePkcePair() {
 }
 
 function getClientIp(ctx: { remoteAddr: Deno.Addr }): string {
-  if (ctx.remoteAddr.transport === "tcp" || ctx.remoteAddr.transport === "udp") {
+  if (
+    ctx.remoteAddr.transport === "tcp" || ctx.remoteAddr.transport === "udp"
+  ) {
     return (ctx.remoteAddr as Deno.NetAddr).hostname;
   }
   return "unknown";

@@ -61,7 +61,12 @@ Deno.test("Integration: PUT /api/posts/bulk-update returns 200", async () => {
       creates: [
         {
           base_post_id: "post-es",
-          post: { titulo: "Hello", slug: "hello", body: "Content", language: "en" },
+          post: {
+            titulo: "Hello",
+            slug: "hello",
+            body: "Content",
+            language: "en",
+          },
         },
       ],
       unlinks: [{ post_id: "post-es", linked_post_id: "post-fr" }],
@@ -79,4 +84,3 @@ Deno.test("Integration: PUT /api/posts/bulk-update returns 200", async () => {
 
   restore();
 });
-

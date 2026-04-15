@@ -18,14 +18,21 @@ Deno.test("Integration: GET /api/tags/autocomplete returns empty for short query
 });
 
 Deno.test("Integration: GET /api/tags/autocomplete returns matches", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const _fromStub = stub(supabaseAny, "from", () => ({
     select: () => ({
       ilike: () => ({
         order: () => ({
           limit: () =>
             Promise.resolve({
-              data: [{ id: "tag-1", name: "React", slug: "react", usage_count: 4 }],
+              data: [{
+                id: "tag-1",
+                name: "React",
+                slug: "react",
+                usage_count: 4,
+              }],
               error: null,
             }),
         }),
