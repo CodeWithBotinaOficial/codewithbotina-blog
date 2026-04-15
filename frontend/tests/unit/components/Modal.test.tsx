@@ -11,6 +11,7 @@ describe("Modal component", () => {
   });
 
   afterEach(() => {
+    render(null, container);
     document.body.removeChild(container);
     document.body.style.overflow = "unset";
   });
@@ -23,8 +24,8 @@ describe("Modal component", () => {
       container,
     );
 
-    expect(container.textContent).toContain("Test Modal");
-    expect(container.textContent).toContain("Modal content");
+    expect(document.body.textContent).toContain("Test Modal");
+    expect(document.body.textContent).toContain("Modal content");
   });
 
   it("does not render when closed", () => {
@@ -35,7 +36,7 @@ describe("Modal component", () => {
       container,
     );
 
-    expect(container.innerHTML).toBe("");
+    expect(document.body.querySelector("[data-modal-backdrop]")).toBeNull();
   });
 
   it("calls onClose when clicking backdrop", () => {
@@ -47,7 +48,7 @@ describe("Modal component", () => {
       container,
     );
 
-    const backdrop = container.querySelector("[data-modal-backdrop]") as HTMLDivElement;
+    const backdrop = document.body.querySelector("[data-modal-backdrop]") as HTMLDivElement;
     backdrop.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -61,7 +62,7 @@ describe("Modal component", () => {
       container,
     );
 
-    const closeButton = container.querySelector("button[aria-label=\"Close\"]") as HTMLButtonElement;
+    const closeButton = document.body.querySelector("button[aria-label=\"Close\"]") as HTMLButtonElement;
     closeButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });

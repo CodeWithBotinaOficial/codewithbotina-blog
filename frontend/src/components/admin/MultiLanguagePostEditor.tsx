@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Lock, ShieldX, X } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
+import { getAdminRoute } from "../../lib/admin-endpoints";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { t, type SupportedLanguage, LANGUAGE_NAMES, SUPPORTED_LANGUAGES as UI_LANGS } from "../../lib/i18n";
 import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
@@ -45,6 +46,7 @@ interface Props {
 }
 
 const API_URL = getApiUrl().replace(/\/$/, "");
+const ADMIN_API = getAdminRoute("");
 
 function generateSlug(value: string): string {
   return value
@@ -86,7 +88,7 @@ async function uploadImage(file: File, title: string, slug: string): Promise<str
   formData.append("image", file);
   formData.append("title", title);
   formData.append("slug", slug);
-  const response = await fetch(`${API_URL}/api/posts/upload-image`, {
+  const response = await fetch(`${ADMIN_API}/posts/upload-image`, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -446,7 +448,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           tag_ids: getTagIdsForLanguage(lang),
         }));
 
-        const res = await fetch(`${API_URL}/api/posts/create`, {
+        const res = await fetch(`${ADMIN_API}/posts/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -504,7 +506,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         })
         .filter(Boolean);
 
-      const res = await fetch(`${API_URL}/api/posts/bulk-update`, {
+      const res = await fetch(`${ADMIN_API}/posts/bulk-update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

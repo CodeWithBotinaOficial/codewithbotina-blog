@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Lock, ShieldX } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
+import { getAdminRoute } from "../../lib/admin-endpoints";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useSession } from "../../hooks/useSession";
 import MarkdownPreview from "./MarkdownPreview";
@@ -35,6 +36,7 @@ interface Props {
 }
 
 const API_URL = getApiUrl();
+const ADMIN_API = getAdminRoute("");
 
 export default function PostEditor({ mode, initialData, cancelHref, labels, tagLabels }: Props) {
   const copy: PostEditorLabels = labels ?? {
@@ -230,7 +232,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
     (async () => {
       try {
-        const res = await fetch(`${API_URL}/api/posts/${encodeURIComponent(postId)}/translations`, {
+        const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
           credentials: "include",
         });
         if (!res.ok) return;
@@ -692,8 +694,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       }
 
       const endpoint = mode === "create"
-        ? "/api/posts/create"
-        : `/api/posts/${initialSlug}/update`;
+        ? "/posts/create"
+        : `/posts/${initialSlug}/update`;
 
       const payload = {
         titulo: trimmedTitle,
@@ -704,7 +706,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         ...(mode === "create" || tagsChanged ? { tag_ids: tags.map((tag) => tag.id) } : {}),
       };
 
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetch(`${ADMIN_API}${endpoint}`, {
         method: mode === "create" ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -1242,7 +1244,7 @@ async function uploadImage(
   formData.append("title", title);
   formData.append("slug", slug);
 
-  const response = await fetch(`${API_URL}/api/posts/upload-image`, {
+  const response = await fetch(`${ADMIN_API}/posts/upload-image`, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -1265,7 +1267,7 @@ async function syncTranslations(args: {
   const uniqueInitial = Array.from(new Set((initial ?? []).map((id) => String(id).trim()).filter(Boolean)));
 
   const postLink = async (linkedIds: string[]) => {
-    const res = await fetch(`${API_URL}/api/posts/${encodeURIComponent(postId)}/translations`, {
+    const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -1278,7 +1280,7 @@ async function syncTranslations(args: {
 
   const unlinkOne = async (linkedPostId: string) => {
     const res = await fetch(
-      `${API_URL}/api/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(linkedPostId)}`,
+      `${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(linkedPostId)}`,
       {
         method: "DELETE",
         credentials: "include",

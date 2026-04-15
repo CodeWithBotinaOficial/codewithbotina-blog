@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase.ts";
 import { AppError, ValidationError } from "../utils/errors.ts";
 
-const VALID_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const VALID_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const TARGET_MAX_SIZE = 500 * 1024;
 let sharpModule: (typeof import("sharp")) | null = null;
