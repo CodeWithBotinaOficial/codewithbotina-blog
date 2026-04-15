@@ -4,9 +4,11 @@ export const prerender = false;
 import BaseLayout from "../../../components/BaseLayout.astro";
 import PostCard from "../../../components/PostCard.astro";
 import PaginationControls from "../../../components/pagination/PaginationControls";
+import SearchFiltersController from "../../../components/search/SearchFiltersController";
 import { supabase } from "../../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+import { filtersFromUrl } from "../../../lib/search-filters";
 import {
   DEFAULT_PER_PAGE,
   buildPageHref,
@@ -31,12 +33,18 @@ const apiUrl = getApiUrl();
 let tag: { id: string; name: string; slug: string; description?: string | null } | null = null;
 let posts: Post[] = [];
 let hasTagError = false;
+let hasPostsError = false;
 let totalPosts = 0;
+let searchPhase: string | null = null;
 
 const requestedPerPage = parsePerPage(Astro.url.searchParams.get("per_page"));
 const perPage = (requestedPerPage ?? DEFAULT_PER_PAGE) as AllowedPerPage;
 const requestedPageRaw = parsePage(Astro.url.searchParams.get("page"));
 const requestedPage = requestedPageRaw ?? 1;
+
+const paginationKeys = new Set(["page", "per_page"]);
+const hasOtherParams = Array.from(Astro.url.searchParams.keys()).some((key) => !paginationKeys.has(key));
+const initialFilters = filtersFromUrl(Astro.url.searchParams, language);
 
 const tagResult = await supabase
   .from("tags")
@@ -47,53 +55,81 @@ const tagResult = await supabase
 if (!tagResult.error && tagResult.data) {
   tag = tagResult.data;
 
-  const { count: totalCount, error: countError } = await supabase
-    .from("posts")
-    .select("id, post_tags!inner(tag_id)", { count: "exact", head: true })
-    .eq("language", language)
-    .eq("post_tags.tag_id", tag.id);
+  if (hasOtherParams) {
+    try {
+      const safePage = requestedPage > 0 ? requestedPage : 1;
+      const offset = offsetFor(safePage, perPage);
+      const searchUrl = new URL(`${apiUrl}/api/posts/search`);
+      if (initialFilters.search.trim()) searchUrl.searchParams.set("q", initialFilters.search.trim());
+      if (initialFilters.from) searchUrl.searchParams.set("from", initialFilters.from);
+      if (initialFilters.to) searchUrl.searchParams.set("to", initialFilters.to);
+      if (initialFilters.relevance) searchUrl.searchParams.set("relevance", initialFilters.relevance);
+      if (initialFilters.sort) searchUrl.searchParams.set("sort", initialFilters.sort);
+      if (initialFilters.scope) searchUrl.searchParams.set("scope", initialFilters.scope);
+      searchUrl.searchParams.set("tag_slug", tag.slug);
+      searchUrl.searchParams.set("language", language);
+      searchUrl.searchParams.set("limit", String(perPage));
+      searchUrl.searchParams.set("offset", String(offset));
 
-  if (countError) {
-    hasTagError = true;
+      const res = await fetch(searchUrl.toString());
+      if (!res.ok) throw new Error("Failed to fetch tag search results");
+      const payload = await res.json();
+      const data = payload?.data ?? payload;
+      totalPosts = (data?.total ?? 0) as number;
+      posts = (data?.posts ?? []) as Post[];
+      searchPhase = (data?.phase ?? null) as string | null;
+    } catch (_err) {
+      hasPostsError = true;
+    }
   } else {
-    totalPosts = totalCount ?? 0;
-  }
+    const { count: totalCount, error: countError } = await supabase
+      .from("posts")
+      .select("id, post_tags!inner(tag_id)", { count: "exact", head: true })
+      .eq("language", language)
+      .eq("post_tags.tag_id", tag.id);
 
-  const totalPages = totalPagesFor(totalPosts, perPage);
-  const currentPage = normalizePage(requestedPage, totalPages);
+    if (countError) {
+      hasTagError = true;
+    } else {
+      totalPosts = totalCount ?? 0;
+    }
 
-  const invalidPerPageProvided = Astro.url.searchParams.has("per_page") && !requestedPerPage;
-  const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageRaw === null;
-  const outOfRange = currentPage !== requestedPage;
-  const missingPageForCustomPerPage = perPage !== DEFAULT_PER_PAGE && !Astro.url.searchParams.has("page");
-  const canonicalizeBase = currentPage === 1 && perPage === DEFAULT_PER_PAGE &&
-    (Astro.url.searchParams.has("page") || Astro.url.searchParams.has("per_page"));
+    const totalPages = totalPagesFor(totalPosts, perPage);
+    const currentPage = normalizePage(requestedPage, totalPages);
 
-  if (!hasTagError && (invalidPerPageProvided || invalidPageProvided || outOfRange || missingPageForCustomPerPage || canonicalizeBase)) {
-    return Astro.redirect(buildPageHref(`/${language}/tags/${slug}`, currentPage, perPage), 302);
-  }
+    const invalidPerPageProvided = Astro.url.searchParams.has("per_page") && !requestedPerPage;
+    const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageRaw === null;
+    const outOfRange = currentPage !== requestedPage;
+    const missingPageForCustomPerPage = perPage !== DEFAULT_PER_PAGE && !Astro.url.searchParams.has("page");
+    const canonicalizeBase = currentPage === 1 && perPage === DEFAULT_PER_PAGE &&
+      (Astro.url.searchParams.has("page") || Astro.url.searchParams.has("per_page"));
 
-  const offset = offsetFor(currentPage, perPage);
-  const { data: pagePosts, error: pageError } = await supabase
-    .from("posts")
-    .select("id, titulo, slug, body, imagen_url, fecha, language, post_tags!inner(tag_id)")
-    .eq("language", language)
-    .eq("post_tags.tag_id", tag.id)
-    .order("fecha", { ascending: false })
-    .range(offset, offset + perPage - 1);
+    if (!hasTagError && (invalidPerPageProvided || invalidPageProvided || outOfRange || missingPageForCustomPerPage || canonicalizeBase)) {
+      return Astro.redirect(buildPageHref(`/${language}/tags/${slug}`, currentPage, perPage, Astro.url.searchParams), 302);
+    }
 
-  if (!pageError) {
-    posts = (pagePosts ?? []).map((row: any) => ({
-      id: row.id,
-      titulo: row.titulo,
-      slug: row.slug,
-      body: row.body,
-      imagen_url: row.imagen_url,
-      fecha: row.fecha,
-      language: row.language,
-    })) as Post[];
-  } else {
-    hasTagError = true;
+    const offset = offsetFor(currentPage, perPage);
+    const { data: pagePosts, error: pageError } = await supabase
+      .from("posts")
+      .select("id, titulo, slug, body, imagen_url, fecha, language, post_tags!inner(tag_id)")
+      .eq("language", language)
+      .eq("post_tags.tag_id", tag.id)
+      .order("fecha", { ascending: false })
+      .range(offset, offset + perPage - 1);
+
+    if (!pageError) {
+      posts = (pagePosts ?? []).map((row: any) => ({
+        id: row.id,
+        titulo: row.titulo,
+        slug: row.slug,
+        body: row.body,
+        imagen_url: row.imagen_url,
+        fecha: row.fecha,
+        language: row.language,
+      })) as Post[];
+    } else {
+      hasTagError = true;
+    }
   }
 } else {
   hasTagError = true;
@@ -131,21 +167,19 @@ const invalidPerPageProvided = Astro.url.searchParams.has("per_page") && !reques
 const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageRaw === null;
 const outOfRange = currentPage !== requestedPage;
 const missingPageForCustomPerPage = perPage !== DEFAULT_PER_PAGE && !Astro.url.searchParams.has("page");
-const paginationKeys = new Set(["page", "per_page"]);
-const hasOtherParams = Array.from(Astro.url.searchParams.keys()).some((key) => !paginationKeys.has(key));
 const canonicalizeBase = !hasOtherParams && currentPage === 1 && perPage === DEFAULT_PER_PAGE &&
   (Astro.url.searchParams.has("page") || Astro.url.searchParams.has("per_page"));
 
 if (invalidPerPageProvided || invalidPageProvided || outOfRange || missingPageForCustomPerPage || canonicalizeBase) {
-  return Astro.redirect(buildPageHref(`/${language}/tags/${tag.slug}`, currentPage, perPage), 302);
+  return Astro.redirect(buildPageHref(`/${language}/tags/${tag.slug}`, currentPage, perPage, Astro.url.searchParams), 302);
 }
 
-const canonicalPath = currentPage === 1 && perPage === DEFAULT_PER_PAGE
+const canonicalPath = !hasOtherParams && currentPage === 1 && perPage === DEFAULT_PER_PAGE
   ? `/${language}/tags/${tag.slug}`
-  : buildPageHref(`/${language}/tags/${tag.slug}`, currentPage, perPage);
+  : buildPageHref(`/${language}/tags/${tag.slug}`, currentPage, perPage, Astro.url.searchParams);
 const canonicalUrl = `${siteUrl}${canonicalPath}`;
-const prevPath = currentPage > 1 ? buildPageHref(`/${language}/tags/${tag.slug}`, currentPage - 1, perPage) : null;
-const nextPath = currentPage < totalPages ? buildPageHref(`/${language}/tags/${tag.slug}`, currentPage + 1, perPage) : null;
+const prevPath = currentPage > 1 ? buildPageHref(`/${language}/tags/${tag.slug}`, currentPage - 1, perPage, Astro.url.searchParams) : null;
+const nextPath = currentPage < totalPages ? buildPageHref(`/${language}/tags/${tag.slug}`, currentPage + 1, perPage, Astro.url.searchParams) : null;
 const pageTitle = `#${tag.name}`;
 const metaDescription = tag.description
   ? `${tag.description} (${totalPosts})`
@@ -221,7 +255,32 @@ const paginationLabels = {
       <p class="text-sm text-[var(--color-text-tertiary)] mt-2">{countLabel}</p>
     </div>
 
-    {posts.length === 0 ? (
+    <div class="mb-10">
+      <SearchFiltersController
+        basePath={`/${language}/tags/${tag.slug}`}
+        initialFilters={initialFilters}
+        showLanguageFilter={false}
+        showTagFilter={false}
+        client:load
+      />
+    </div>
+
+    {hasOtherParams && initialFilters.search.trim() && searchPhase === "content" ? (
+      <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+        {t(language, "search.foundInContent")}
+      </div>
+    ) : null}
+    {hasOtherParams && initialFilters.search.trim() && searchPhase === "tags" ? (
+      <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+        {t(language, "search.foundInTags", "common", { term: initialFilters.search.trim() })}
+      </div>
+    ) : null}
+
+    {hasPostsError ? (
+      <div class="text-center py-12">
+        <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
+      </div>
+    ) : posts.length === 0 ? (
       <div class="text-center py-12 text-[var(--color-text-secondary)]">
         {t(language, "noTagPosts", "post")}
       </div>

@@ -3,11 +3,11 @@ export const prerender = false;
 
 import BaseLayout from "../../components/BaseLayout.astro";
 import PostCard from "../../components/PostCard.astro";
-import SearchBar from "../../components/SearchBar.astro";
 import AdminCreatePostButton from "../../components/admin/AdminCreatePostButton";
 import PaginationControls from "../../components/pagination/PaginationControls";
+import SearchFiltersController from "../../components/search/SearchFiltersController";
 import { supabase } from "../../lib/supabase";
-import { getSiteUrl } from "../../lib/env";
+import { getApiUrl, getSiteUrl } from "../../lib/env";
 import type { Post } from "../../types/post";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
 import {
@@ -20,6 +20,7 @@ import {
   totalPagesFor,
   type AllowedPerPage,
 } from "../../lib/pagination";
+import { filtersFromUrl } from "../../lib/search-filters";
 
 const { lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
@@ -33,45 +34,97 @@ const perPage = (requestedPerPage ?? DEFAULT_PER_PAGE) as AllowedPerPage;
 const requestedPageRaw = parsePage(Astro.url.searchParams.get("page"));
 const requestedPage = requestedPageRaw ?? 1;
 
-const { count: totalPostsCount, error: countError } = await supabase
-  .from("posts")
-  .select("id", { count: "exact", head: true })
-  .eq("language", language);
-
-const totalPosts = totalPostsCount ?? 0;
-const totalPages = totalPagesFor(totalPosts, perPage);
-const currentPage = normalizePage(requestedPage, totalPages);
-
 const invalidPerPageProvided = Astro.url.searchParams.has("per_page") && !requestedPerPage;
 const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageRaw === null;
-const outOfRange = currentPage !== requestedPage;
-const missingPageForCustomPerPage = perPage !== DEFAULT_PER_PAGE && !Astro.url.searchParams.has("page");
 
 const paginationKeys = new Set(["page", "per_page"]);
 const hasOtherParams = Array.from(Astro.url.searchParams.keys()).some((key) => !paginationKeys.has(key));
+const apiUrl = getApiUrl().replace(/\/$/, "");
+
+const initialFilters = filtersFromUrl(Astro.url.searchParams, language);
+
+let totalPosts = 0;
+let countError: unknown = null;
+let error: unknown = null;
+let phase: string | null = null;
+
+let allPosts: Post[] = [];
+
+if (hasOtherParams) {
+  const safeRequestedPage = Math.max(1, requestedPage);
+  const offset = offsetFor(safeRequestedPage, perPage);
+  const url = new URL(`${apiUrl}/api/posts/search`);
+  if (initialFilters.search.trim()) url.searchParams.set("q", initialFilters.search.trim());
+  if (initialFilters.from) url.searchParams.set("from", initialFilters.from);
+  if (initialFilters.to) url.searchParams.set("to", initialFilters.to);
+  if (initialFilters.tags.length > 0) url.searchParams.set("tags", initialFilters.tags.join(","));
+  if (initialFilters.relevance) url.searchParams.set("relevance", initialFilters.relevance);
+  if (initialFilters.sort) url.searchParams.set("sort", initialFilters.sort);
+  if (initialFilters.scope) url.searchParams.set("scope", initialFilters.scope);
+
+  if (initialFilters.languageMode === "current") {
+    url.searchParams.set("language", language);
+  } else if (initialFilters.languageMode === "selected" && initialFilters.languages.length > 0) {
+    url.searchParams.set("languages", initialFilters.languages.join(","));
+  } else {
+    // all languages: no language param.
+  }
+
+  url.searchParams.set("limit", String(perPage));
+  url.searchParams.set("offset", String(offset));
+
+  try {
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      error = new Error("Failed to fetch search results");
+    } else {
+      const payload = await res.json();
+      const data = payload?.data ?? payload;
+      allPosts = (data?.posts ?? []) as Post[];
+      totalPosts = (data?.total ?? 0) as number;
+      phase = (data?.phase ?? null) as string | null;
+    }
+  } catch (e) {
+    error = e;
+  }
+} else {
+  const { count: totalPostsCount, error: countErr } = await supabase
+    .from("posts")
+    .select("id", { count: "exact", head: true })
+    .eq("language", language);
+
+  countError = countErr;
+  totalPosts = totalPostsCount ?? 0;
+
+  const offset = offsetFor(requestedPage, perPage);
+  const { data: posts, error: postsErr } = await supabase
+    .from("posts")
+    .select("id, titulo, slug, body, imagen_url, fecha, language")
+    .eq("language", language)
+    .order("fecha", { ascending: false })
+    .range(offset, offset + perPage - 1);
+
+  error = postsErr;
+  allPosts = (posts || []) as Post[];
+}
+
+const totalPages = totalPagesFor(totalPosts, perPage);
+const currentPage = normalizePage(requestedPage, totalPages);
+const outOfRange = currentPage !== requestedPage;
+const missingPageForCustomPerPage = perPage !== DEFAULT_PER_PAGE && !Astro.url.searchParams.has("page");
 const canonicalizeBase = !hasOtherParams && currentPage === 1 && perPage === DEFAULT_PER_PAGE &&
   (Astro.url.searchParams.has("page") || Astro.url.searchParams.has("per_page"));
 
 if (invalidPerPageProvided || invalidPageProvided || outOfRange || missingPageForCustomPerPage || canonicalizeBase) {
-  return Astro.redirect(buildPageHref(`/${language}/`, currentPage, perPage), 302);
+  return Astro.redirect(buildPageHref(`/${language}/`, currentPage, perPage, Astro.url.searchParams), 302);
 }
-
-const offset = offsetFor(currentPage, perPage);
-const { data: posts, error } = await supabase
-  .from("posts")
-  .select("id, titulo, slug, body, imagen_url, fecha, language")
-  .eq("language", language)
-  .order("fecha", { ascending: false })
-  .range(offset, offset + perPage - 1);
-
-const allPosts = (posts || []) as Post[];
 const siteUrl = getSiteUrl().replace(/\/$/, "");
-const canonicalPath = currentPage === 1 && perPage === DEFAULT_PER_PAGE
+const canonicalPath = !hasOtherParams && currentPage === 1 && perPage === DEFAULT_PER_PAGE
   ? `/${language}/`
-  : buildPageHref(`/${language}/`, currentPage, perPage);
+  : buildPageHref(`/${language}/`, currentPage, perPage, Astro.url.searchParams);
 const canonicalUrl = `${siteUrl}${canonicalPath}`;
-const prevPath = currentPage > 1 ? buildPageHref(`/${language}/`, currentPage - 1, perPage) : null;
-const nextPath = currentPage < totalPages ? buildPageHref(`/${language}/`, currentPage + 1, perPage) : null;
+const prevPath = currentPage > 1 ? buildPageHref(`/${language}/`, currentPage - 1, perPage, Astro.url.searchParams) : null;
+const nextPath = currentPage < totalPages ? buildPageHref(`/${language}/`, currentPage + 1, perPage, Astro.url.searchParams) : null;
 
 const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
@@ -121,9 +174,10 @@ const paginationLabels = {
       <p class="text-xl text-[var(--color-text-secondary)] max-w-2xl mx-auto mb-8">
         {t(language, "site.description")}
       </p>
-      <SearchBar
-        placeholder={t(language, "search.placeholder")}
-        showingLabel={t(language, "search.showing")}
+      <SearchFiltersController
+        basePath={`/${language}/`}
+        initialFilters={initialFilters}
+        client:load
       />
     </div>
   </section>
@@ -146,30 +200,32 @@ const paginationLabels = {
           {totalPosts === 0 ? (
             <div class="text-center py-20">
               <p class="text-xl text-[var(--color-text-secondary)]">
-                {t(language, "pagination.noPosts")}
+                {hasOtherParams ? t(language, "search.noResults") : t(language, "pagination.noPosts")}
               </p>
             </div>
           ) : (
             <>
-              <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {allPosts.map((post) => (
-                  <div class="post-card-wrapper" data-title={post.titulo} data-excerpt={post.body}>
-                    <PostCard post={post} language={language} />
-                  </div>
-                ))}
-              </div>
+              {hasOtherParams && initialFilters.search.trim() && phase === "content" ? (
+                <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+                  {t(language, "search.foundInContent")}
+                </div>
+              ) : null}
+              {hasOtherParams && initialFilters.search.trim() && phase === "tags" ? (
+                <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+                  {t(language, "search.foundInTags", "common", { term: initialFilters.search.trim() })}
+                </div>
+              ) : null}
 
-              <div id="no-results" class="hidden text-center py-20">
-                <p class="text-xl text-[var(--color-text-secondary)]">
-                  {t(language, "search.noResults")}
-                </p>
-                <button
-                  id="reset-search"
-                  class="mt-4 text-[var(--color-accent-primary)] hover:underline"
-                  onclick="document.getElementById('clear-search').click()"
-                >
-                  {t(language, "search.clear")}
-                </button>
+              {hasOtherParams ? (
+                <div class="mb-6 text-sm text-[var(--color-text-tertiary)]">
+                  {t(language, "search.resultsCount", "common", { count: totalPosts })}
+                </div>
+              ) : null}
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {allPosts.map((post) => (
+                  <PostCard post={post} language={language} />
+                ))}
               </div>
 
               <PaginationControls

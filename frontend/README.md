@@ -16,7 +16,7 @@
 
 - 🚀 Lightning-fast static site generation with Astro
 - 🎨 Minimalist, responsive design (mobile, tablet, desktop, TV)
-- 🔍 Real-time client-side search
+- 🔎 Global search with advanced filters
 - 📝 Markdown-based content with syntax highlighting
 - 📧 Contact form with backend API integration
 - 🏷️ Intelligent tag system with tag pages
@@ -31,6 +31,36 @@
 - ✅ Form validation with disabled submit until valid
 
 ---
+
+## Search System
+
+### Features
+
+- Global search accessible from the header (search icon + modal)
+- Advanced filters: date range
+- Advanced filters: relevance (reactions, comments)
+- Advanced filters: tags (popular tags + autocomplete, AND logic)
+- Advanced filters: language (current/selected/all)
+- Advanced filters: search scope (title/content/tags, with sequential fallback)
+- Sequential search strategy (title -> content -> tags)
+- Shareable search URLs (query params)
+- Tag browsing improvements: search + sorting + pagination (20/50/100 per page)
+
+### Components
+
+- `src/components/search/SearchFilters.tsx` (shared UI)
+- `src/components/search/GlobalSearchModal.tsx`
+- `src/components/tags/TagSearchBar.tsx`
+
+### Usage
+
+Search is available on:
+
+- Homepage (inline)
+- Global header (modal)
+- Tag pages (filter within tag)
+
+All searches respect the current language by default unless overridden.
 
 ## Admin Features
 

@@ -27,6 +27,7 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ SEO optimized (JSON-LD, Open Graph, keywords, RSS, sitemaps)
 - ✅ Bilingual i18n (English/Spanish) with language detection + hreflang
 - ✅ Fully responsive design
+- ✅ **Search & Discovery: advanced search filters, global search modal, tag browsing with pagination**
 
 ## Multi-Language Post Management
 
