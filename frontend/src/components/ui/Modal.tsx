@@ -1,5 +1,6 @@
-import { useLayoutEffect } from "preact/hooks";
 import type { ComponentChildren } from "preact";
+import { createPortal } from "preact/compat";
+import { useLayoutEffect } from "preact/hooks";
 import { X } from "lucide-preact";
 
 interface ModalProps {
@@ -21,10 +22,12 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
   }, [isOpen]);
 
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  // Render into document.body to avoid being clipped by ancestors (e.g. a header with backdrop-filter).
+  return createPortal((
     <div
-      class="fixed inset-0 z-50 bg-black/50 p-4 overflow-y-auto"
+      class="fixed inset-0 z-[100] bg-black/50 p-4 overflow-y-auto"
       onClick={onClose}
       data-modal-backdrop
     >
@@ -57,5 +60,5 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
         </div>
       </div>
     </div>
-  );
+  ), document.body);
 }
