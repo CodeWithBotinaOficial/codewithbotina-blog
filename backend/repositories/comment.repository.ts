@@ -10,16 +10,18 @@ export class CommentRepository {
     this.db = dbClient;
   }
 
-  private normalizeComment(row: any): Comment {
-    const user = Array.isArray(row?.user) ? row.user[0] ?? null : row?.user ?? null;
+  private normalizeComment(row: unknown): Comment {
+    const r = (row ?? {}) as Record<string, unknown>;
+    const userRaw = r.user;
+    const user = Array.isArray(userRaw) ? userRaw[0] ?? null : userRaw ?? null;
     return {
-      id: row.id,
-      post_id: row.post_id,
-      user_id: row.user_id,
-      content: row.content,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      is_pinned: row.is_pinned,
+      id: String(r.id ?? ""),
+      post_id: String(r.post_id ?? ""),
+      user_id: String(r.user_id ?? ""),
+      content: String(r.content ?? ""),
+      created_at: String(r.created_at ?? ""),
+      updated_at: String(r.updated_at ?? ""),
+      is_pinned: Boolean(r.is_pinned),
       user,
     };
   }
@@ -45,7 +47,9 @@ export class CommentRepository {
   async getCommentById(commentId: string): Promise<Comment | null> {
     const { data, error } = await this.db
       .from("comments")
-      .select("id, post_id, user_id, content, created_at, updated_at, is_pinned")
+      .select(
+        "id, post_id, user_id, content, created_at, updated_at, is_pinned",
+      )
       .eq("id", commentId)
       .single();
 
@@ -117,12 +121,17 @@ export class CommentRepository {
     return Array.isArray(data) && data.length > 0;
   }
 
-  async togglePinComment(commentId: string, isPinned: boolean): Promise<Comment> {
+  async togglePinComment(
+    commentId: string,
+    isPinned: boolean,
+  ): Promise<Comment> {
     const { data, error } = await this.db
       .from("comments")
       .update({ is_pinned: isPinned })
       .eq("id", commentId)
-      .select("id, post_id, user_id, content, created_at, updated_at, is_pinned")
+      .select(
+        "id, post_id, user_id, content, created_at, updated_at, is_pinned",
+      )
       .single();
 
     if (error || !data) {

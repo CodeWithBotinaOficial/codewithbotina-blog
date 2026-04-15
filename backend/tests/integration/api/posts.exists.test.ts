@@ -15,10 +15,13 @@ Deno.test("Integration: GET /api/posts/:slug/exists returns exists=false when un
     () => Promise.resolve(true),
   );
 
-  const req = new Request("http://localhost/api/posts/hello/exists?language=es", {
-    method: "GET",
-    headers: { "Origin": "http://localhost:8000" },
-  });
+  const req = new Request(
+    "http://localhost/api/posts/hello/exists?language=es",
+    {
+      method: "GET",
+      headers: { "Origin": "http://localhost:8000" },
+    },
+  );
 
   const res = await handler.GET!(req, mockContext);
   const body = await res.json();

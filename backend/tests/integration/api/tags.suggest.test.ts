@@ -5,7 +5,9 @@ import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
 import { FreshContext } from "$fresh/server.ts";
 
 Deno.test("Integration: POST /api/tags/suggest returns relevant tags", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const _fromStub = stub(supabaseAny, "from", () => ({
     select: () => ({
       order: () =>

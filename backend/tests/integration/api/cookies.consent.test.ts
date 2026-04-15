@@ -7,7 +7,10 @@ import { FreshContext } from "$fresh/server.ts";
 Deno.test("Integration: POST /api/cookies/consent requires session_id", async () => {
   const req = new Request("http://localhost/api/cookies/consent", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Origin": "http://localhost:8000" },
+    headers: {
+      "Content-Type": "application/json",
+      "Origin": "http://localhost:8000",
+    },
     body: JSON.stringify({ analytics_cookies: true }),
   });
 
@@ -21,14 +24,19 @@ Deno.test("Integration: POST /api/cookies/consent requires session_id", async ()
 });
 
 Deno.test("Integration: POST /api/cookies/consent stores consent", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const _fromStub = stub(supabaseAny, "from", () => ({
     upsert: () => Promise.resolve({ error: null }),
   }));
 
   const req = new Request("http://localhost/api/cookies/consent", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Origin": "http://localhost:8000" },
+    headers: {
+      "Content-Type": "application/json",
+      "Origin": "http://localhost:8000",
+    },
     body: JSON.stringify({ session_id: "session-1", analytics_cookies: true }),
   });
 

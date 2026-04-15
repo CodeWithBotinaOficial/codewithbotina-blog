@@ -37,7 +37,9 @@ function normalizeLanguage(value: string): PostLanguage {
 }
 
 export class PostTranslationService {
-  async getTranslations(postId: string): Promise<ServiceResult<PostTranslationSummary[]>> {
+  async getTranslations(
+    postId: string,
+  ): Promise<ServiceResult<PostTranslationSummary[]>> {
     try {
       if (!isValidUuid(postId)) {
         return { success: false, error: new ValidationError("Invalid postId") };
@@ -54,7 +56,8 @@ export class PostTranslationService {
         throw new DatabaseError("Failed to load post translation group");
       }
 
-      const groupId = (link as { translation_group_id?: string | null } | null)?.translation_group_id ??
+      const groupId = (link as { translation_group_id?: string | null } | null)
+        ?.translation_group_id ??
         null;
       if (!groupId) {
         return { success: true, data: [] };
@@ -72,21 +75,39 @@ export class PostTranslationService {
         throw new DatabaseError("Failed to fetch translations");
       }
 
-      const rows = (data ?? []).map((row: any) => ({
-        post_id: row.post_id,
-        language: normalizeLanguage(row.language),
-        slug: row.post?.slug ?? "",
-        titulo: row.post?.titulo ?? "",
-        fecha: row.post?.fecha ?? null,
-        imagen_url: row.post?.imagen_url ?? null,
-        translation_group_id: row.translation_group_id,
-      })).filter((row: PostTranslationSummary) => Boolean(row.slug) && Boolean(row.titulo));
+      type TranslationJoinRow = {
+        post_id: string;
+        language: string;
+        translation_group_id: string;
+        post?: {
+          slug?: string | null;
+          titulo?: string | null;
+          fecha?: string | null;
+          imagen_url?: string | null;
+        } | null;
+      };
+
+      const rows = ((data ?? []) as unknown as TranslationJoinRow[]).map(
+        (row) => ({
+          post_id: row.post_id,
+          language: normalizeLanguage(row.language),
+          slug: row.post?.slug ?? "",
+          titulo: row.post?.titulo ?? "",
+          fecha: row.post?.fecha ?? null,
+          imagen_url: row.post?.imagen_url ?? null,
+          translation_group_id: row.translation_group_id,
+        }),
+      ).filter((row: PostTranslationSummary) =>
+        Boolean(row.slug) && Boolean(row.titulo)
+      );
 
       return { success: true, data: rows };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -112,7 +133,8 @@ export class PostTranslationService {
         throw new DatabaseError("Failed to load post translation group");
       }
 
-      const groupId = (link as { translation_group_id?: string | null } | null)?.translation_group_id ??
+      const groupId = (link as { translation_group_id?: string | null } | null)
+        ?.translation_group_id ??
         null;
       if (!groupId) {
         return { success: true, data: null };
@@ -136,7 +158,17 @@ export class PostTranslationService {
         return { success: true, data: null };
       }
 
-      const row: any = data;
+      const row = data as unknown as {
+        post_id: string;
+        language: string;
+        translation_group_id: string;
+        post?: {
+          slug?: string | null;
+          titulo?: string | null;
+          fecha?: string | null;
+          imagen_url?: string | null;
+        } | null;
+      };
       return {
         success: true,
         data: {
@@ -152,7 +184,9 @@ export class PostTranslationService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -168,22 +202,39 @@ export class PostTranslationService {
   async linkTranslations(
     postId: string,
     linkedPostIds: string[],
-  ): Promise<ServiceResult<{ translation_group_id: string | null; translations: PostTranslationSummary[] }>> {
+  ): Promise<
+    ServiceResult<
+      {
+        translation_group_id: string | null;
+        translations: PostTranslationSummary[];
+      }
+    >
+  > {
     try {
       if (!isValidUuid(postId)) {
         return { success: false, error: new ValidationError("Invalid postId") };
       }
 
       const uniqueLinked = Array.from(
-        new Set((Array.isArray(linkedPostIds) ? linkedPostIds : []).map((id) => String(id).trim()).filter(Boolean)),
+        new Set(
+          (Array.isArray(linkedPostIds) ? linkedPostIds : []).map((id) =>
+            String(id).trim()
+          ).filter(Boolean),
+        ),
       );
 
       if (uniqueLinked.some((id) => !isValidUuid(id))) {
-        return { success: false, error: new ValidationError("Invalid linked_post_ids") };
+        return {
+          success: false,
+          error: new ValidationError("Invalid linked_post_ids"),
+        };
       }
 
       if (uniqueLinked.includes(postId)) {
-        return { success: false, error: new ValidationError("Cannot link a post to itself") };
+        return {
+          success: false,
+          error: new ValidationError("Cannot link a post to itself"),
+        };
       }
 
       // Unlink-only mode
@@ -199,10 +250,15 @@ export class PostTranslationService {
           throw new DatabaseError("Failed to load post translation group");
         }
 
-        const groupId = (link as { translation_group_id?: string | null } | null)?.translation_group_id ??
-          null;
+        const groupId =
+          (link as { translation_group_id?: string | null } | null)
+            ?.translation_group_id ??
+            null;
         if (!groupId) {
-          return { success: true, data: { translation_group_id: null, translations: [] } };
+          return {
+            success: true,
+            data: { translation_group_id: null, translations: [] },
+          };
         }
 
         const { error: deleteError } = await supabase
@@ -212,13 +268,23 @@ export class PostTranslationService {
 
         if (deleteError) {
           console.error("Supabase error:", deleteError);
-          throw new DatabaseError("Failed to unlink post from translation group");
+          throw new DatabaseError(
+            "Failed to unlink post from translation group",
+          );
         }
 
         await this.cleanupSingletonGroup(groupId);
         const translationsResult = await this.getTranslations(postId);
-        if (!translationsResult.success) return { success: false, error: translationsResult.error };
-        return { success: true, data: { translation_group_id: null, translations: translationsResult.data ?? [] } };
+        if (!translationsResult.success) {
+          return { success: false, error: translationsResult.error };
+        }
+        return {
+          success: true,
+          data: {
+            translation_group_id: null,
+            translations: translationsResult.data ?? [],
+          },
+        };
       }
 
       const candidatePostIds = [postId, ...uniqueLinked];
@@ -235,7 +301,10 @@ export class PostTranslationService {
       }
 
       if (!posts || posts.length !== candidatePostIds.length) {
-        return { success: false, error: new AppError("One or more posts not found", 404) };
+        return {
+          success: false,
+          error: new AppError("One or more posts not found", 404),
+        };
       }
 
       const languageByPostId = new Map<string, PostLanguage>();
@@ -247,12 +316,17 @@ export class PostTranslationService {
       for (const id of candidatePostIds) {
         const lang = languageByPostId.get(id);
         if (!lang) {
-          return { success: false, error: new AppError("One or more posts not found", 404) };
+          return {
+            success: false,
+            error: new AppError("One or more posts not found", 404),
+          };
         }
         if (seenLanguages.has(lang)) {
           return {
             success: false,
-            error: new ValidationError("Only one post per language can be linked"),
+            error: new ValidationError(
+              "Only one post per language can be linked",
+            ),
           };
         }
         seenLanguages.add(lang);
@@ -270,17 +344,27 @@ export class PostTranslationService {
       }
 
       const existingGroupIds = Array.from(
-        new Set((existingLinks ?? []).map((row: any) => row.translation_group_id).filter(Boolean)),
+        new Set(
+          ((existingLinks ?? []) as Array<
+            { translation_group_id?: string | null }
+          >).map(
+            (row) => row.translation_group_id,
+          ).filter(Boolean),
+        ),
       ) as string[];
 
       const targetGroupId = existingGroupIds[0] ?? crypto.randomUUID();
-      const groupsToMerge = existingGroupIds.filter((id) => id !== targetGroupId);
+      const groupsToMerge = existingGroupIds.filter((id) =>
+        id !== targetGroupId
+      );
 
       if (groupsToMerge.length > 0) {
         // Validate we can merge: no duplicate languages across all members of all groups.
         const { data: unionRows, error: unionError } = await supabase
           .from("post_translations")
-          .select("post_id, language, translation_group_id, post:posts(id, language)")
+          .select(
+            "post_id, language, translation_group_id, post:posts(id, language)",
+          )
           .in("translation_group_id", [targetGroupId, ...groupsToMerge]);
 
         if (unionError) {
@@ -289,13 +373,19 @@ export class PostTranslationService {
         }
 
         const unionLangs = new Map<string, string>(); // lang -> post_id
-        for (const row of (unionRows ?? []) as any[]) {
+        for (
+          const row of (unionRows ?? []) as Array<
+            { post_id: string; language: string }
+          >
+        ) {
           const lang = normalizeLanguage(row.language);
           const existingPost = unionLangs.get(lang);
           if (existingPost && existingPost !== row.post_id) {
             return {
               success: false,
-              error: new ValidationError("Cannot merge translation groups with duplicate languages"),
+              error: new ValidationError(
+                "Cannot merge translation groups with duplicate languages",
+              ),
             };
           }
           unionLangs.set(lang, row.post_id);
@@ -324,7 +414,9 @@ export class PostTranslationService {
       const { error: upsertError } = await supabase
         .from("post_translations")
         // post_id is the PK; allow updates to move posts between groups.
-        .upsert(upsertPayload as any, { onConflict: "post_id" });
+        .upsert(upsertPayload as unknown as Record<string, unknown>[], {
+          onConflict: "post_id",
+        });
 
       if (upsertError) {
         console.error("Supabase error:", upsertError);
@@ -332,7 +424,9 @@ export class PostTranslationService {
       }
 
       const translationsResult = await this.getTranslations(postId);
-      if (!translationsResult.success) return { success: false, error: translationsResult.error };
+      if (!translationsResult.success) {
+        return { success: false, error: translationsResult.error };
+      }
 
       return {
         success: true,
@@ -344,7 +438,9 @@ export class PostTranslationService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -358,7 +454,10 @@ export class PostTranslationService {
         return { success: false, error: new ValidationError("Invalid postId") };
       }
       if (postId === linkedPostId) {
-        return { success: false, error: new ValidationError("Cannot unlink a post from itself") };
+        return {
+          success: false,
+          error: new ValidationError("Cannot unlink a post from itself"),
+        };
       }
 
       const { data: links, error } = await supabase
@@ -372,14 +471,21 @@ export class PostTranslationService {
       }
 
       const groupByPost = new Map<string, string>();
-      for (const row of (links ?? []) as any[]) {
+      for (
+        const row of (links ?? []) as Array<
+          { post_id: string; translation_group_id: string }
+        >
+      ) {
         groupByPost.set(row.post_id, row.translation_group_id);
       }
 
       const groupA = groupByPost.get(postId) ?? null;
       const groupB = groupByPost.get(linkedPostId) ?? null;
       if (!groupA || !groupB || groupA !== groupB) {
-        return { success: false, error: new AppError("Translation link not found", 404) };
+        return {
+          success: false,
+          error: new AppError("Translation link not found", 404),
+        };
       }
 
       const { error: deleteError } = await supabase
@@ -397,7 +503,9 @@ export class PostTranslationService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -423,4 +531,3 @@ export class PostTranslationService {
     }
   }
 }
-

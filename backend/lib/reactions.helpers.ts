@@ -1,5 +1,5 @@
-import { supabase } from "../../../lib/supabase.ts";
-import { DatabaseError } from "../../../utils/errors.ts";
+import { supabase } from "./supabase.ts";
+import { DatabaseError } from "../utils/errors.ts";
 
 export async function getReactionCounts(postId: string) {
   const { data, error } = await supabase
@@ -12,12 +12,11 @@ export async function getReactionCounts(postId: string) {
     throw new DatabaseError("Failed to fetch reactions");
   }
 
-  const likes = (data ?? []).filter((reaction) => reaction.reaction_type === "like")
-    .length;
-  const dislikes = (data ?? []).filter((reaction) =>
-    reaction.reaction_type === "dislike"
-  )
-    .length;
+  const likes =
+    (data ?? []).filter((reaction) => reaction.reaction_type === "like").length;
+  const dislikes =
+    (data ?? []).filter((reaction) => reaction.reaction_type === "dislike")
+      .length;
 
   return { likes, dislikes, total: likes + dislikes };
 }
@@ -79,7 +78,11 @@ export async function toggleReaction(
   } else {
     const { error: insertError } = await supabase
       .from("post_reactions")
-      .insert([{ post_id: postId, user_id: userId, reaction_type: reactionType }]);
+      .insert([{
+        post_id: postId,
+        user_id: userId,
+        reaction_type: reactionType,
+      }]);
     if (insertError) {
       console.error("Supabase error:", insertError);
       throw new DatabaseError("Failed to add reaction");

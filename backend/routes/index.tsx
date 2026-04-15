@@ -54,8 +54,9 @@ export default function ApiDocumentation() {
                 <code>https://blog.codewithbotina.com</code> in production.
               </p>
               <p>
-                <strong>Rate limits:</strong> Contact form and OAuth initiation
-                are rate limited (HTTP 429 on abuse).
+                <strong>Rate limits:</strong>{" "}
+                Contact form and OAuth initiation are rate limited (HTTP 429 on
+                abuse).
               </p>
             </div>
           </section>
@@ -78,8 +79,12 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Initiate Google OAuth with PKCE and redirect the user.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
-                <p><strong>Query:</strong> <code>next</code> (optional full URL)</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
+                <p>
+                  <strong>Query:</strong> <code>next</code> (optional full URL)
+                </p>
                 <h4>Example Request</h4>
                 <pre><code>{`GET /api/auth/google?next=https://blog.codewithbotina.com/es/`}</code></pre>
                 <h4>Response</h4>
@@ -99,8 +104,13 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>OAuth callback handler. Exchanges the code for a session.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
-                <p><strong>Query:</strong> <code>code</code> (required), <code>next</code> (optional)</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
+                <p>
+                  <strong>Query:</strong> <code>code</code> (required),{" "}
+                  <code>next</code> (optional)
+                </p>
                 <h4>Example Request</h4>
                 <pre><code>{`GET /api/auth/callback?code=AUTH_CODE&next=https://blog.codewithbotina.com/es/`}</code></pre>
                 <h4>Response</h4>
@@ -120,7 +130,9 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Return the authenticated user profile.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Headers</h4>
                 <pre><code>{`Authorization: Bearer {access_token}`}</code></pre>
                 <h4>Success Response</h4>
@@ -152,7 +164,9 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Refresh an access token using a refresh token.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public (refresh token required)</p>
+                <p>
+                  <strong>Auth:</strong> Public (refresh token required)
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "refresh_token": "v1.MR..."
@@ -180,7 +194,9 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Invalidate the current session and clear cookies.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Headers</h4>
                 <pre><code>{`Authorization: Bearer {access_token}`}</code></pre>
                 <h4>Success Response</h4>
@@ -207,8 +223,13 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>List posts with optional language filtering.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
-                <p><strong>Query:</strong> <code>language</code>, <code>limit</code>, <code>offset</code></p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
+                <p>
+                  <strong>Query:</strong> <code>language</code>,{" "}
+                  <code>limit</code>, <code>offset</code>
+                </p>
                 <h4>Example Request</h4>
                 <pre><code>{`GET /api/posts?language=es&limit=20&offset=0`}</code></pre>
                 <h4>Success Response</h4>
@@ -246,8 +267,12 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Fetch a single post and its tags.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
-                <p><strong>Query:</strong> <code>language</code> (optional)</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
+                <p>
+                  <strong>Query:</strong> <code>language</code> (optional)
+                </p>
                 <h4>Example Request</h4>
                 <pre><code>{`GET /api/posts/mi-post?language=es`}</code></pre>
                 <h4>Success Response</h4>
@@ -283,7 +308,9 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Create a new post (admin only).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "titulo": "My Post Title",
@@ -321,7 +348,9 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Update an existing post (admin only).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "titulo": "Updated Title",
@@ -359,7 +388,9 @@ Backend → Redirect to /{lang}/auth/success (frontend)`}</code></pre>
               </h3>
               <p>Delete a post (admin only). Requires confirmation.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Example Request</h4>
                 <pre><code>{`DELETE /api/posts/my-post/delete
 DELETE /api/posts/my-post/delete?confirm=true`}</code></pre>
@@ -390,8 +421,12 @@ DELETE /api/posts/my-post/delete?confirm=true`}</code></pre>
               </h3>
               <p>Check if a slug already exists.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
-                <p><strong>Query:</strong> <code>language</code> (optional)</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
+                <p>
+                  <strong>Query:</strong> <code>language</code> (optional)
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "exists": true
@@ -410,7 +445,9 @@ DELETE /api/posts/my-post/delete?confirm=true`}</code></pre>
               </h3>
               <p>Upload and optimize a featured image (admin only).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Headers</h4>
                 <pre><code>{`Content-Type: multipart/form-data`}</code></pre>
                 <h4>Form Fields</h4>
@@ -444,7 +481,9 @@ title: string`}</code></pre>
               </h3>
               <p>Fetch tags attached to a post.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -469,7 +508,9 @@ title: string`}</code></pre>
               </h3>
               <p>Diagnostic endpoint for admin auth + Supabase connectivity.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -498,7 +539,9 @@ title: string`}</code></pre>
               </h3>
               <p>List all tags ordered by usage count.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -522,7 +565,9 @@ title: string`}</code></pre>
               </h3>
               <p>Fetch tag details and posts for a tag.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -548,7 +593,9 @@ title: string`}</code></pre>
               </h3>
               <p>Generate tag suggestions based on title and body.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "title": "Post title",
@@ -574,8 +621,12 @@ title: string`}</code></pre>
               </h3>
               <p>Autocomplete tag names.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
-                <p><strong>Query:</strong> <code>q</code> (min 2 chars)</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
+                <p>
+                  <strong>Query:</strong> <code>q</code> (min 2 chars)
+                </p>
                 <h4>Example Request</h4>
                 <pre><code>{`GET /api/tags/autocomplete?q=dev`}</code></pre>
                 <h4>Success Response</h4>
@@ -602,7 +653,9 @@ title: string`}</code></pre>
               </h3>
               <p>Create a new tag (admin only).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "name": "New Tag"
@@ -627,7 +680,9 @@ title: string`}</code></pre>
               </h3>
               <p>List comments for a post.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -651,7 +706,9 @@ title: string`}</code></pre>
               </h3>
               <p>Create a comment for a post.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "content": "Great post!"
@@ -677,7 +734,9 @@ title: string`}</code></pre>
               </h3>
               <p>Update a comment (author only).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "content": "Updated comment"
@@ -704,7 +763,9 @@ title: string`}</code></pre>
               </h3>
               <p>Delete a comment (author or admin).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -726,7 +787,9 @@ title: string`}</code></pre>
               </h3>
               <p>Pin a comment (admin only).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -749,7 +812,9 @@ title: string`}</code></pre>
               </h3>
               <p>Unpin a comment (admin only).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Admin</p>
+                <p>
+                  <strong>Auth:</strong> Admin
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -776,7 +841,9 @@ title: string`}</code></pre>
               </h3>
               <p>Get like/dislike counts for a post.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -797,7 +864,9 @@ title: string`}</code></pre>
               </h3>
               <p>Toggle a like reaction (authenticated users).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -819,7 +888,9 @@ title: string`}</code></pre>
               </h3>
               <p>Toggle a dislike reaction (authenticated users).</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -841,7 +912,9 @@ title: string`}</code></pre>
               </h3>
               <p>Get the current user reaction for a post.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Authenticated user</p>
+                <p>
+                  <strong>Auth:</strong> Authenticated user
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -867,7 +940,9 @@ title: string`}</code></pre>
               </h3>
               <p>Store GDPR/CCPA consent preferences.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public (session_id required)</p>
+                <p>
+                  <strong>Auth:</strong> Public (session_id required)
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "session_id": "uuid",
@@ -894,7 +969,9 @@ title: string`}</code></pre>
               </h3>
               <p>Submit a contact form message.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Request Body</h4>
                 <pre><code>{`{
   "nombre": "string (1-100 chars)",
@@ -934,7 +1011,9 @@ title: string`}</code></pre>
               </h3>
               <p>Service health check for monitoring.</p>
               <div class="card">
-                <p><strong>Auth:</strong> Public</p>
+                <p>
+                  <strong>Auth:</strong> Public
+                </p>
                 <h4>Success Response</h4>
                 <pre><code>{`{
   "success": true,
@@ -958,12 +1037,25 @@ title: string`}</code></pre>
 
             <h4 class="mt-4">Common Status Codes</h4>
             <ul class="list-disc pl-5">
-              <li><strong>400 Bad Request:</strong> Validation failed</li>
-              <li><strong>401 Unauthorized:</strong> Missing or invalid token</li>
-              <li><strong>403 Forbidden:</strong> Admin access required</li>
-              <li><strong>404 Not Found:</strong> Resource missing</li>
-              <li><strong>429 Too Many Requests:</strong> Rate limit exceeded</li>
-              <li><strong>500 Internal Server Error:</strong> Unexpected server error</li>
+              <li>
+                <strong>400 Bad Request:</strong> Validation failed
+              </li>
+              <li>
+                <strong>401 Unauthorized:</strong> Missing or invalid token
+              </li>
+              <li>
+                <strong>403 Forbidden:</strong> Admin access required
+              </li>
+              <li>
+                <strong>404 Not Found:</strong> Resource missing
+              </li>
+              <li>
+                <strong>429 Too Many Requests:</strong> Rate limit exceeded
+              </li>
+              <li>
+                <strong>500 Internal Server Error:</strong>{" "}
+                Unexpected server error
+              </li>
             </ul>
           </section>
         </main>

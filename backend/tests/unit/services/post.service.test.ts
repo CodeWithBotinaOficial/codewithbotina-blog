@@ -1,4 +1,7 @@
-import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.216.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.216.0/assert/mod.ts";
 import { PostService } from "../../../services/post.service.ts";
 import { AuthService } from "../../../services/auth.service.ts";
 import { ImageService } from "../../../services/image.service.ts";
@@ -30,7 +33,9 @@ Deno.test("sanitizeMarkdown keeps markdown text intact", () => {
 });
 
 Deno.test("createPostsBatch rejects duplicate languages", async () => {
-  const adminAuth = { isAdmin: () => Promise.resolve(true) } as unknown as AuthService;
+  const adminAuth = {
+    isAdmin: () => Promise.resolve(true),
+  } as unknown as AuthService;
   const multi = new PostService(adminAuth, {} as unknown as ImageService);
 
   const result = await multi.createPostsBatch(
@@ -48,7 +53,9 @@ Deno.test("createPostsBatch rejects duplicate languages", async () => {
 });
 
 Deno.test("bulkUpdatePosts rejects invalid post_id", async () => {
-  const adminAuth = { isAdmin: () => Promise.resolve(true) } as unknown as AuthService;
+  const adminAuth = {
+    isAdmin: () => Promise.resolve(true),
+  } as unknown as AuthService;
   const multi = new PostService(adminAuth, {} as unknown as ImageService);
 
   const result = await multi.bulkUpdatePosts(
@@ -56,7 +63,12 @@ Deno.test("bulkUpdatePosts rejects invalid post_id", async () => {
       updates: [
         {
           post_id: "not-a-uuid",
-          post: { titulo: "Hola", slug: "hola", body: "x".repeat(120), language: "es" },
+          post: {
+            titulo: "Hola",
+            slug: "hola",
+            body: "x".repeat(120),
+            language: "es",
+          },
         },
       ],
     },

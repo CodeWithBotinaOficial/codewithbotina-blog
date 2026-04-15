@@ -46,17 +46,39 @@ function parseCsv(raw: string | null): string[] {
 
 function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
   return out;
 }
 
 function toStartOfDayUtcIso(date: Date): string {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0));
+  const d = new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      0,
+      0,
+      0,
+      0,
+    ),
+  );
   return d.toISOString();
 }
 
 function toEndOfDayUtcIso(date: Date): string {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+  const d = new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      23,
+      59,
+      59,
+      999,
+    ),
+  );
   return d.toISOString();
 }
 
@@ -77,7 +99,11 @@ function isFutureDate(d: Date): boolean {
   return d.getTime() > Date.now();
 }
 
-function parseEnum<T extends string>(raw: string | null, allowed: readonly T[], fallback: T): T {
+function parseEnum<T extends string>(
+  raw: string | null,
+  allowed: readonly T[],
+  fallback: T,
+): T {
   if (!raw) return fallback;
   const v = raw.trim() as T;
   return allowed.includes(v) ? v : fallback;
@@ -93,7 +119,8 @@ async function resolveTagIdsFromSlugs(slugs: string[]): Promise<string[]> {
     console.error("Supabase error:", error);
     throw new AppError("Failed to resolve tags", 500);
   }
-  const ids = (data ?? []).map((t: any) => t.id).filter(Boolean);
+  const ids = ((data ?? []) as Array<{ id: string | null }>).map((t) => t.id)
+    .filter((v): v is string => typeof v === "string" && v.trim() !== "");
   // If any slug is unknown, treat as no matches.
   if (ids.length !== slugs.length) return [];
   return ids;
@@ -109,7 +136,8 @@ async function tagIdsForNameSearch(q: string): Promise<string[]> {
     console.error("Supabase error:", error);
     throw new AppError("Failed to search tags", 500);
   }
-  return (data ?? []).map((t: any) => t.id).filter(Boolean);
+  return ((data ?? []) as Array<{ id: string | null }>).map((t) => t.id)
+    .filter((v): v is string => typeof v === "string" && v.trim() !== "");
 }
 
 async function postIdsHavingAllTags(tagIds: string[]): Promise<string[]> {
@@ -124,7 +152,9 @@ async function postIdsHavingAllTags(tagIds: string[]): Promise<string[]> {
   }
 
   const seenByPost = new Map<string, Set<string>>();
-  for (const row of (data ?? []) as any[]) {
+  for (
+    const row of (data ?? []) as Array<{ post_id: string; tag_id: string }>
+  ) {
     const postId = row.post_id;
     const tagId = row.tag_id;
     if (!postId || !tagId) continue;
@@ -160,21 +190,27 @@ async function postIdsHavingAnyTag(tagIds: string[]): Promise<Set<string>> {
     throw new AppError("Failed to search posts by tags", 500);
   }
   const out = new Set<string>();
-  for (const row of (data ?? []) as any[]) {
+  for (const row of (data ?? []) as Array<{ post_id: string }>) {
     if (row?.post_id) out.add(row.post_id);
   }
   return out;
 }
 
-function applyBasePostFilters(
-  query: any,
+type BaseFilterChain<T> = {
+  in: (column: string, values: string[]) => T;
+  gte: (column: string, value: string) => T;
+  lte: (column: string, value: string) => T;
+};
+
+function applyBasePostFilters<T extends BaseFilterChain<T>>(
+  query: T,
   opts: {
     languages: string[] | null;
     fromIso: string | null;
     toIso: string | null;
     allowedPostIds: string[] | null;
   },
-) {
+): T {
   let q = query;
   if (opts.languages && opts.languages.length > 0) {
     q = q.in("language", opts.languages);
@@ -257,7 +293,7 @@ async function fetchAllMatchingPosts(
       console.error("Supabase error:", error);
       throw new AppError("Failed to fetch posts", 500);
     }
-    posts.push(...((data ?? []) as any[]));
+    posts.push(...((data ?? []) as SearchResultPost[]));
   }
 
   return posts;
@@ -267,7 +303,10 @@ async function addMetrics(
   posts: SearchResultPost[],
 ): Promise<Map<string, { likes: number; dislikes: number; comments: number }>> {
   const ids = posts.map((p) => p.id).filter(Boolean);
-  const metrics = new Map<string, { likes: number; dislikes: number; comments: number }>();
+  const metrics = new Map<
+    string,
+    { likes: number; dislikes: number; comments: number }
+  >();
   for (const id of ids) metrics.set(id, { likes: 0, dislikes: 0, comments: 0 });
 
   // Reactions
@@ -280,7 +319,11 @@ async function addMetrics(
       console.error("Supabase error:", error);
       throw new AppError("Failed to fetch reactions", 500);
     }
-    for (const row of (data ?? []) as any[]) {
+    for (
+      const row of (data ?? []) as Array<
+        { post_id: string; reaction_type: string }
+      >
+    ) {
       const m = metrics.get(row.post_id);
       if (!m) continue;
       if (row.reaction_type === "like") m.likes += 1;
@@ -298,7 +341,7 @@ async function addMetrics(
       console.error("Supabase error:", error);
       throw new AppError("Failed to fetch comments", 500);
     }
-    for (const row of (data ?? []) as any[]) {
+    for (const row of (data ?? []) as Array<{ post_id: string }>) {
       const m = metrics.get(row.post_id);
       if (!m) continue;
       m.comments += 1;
@@ -326,7 +369,13 @@ export const handler: Handlers = {
 
     const relevance = parseEnum<Relevance>(
       url.searchParams.get("relevance"),
-      ["most_reactions", "most_likes", "most_dislikes", "most_comments", "most_recent"],
+      [
+        "most_reactions",
+        "most_likes",
+        "most_dislikes",
+        "most_comments",
+        "most_recent",
+      ],
       "most_recent",
     );
     const sort = parseEnum<SortOrder>(
@@ -342,7 +391,9 @@ export const handler: Handlers = {
 
     const languageSingle = (url.searchParams.get("language") ?? "").trim();
     const languagesCsv = (url.searchParams.get("languages") ?? "").trim();
-    const languagesRaw = languagesCsv ? parseCsv(languagesCsv) : (languageSingle ? [languageSingle] : []);
+    const languagesRaw = languagesCsv
+      ? parseCsv(languagesCsv)
+      : (languageSingle ? [languageSingle] : []);
     const languages = languagesRaw.includes("all") ? null : languagesRaw;
 
     const tagIdsCsv = url.searchParams.get("tag_ids");
@@ -355,21 +406,33 @@ export const handler: Handlers = {
     const offsetParam = url.searchParams.get("offset");
 
     try {
-      if (q.length > MAX_QUERY_LENGTH) throw new ValidationError("Query too long");
+      if (q.length > MAX_QUERY_LENGTH) {
+        throw new ValidationError("Query too long");
+      }
       if (languages) {
         for (const lang of languages) {
-          if (!SUPPORTED_LANGUAGES.has(lang)) throw new ValidationError("Unsupported language");
+          if (!SUPPORTED_LANGUAGES.has(lang)) {
+            throw new ValidationError("Unsupported language");
+          }
         }
       }
 
-      if (fromDate && isFutureDate(fromDate)) throw new ValidationError("Future dates not allowed");
-      if (toDate && isFutureDate(toDate)) throw new ValidationError("Future dates not allowed");
+      if (fromDate && isFutureDate(fromDate)) {
+        throw new ValidationError("Future dates not allowed");
+      }
+      if (toDate && isFutureDate(toDate)) {
+        throw new ValidationError("Future dates not allowed");
+      }
       if (fromDate && toDate && toDate.getTime() < fromDate.getTime()) {
         throw new ValidationError("Invalid date range");
       }
 
       const limit = Math.min(
-        Math.max(Number.parseInt(limitParam ?? `${DEFAULT_LIMIT}`, 10) || DEFAULT_LIMIT, 1),
+        Math.max(
+          Number.parseInt(limitParam ?? `${DEFAULT_LIMIT}`, 10) ||
+            DEFAULT_LIMIT,
+          1,
+        ),
         MAX_LIMIT,
       );
       const offset = Math.max(Number.parseInt(offsetParam ?? "0", 10) || 0, 0);
@@ -389,7 +452,9 @@ export const handler: Handlers = {
         const more = await resolveTagIdsFromSlugs([tagSlug.trim()]);
         selectedTagIds = [...new Set([...selectedTagIds, ...more])];
       }
-      if (selectedTagIds.length > MAX_TAGS) throw new ValidationError("Too many tags");
+      if (selectedTagIds.length > MAX_TAGS) {
+        throw new ValidationError("Too many tags");
+      }
 
       // AND logic for selected tags.
       let allowedPostIds: string[] | null = null;
@@ -398,7 +463,13 @@ export const handler: Handlers = {
         allowedPostIds = ids;
         if (ids.length === 0) {
           const response = successResponse(
-            { posts: [], total: 0, limit, offset, phase: "none" satisfies Phase },
+            {
+              posts: [],
+              total: 0,
+              limit,
+              offset,
+              phase: "none" satisfies Phase,
+            },
             "No results",
             200,
           );
@@ -434,7 +505,13 @@ export const handler: Handlers = {
           const qTagIds = await tagIdsForNameSearch(q);
           if (qTagIds.length === 0) {
             const response = successResponse(
-              { posts: [], total: 0, limit, offset, phase: "tags" satisfies Phase },
+              {
+                posts: [],
+                total: 0,
+                limit,
+                offset,
+                phase: "tags" satisfies Phase,
+              },
               "No results",
               200,
             );
@@ -450,7 +527,13 @@ export const handler: Handlers = {
           tagSearchPostIds = ids;
           if (tagSearchPostIds.length === 0) {
             const response = successResponse(
-              { posts: [], total: 0, limit, offset, phase: "tags" satisfies Phase },
+              {
+                posts: [],
+                total: 0,
+                limit,
+                offset,
+                phase: "tags" satisfies Phase,
+              },
               "No results",
               200,
             );
@@ -508,7 +591,12 @@ export const handler: Handlers = {
         let posts: SearchResultPost[] = [];
 
         if (!hasTerm) {
-          posts = await fetchAllMatchingPosts({ languages, fromIso, toIso, allowedPostIds });
+          posts = await fetchAllMatchingPosts({
+            languages,
+            fromIso,
+            toIso,
+            allowedPostIds,
+          });
         } else if (scope === "title_content") {
           const titleMatches = await fetchAllMatchingPosts({
             languages,
@@ -663,7 +751,12 @@ export const handler: Handlers = {
         .select("id, titulo, slug, body, imagen_url, fecha, language")
         .range(offset, offset + limit - 1);
 
-      query = applyBasePostFilters(query, { languages, fromIso, toIso, allowedPostIds: tagSearchPostIds ?? allowedPostIds });
+      query = applyBasePostFilters(query, {
+        languages,
+        fromIso,
+        toIso,
+        allowedPostIds: tagSearchPostIds ?? allowedPostIds,
+      });
       if (titleIlike) query = query.ilike("titulo", titleIlike);
       if (bodyIlike) query = query.ilike("body", bodyIlike);
 
@@ -680,7 +773,15 @@ export const handler: Handlers = {
       }
 
       const response = successResponse(
-        { posts: (data ?? []) as SearchResultPost[], total, limit, offset, phase, relevance, sort },
+        {
+          posts: (data ?? []) as SearchResultPost[],
+          total,
+          limit,
+          offset,
+          phase,
+          relevance,
+          sort,
+        },
         "Posts fetched successfully",
         200,
       );
@@ -697,4 +798,3 @@ export const handler: Handlers = {
     }
   },
 };
-

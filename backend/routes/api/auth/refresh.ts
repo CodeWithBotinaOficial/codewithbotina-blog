@@ -2,7 +2,10 @@ import { Handlers } from "$fresh/server.ts";
 import { corsHeaders } from "../../../middleware/cors.ts";
 import { getRefreshToken } from "../../../middleware/auth.ts";
 import { AuthService } from "../../../services/auth.service.ts";
-import { clearAuthCookies, setAuthCookies } from "../../../utils/auth.cookies.ts";
+import {
+  clearAuthCookies,
+  setAuthCookies,
+} from "../../../utils/auth.cookies.ts";
 import { AppError } from "../../../utils/errors.ts";
 import { errorResponse } from "../../../utils/responses.ts";
 

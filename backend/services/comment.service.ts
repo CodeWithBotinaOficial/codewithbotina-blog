@@ -25,7 +25,10 @@ export class CommentService {
   ): Promise<ServiceResult<Comment>> {
     try {
       if (isUserCommentRateLimited(userId)) {
-        return { success: false, error: new AppError("Rate limit exceeded", 429) };
+        return {
+          success: false,
+          error: new AppError("Rate limit exceeded", 429),
+        };
       }
 
       const sanitized = sanitizeInput(content);
@@ -55,7 +58,9 @@ export class CommentService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -68,7 +73,10 @@ export class CommentService {
     try {
       const existing = await this.repository.getCommentById(commentId);
       if (!existing) {
-        return { success: false, error: new AppError("Comment not found", 404) };
+        return {
+          success: false,
+          error: new AppError("Comment not found", 404),
+        };
       }
 
       if (existing.user_id !== userId) {
@@ -91,7 +99,9 @@ export class CommentService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -104,7 +114,10 @@ export class CommentService {
     try {
       const existing = await this.repository.getCommentById(commentId);
       if (!existing) {
-        return { success: false, error: new AppError("Comment not found", 404) };
+        return {
+          success: false,
+          error: new AppError("Comment not found", 404),
+        };
       }
 
       if (!isAdmin && existing.user_id !== userId) {
@@ -116,7 +129,9 @@ export class CommentService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -133,11 +148,17 @@ export class CommentService {
 
       const existing = await this.repository.getCommentById(commentId);
       if (!existing) {
-        return { success: false, error: new AppError("Comment not found", 404) };
+        return {
+          success: false,
+          error: new AppError("Comment not found", 404),
+        };
       }
 
       if (existing.is_pinned) {
-        return { success: false, error: new AppError("Comment already pinned", 400) };
+        return {
+          success: false,
+          error: new AppError("Comment already pinned", 400),
+        };
       }
 
       const updated = await this.repository.togglePinComment(commentId, true);
@@ -145,7 +166,9 @@ export class CommentService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -162,11 +185,17 @@ export class CommentService {
 
       const existing = await this.repository.getCommentById(commentId);
       if (!existing) {
-        return { success: false, error: new AppError("Comment not found", 404) };
+        return {
+          success: false,
+          error: new AppError("Comment not found", 404),
+        };
       }
 
       if (!existing.is_pinned) {
-        return { success: false, error: new AppError("Comment is not pinned", 400) };
+        return {
+          success: false,
+          error: new AppError("Comment is not pinned", 400),
+        };
       }
 
       const updated = await this.repository.togglePinComment(commentId, false);
@@ -174,7 +203,9 @@ export class CommentService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -186,7 +217,9 @@ export class CommentService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }

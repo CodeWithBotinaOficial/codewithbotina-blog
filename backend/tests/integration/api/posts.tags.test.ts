@@ -9,7 +9,9 @@ const mockContext = {
 } as unknown as FreshContext;
 
 Deno.test("Integration: GET /api/posts/:slug/tags returns tag list", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
   const _fromStub = stub(supabaseAny, "from", (...args: unknown[]) => {
     const table = String(args[0] ?? "");
     if (table === "posts") {

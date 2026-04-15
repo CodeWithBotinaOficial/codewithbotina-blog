@@ -204,9 +204,11 @@ ALLOWED_ORIGIN=https://blog.codewithbotina.com
 
 - `GET /api/posts` (optional `language`, `limit`, `offset`)
 - `GET /api/posts/:slug` (optional `language`, includes tags)
-- `POST /api/posts/create` (single post) or `{ "posts": [...] }` batch create (links via `post_translations`)
+- `POST /api/posts/create` (single post) or `{ "posts": [...] }` batch create
+  (links via `post_translations`)
 - `PUT /api/posts/:slug/update` (single post update)
-- `PUT /api/posts/bulk-update` (bulk update/create/unlink translations, best-effort transactional rollback)
+- `PUT /api/posts/bulk-update` (bulk update/create/unlink translations,
+  best-effort transactional rollback)
 
 ### Endpoints
 
@@ -269,8 +271,8 @@ Origin: https://blog.codewithbotina.com
 
 ### Additional Endpoints (Summary)
 
-- **Auth:** `GET /api/auth/google`, `GET /api/auth/callback`, `GET /api/auth/me`,
-  `POST /api/auth/refresh`, `POST /api/auth/signout`
+- **Auth:** `GET /api/auth/google`, `GET /api/auth/callback`,
+  `GET /api/auth/me`, `POST /api/auth/refresh`, `POST /api/auth/signout`
 - **Posts:** `POST /api/posts/create`, `PUT /api/posts/:slug/update`,
   `DELETE /api/posts/:slug/delete`, `GET /api/posts/:slug/exists`,
   `POST /api/posts/upload-image`
@@ -280,8 +282,9 @@ Origin: https://blog.codewithbotina.com
 - **Comments:** `POST /api/comments`, `PUT /api/comments/:commentId`,
   `DELETE /api/comments/:commentId`, `POST /api/comments/:commentId/pin`,
   `POST /api/comments/:commentId/unpin`
-- **Reactions:** `GET /api/reactions/:postId`, `POST /api/reactions/:postId/like`,
-  `POST /api/reactions/:postId/dislike`, `GET /api/reactions/user/:postId`
+- **Reactions:** `GET /api/reactions/:postId`,
+  `POST /api/reactions/:postId/like`, `POST /api/reactions/:postId/dislike`,
+  `GET /api/reactions/user/:postId`
 - **Cookies:** `POST /api/cookies/consent`
 
 **Example (cURL):**
@@ -346,11 +349,11 @@ curl https://api.codewithbotina.com/api/health
 
 Admin-only endpoints for managing blog posts.
 
-**Authorization:**
-All endpoints require a valid access token and the user must exist in the
-`admin_users` table.
+**Authorization:** All endpoints require a valid access token and the user must
+exist in the `admin_users` table.
 
 **Endpoints:**
+
 - `POST /api/posts/create` - Create a new post
 - `PUT /api/posts/:slug/update` - Update an existing post
 - `DELETE /api/posts/:slug/delete` - Delete a post (requires `confirm=true`)
@@ -359,11 +362,13 @@ All endpoints require a valid access token and the user must exist in the
 - `GET /api/posts/:slug/tags` - Fetch tags for a post
 
 **Payload notes:**
+
 - `language` is required for bilingual posts (`en`/`es`).
 - `tag_ids` accepts an array of tag UUIDs and drives the many-to-many
   `post_tags` junction table.
 
 **Delete confirmation flow:**
+
 1. Call `DELETE /api/posts/:slug/delete` without `confirm=true` to retrieve
    comment/reaction counts.
 2. Call the same endpoint with `confirm=true` to delete.

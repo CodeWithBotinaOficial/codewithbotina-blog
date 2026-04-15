@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.216.0/assert/mod.ts";
-import { stub, restore } from "https://deno.land/std@0.216.0/testing/mock.ts";
+import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
 import { FreshContext } from "$fresh/server.ts";
 import { handler } from "../../../routes/api/posts/search.ts";
 import { supabase } from "../../../lib/supabase.ts";
@@ -20,13 +20,32 @@ function createThenableQuery(
   state: QueryState,
   responder: (s: QueryState) => unknown,
 ) {
-  const builder: any = {};
-  const record = (k: keyof QueryState, v: any) => {
-    (state as any)[k] = v;
+  type ThenableQuery = {
+    select: (
+      cols: unknown,
+      options?: QueryState["selectOptions"],
+    ) => ThenableQuery;
+    ilike: (col: string, value: string) => ThenableQuery;
+    in: (col: string, values: unknown[]) => ThenableQuery;
+    eq: (col: string, value: unknown) => ThenableQuery;
+    gte: (col: string, value: unknown) => ThenableQuery;
+    lte: (col: string, value: unknown) => ThenableQuery;
+    order: (col: string, opts?: { ascending?: boolean }) => ThenableQuery;
+    range: (from: number, to: number) => ThenableQuery;
+    limit: (n: number) => ThenableQuery;
+    then: (
+      resolve: (value: unknown) => void,
+      reject: (reason: unknown) => void,
+    ) => void;
+  };
+
+  const builder = {} as ThenableQuery;
+  const record = <K extends keyof QueryState>(k: K, v: QueryState[K]) => {
+    state[k] = v;
     return builder;
   };
 
-  builder.select = (cols: unknown, options?: any) => {
+  builder.select = (cols: unknown, options?: QueryState["selectOptions"]) => {
     state.selectCols = cols;
     state.selectOptions = options;
     return builder;
@@ -53,7 +72,10 @@ function createThenableQuery(
   builder.range = (from: number, to: number) => record("range", { from, to });
   builder.limit = (n: number) => record("limit", n);
 
-  builder.then = (resolve: any, reject: any) => {
+  builder.then = (
+    resolve: (value: unknown) => void,
+    reject: (reason: unknown) => void,
+  ) => {
     Promise.resolve()
       .then(() => responder(state))
       .then(resolve, reject);
@@ -100,16 +122,21 @@ Deno.test("Integration: GET /api/posts/search uses sequential fallback (title ->
     return { data: [], error: null, count: 0 };
   };
 
-  const supabaseAny = supabase as unknown as { from: (table: string) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (table: string) => unknown;
+  };
   stub(supabaseAny, "from", (table: string) => {
     const state: QueryState = { table };
     return createThenableQuery(state, responder);
   });
 
-  const req = new Request("http://localhost/api/posts/search?q=hooks&language=en&limit=10&offset=0", {
-    method: "GET",
-    headers: { Origin: "http://localhost:8000" },
-  });
+  const req = new Request(
+    "http://localhost/api/posts/search?q=hooks&language=en&limit=10&offset=0",
+    {
+      method: "GET",
+      headers: { Origin: "http://localhost:8000" },
+    },
+  );
 
   const res = await handler.GET!(req, {} as unknown as FreshContext);
   const body = await res.json();
@@ -180,7 +207,9 @@ Deno.test("Integration: GET /api/posts/search applies AND tag filter", async () 
     return { data: [], error: null, count: 0 };
   };
 
-  const supabaseAny = supabase as unknown as { from: (table: string) => unknown };
+  const supabaseAny = supabase as unknown as {
+    from: (table: string) => unknown;
+  };
   stub(supabaseAny, "from", (table: string) => {
     const state: QueryState = { table };
     return createThenableQuery(state, responder);
@@ -204,4 +233,3 @@ Deno.test("Integration: GET /api/posts/search applies AND tag filter", async () 
 
   restore();
 });
-

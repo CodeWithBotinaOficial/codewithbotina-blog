@@ -3,7 +3,8 @@ import { CommentRepository } from "../../../repositories/comment.repository.ts";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 Deno.test("CommentRepository orders pinned first then newest", async () => {
-  const orderCalls: Array<{ column: string; opts: { ascending: boolean } }> = [];
+  const orderCalls: Array<{ column: string; opts: { ascending: boolean } }> =
+    [];
 
   const client = {
     from: (_table: string) => ({
@@ -27,6 +28,12 @@ Deno.test("CommentRepository orders pinned first then newest", async () => {
   await repo.getCommentsByPost("post-123");
 
   assertEquals(orderCalls.length, 2);
-  assertEquals(orderCalls[0], { column: "is_pinned", opts: { ascending: false } });
-  assertEquals(orderCalls[1], { column: "created_at", opts: { ascending: false } });
+  assertEquals(orderCalls[0], {
+    column: "is_pinned",
+    opts: { ascending: false },
+  });
+  assertEquals(orderCalls[1], {
+    column: "created_at",
+    opts: { ascending: false },
+  });
 });

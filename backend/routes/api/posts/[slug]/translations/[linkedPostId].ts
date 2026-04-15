@@ -2,7 +2,10 @@ import { Handlers } from "$fresh/server.ts";
 import { corsHeaders } from "../../../../../middleware/cors.ts";
 import { requireAdmin } from "../../../../../middleware/auth.ts";
 import { AppError } from "../../../../../utils/errors.ts";
-import { errorResponse, successResponse } from "../../../../../utils/responses.ts";
+import {
+  errorResponse,
+  successResponse,
+} from "../../../../../utils/responses.ts";
 import { PostTranslationService } from "../../../../../services/post-translation.service.ts";
 
 const service = new PostTranslationService();
@@ -23,7 +26,9 @@ export const handler: Handlers = {
       await requireAdmin(req);
       const result = await service.unlinkTranslation(postId, linkedPostId);
       if (!result.success || !result.data) {
-        const statusCode = result.error instanceof AppError ? result.error.statusCode : 400;
+        const statusCode = result.error instanceof AppError
+          ? result.error.statusCode
+          : 400;
         const response = errorResponse(
           result.error?.message || "Failed to unlink translation",
           statusCode,

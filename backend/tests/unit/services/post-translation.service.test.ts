@@ -8,7 +8,9 @@ Deno.test("PostTranslationService.linkTranslations rejects duplicate languages",
   const postId = "11111111-1111-1111-1111-111111111111";
   const linkedId = "22222222-2222-2222-2222-222222222222";
 
-  const supabaseAny = supabase as unknown as { from: (table: string) => any };
+  const supabaseAny = supabase as unknown as {
+    from: (table: string) => unknown;
+  };
   const _fromStub = stub(supabaseAny, "from", (table: string) => {
     if (table === "posts") {
       return {
@@ -29,7 +31,10 @@ Deno.test("PostTranslationService.linkTranslations rejects duplicate languages",
 
   const result = await service.linkTranslations(postId, [linkedId]);
   assertEquals(result.success, false);
-  assertEquals((result.error as any)?.statusCode, 400);
+  assertEquals(
+    (result.error as unknown as { statusCode?: number })?.statusCode,
+    400,
+  );
 
   restore();
 });
@@ -38,5 +43,8 @@ Deno.test("PostTranslationService.getTranslations rejects invalid postId", async
   const service = new PostTranslationService();
   const result = await service.getTranslations("not-a-uuid");
   assertEquals(result.success, false);
-  assertEquals((result.error as any)?.statusCode, 400);
+  assertEquals(
+    (result.error as unknown as { statusCode?: number })?.statusCode,
+    400,
+  );
 });

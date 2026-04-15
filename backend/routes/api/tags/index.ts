@@ -12,7 +12,11 @@ const MAX_QUERY_LENGTH = 80;
 
 type Sort = "most_used" | "az" | "za" | "recent";
 
-function parseEnum<T extends string>(raw: string | null, allowed: readonly T[], fallback: T): T {
+function parseEnum<T extends string>(
+  raw: string | null,
+  allowed: readonly T[],
+  fallback: T,
+): T {
   if (!raw) return fallback;
   const v = raw.trim() as T;
   return allowed.includes(v) ? v : fallback;
@@ -41,16 +45,25 @@ export const handler: Handlers = {
       );
       const limitParam = url.searchParams.get("limit");
       const offsetParam = url.searchParams.get("offset");
-      const languageParam = (url.searchParams.get("language") ?? "").trim().toLowerCase();
-      const language = languageParam && languageParam !== "all" ? languageParam : "";
+      const languageParam = (url.searchParams.get("language") ?? "").trim()
+        .toLowerCase();
+      const language = languageParam && languageParam !== "all"
+        ? languageParam
+        : "";
 
-      if (q.length > MAX_QUERY_LENGTH) throw new ValidationError("Query too long");
+      if (q.length > MAX_QUERY_LENGTH) {
+        throw new ValidationError("Query too long");
+      }
       if (language && !SUPPORTED_LANGUAGES.has(language)) {
         throw new ValidationError("Unsupported language");
       }
 
       const limit = Math.min(
-        Math.max(Number.parseInt(limitParam ?? `${DEFAULT_LIMIT}`, 10) || DEFAULT_LIMIT, 1),
+        Math.max(
+          Number.parseInt(limitParam ?? `${DEFAULT_LIMIT}`, 10) ||
+            DEFAULT_LIMIT,
+          1,
+        ),
         MAX_LIMIT,
       );
       const offset = Math.max(Number.parseInt(offsetParam ?? "0", 10) || 0, 0);
@@ -72,7 +85,11 @@ export const handler: Handlers = {
         }
 
         const postsByTag = new Map<string, Set<string>>();
-        for (const p of (posts ?? []) as any[]) {
+        type PostRow = {
+          id: string;
+          post_tags?: Array<{ tag_id: string } | null> | null;
+        };
+        for (const p of (posts ?? []) as unknown as PostRow[]) {
           const postId = p.id;
           const tagRows = Array.isArray(p.post_tags) ? p.post_tags : [];
           for (const tr of tagRows) {
@@ -86,7 +103,12 @@ export const handler: Handlers = {
 
         const tagIds = Array.from(postsByTag.keys());
         if (tagIds.length === 0) {
-          const response = successResponse({ tags: [], total: 0, limit, offset });
+          const response = successResponse({
+            tags: [],
+            total: 0,
+            limit,
+            offset,
+          });
           headers.forEach((value, key) => response.headers.set(key, value));
           return response;
         }
@@ -106,14 +128,29 @@ export const handler: Handlers = {
           return response;
         }
 
-        const enriched = (tags ?? []).map((t: any) => ({
-          ...t,
-          usage_count_language: postsByTag.get(t.id)?.size ?? 0,
-        }));
+        type TagRow = {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          created_at: string | null;
+          usage_count: number | null;
+        };
+        type EnrichedTagRow = TagRow & { usage_count_language: number };
 
-        enriched.sort((a: any, b: any) => {
-          if (sort === "az") return String(a.name).localeCompare(String(b.name));
-          if (sort === "za") return String(b.name).localeCompare(String(a.name));
+        const enriched: EnrichedTagRow[] = ((tags ?? []) as unknown as TagRow[])
+          .map((t) => ({
+            ...t,
+            usage_count_language: postsByTag.get(t.id)?.size ?? 0,
+          }));
+
+        enriched.sort((a, b) => {
+          if (sort === "az") {
+            return String(a.name).localeCompare(String(b.name));
+          }
+          if (sort === "za") {
+            return String(b.name).localeCompare(String(a.name));
+          }
           if (sort === "recent") {
             const at = a.created_at ? new Date(a.created_at).getTime() : 0;
             const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -133,7 +170,9 @@ export const handler: Handlers = {
       let query = supabase
         .from("tags")
         // Some environments do not have tags.updated_at; only select stable columns.
-        .select("id, name, slug, description, created_at, usage_count", { count: "exact" });
+        .select("id, name, slug, description, created_at, usage_count", {
+          count: "exact",
+        });
 
       if (q) query = query.ilike("name", `%${q}%`);
 
@@ -145,7 +184,10 @@ export const handler: Handlers = {
         query = query.order("usage_count", { ascending: false });
       }
 
-      const { data: tags, error, count } = await query.range(offset, offset + limit - 1);
+      const { data: tags, error, count } = await query.range(
+        offset,
+        offset + limit - 1,
+      );
 
       if (error) {
         console.error("Supabase error:", error);

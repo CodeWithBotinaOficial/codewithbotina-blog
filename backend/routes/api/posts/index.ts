@@ -33,7 +33,11 @@ export const handler: Handlers = {
       }
 
       const limit = Math.min(
-        Math.max(Number.parseInt(limitParam ?? `${DEFAULT_LIMIT}`, 10) || DEFAULT_LIMIT, 1),
+        Math.max(
+          Number.parseInt(limitParam ?? `${DEFAULT_LIMIT}`, 10) ||
+            DEFAULT_LIMIT,
+          1,
+        ),
         MAX_LIMIT,
       );
       const offset = Math.max(Number.parseInt(offsetParam ?? "0", 10) || 0, 0);
@@ -61,7 +65,8 @@ export const handler: Handlers = {
 
       const posts = (data ?? []).map((post) => ({
         ...post,
-        updated_at: (post as { updated_at?: string | null }).updated_at ?? post.fecha ?? null,
+        updated_at: (post as { updated_at?: string | null }).updated_at ??
+          post.fecha ?? null,
       }));
 
       const response = successResponse(

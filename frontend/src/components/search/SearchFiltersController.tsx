@@ -10,6 +10,7 @@ interface Props {
   showTagFilter?: boolean;
   compact?: boolean;
   autoApplySearch?: boolean;
+  defaultFiltersOpen?: boolean;
 }
 
 function withPreservedPerPage(params: URLSearchParams) {
@@ -29,6 +30,7 @@ export default function SearchFiltersController({
   showTagFilter,
   compact,
   autoApplySearch,
+  defaultFiltersOpen,
 }: Props) {
   return (
     <SearchFilters
@@ -38,6 +40,7 @@ export default function SearchFiltersController({
       showTagFilter={showTagFilter}
       compact={compact}
       autoApplySearch={autoApplySearch}
+      defaultFiltersOpen={defaultFiltersOpen}
       onSearch={(filters) => {
         const params = filtersToUrlParams(filters);
         withPreservedPerPage(params);

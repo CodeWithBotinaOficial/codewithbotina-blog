@@ -34,7 +34,9 @@ export const handler: Handlers = {
 
       const result = await postService.bulkUpdatePosts(body, user.id);
       if (!result.success || !result.data) {
-        const statusCode = result.error instanceof AppError ? result.error.statusCode : 500;
+        const statusCode = result.error instanceof AppError
+          ? result.error.statusCode
+          : 500;
         const response = errorResponse(
           result.error?.message || "Internal server error",
           statusCode,
@@ -61,4 +63,3 @@ export const handler: Handlers = {
     }
   },
 };
-

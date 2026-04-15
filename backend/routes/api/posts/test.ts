@@ -63,7 +63,9 @@ export const handler: Handlers = {
           logs.push(`Authenticated user: ${user.email ?? user.id}`);
           logs.push(`Is admin: ${Boolean(user.is_admin)}`);
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown error";
+          const message = error instanceof Error
+            ? error.message
+            : "Unknown error";
           logs.push(`Auth error: ${message}`);
         }
       }
@@ -79,9 +81,14 @@ export const handler: Handlers = {
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Internal server error";
+      const message = error instanceof Error
+        ? error.message
+        : "Internal server error";
       logs.push(`Unexpected error: ${message}`);
-      const response = errorResponse(message, error instanceof AppError ? error.statusCode : 500);
+      const response = errorResponse(
+        message,
+        error instanceof AppError ? error.statusCode : 500,
+      );
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     }

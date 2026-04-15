@@ -2,7 +2,10 @@ import { Handlers } from "$fresh/server.ts";
 import { corsHeaders } from "../../../../../middleware/cors.ts";
 import { requireAdmin } from "../../../../../middleware/auth.ts";
 import { AppError } from "../../../../../utils/errors.ts";
-import { errorResponse, successResponse } from "../../../../../utils/responses.ts";
+import {
+  errorResponse,
+  successResponse,
+} from "../../../../../utils/responses.ts";
 import { PostTranslationService } from "../../../../../services/post-translation.service.ts";
 
 const service = new PostTranslationService();
@@ -21,8 +24,13 @@ export const handler: Handlers = {
     try {
       const result = await service.getTranslations(postId);
       if (!result.success) {
-        const statusCode = result.error instanceof AppError ? result.error.statusCode : 400;
-        const response = errorResponse(result.error?.message || "Failed to fetch translations", statusCode);
+        const statusCode = result.error instanceof AppError
+          ? result.error.statusCode
+          : 400;
+        const response = errorResponse(
+          result.error?.message || "Failed to fetch translations",
+          statusCode,
+        );
         headers.forEach((value, key) => response.headers.set(key, value));
         return response;
       }
@@ -53,7 +61,7 @@ export const handler: Handlers = {
     try {
       await requireAdmin(req);
 
-      let body: any;
+      let body: unknown;
       try {
         body = await req.json();
       } catch (_error) {
@@ -62,10 +70,20 @@ export const handler: Handlers = {
         return response;
       }
 
-      const linkedPostIds = Array.isArray(body?.linked_post_ids) ? body.linked_post_ids : [];
+      const payload = (body && typeof body === "object")
+        ? body as Record<string, unknown>
+        : {};
+      const linkedPostIdsRaw = Array.isArray(payload.linked_post_ids)
+        ? payload.linked_post_ids
+        : [];
+      const linkedPostIds = linkedPostIdsRaw.filter((v): v is string =>
+        typeof v === "string"
+      );
       const result = await service.linkTranslations(postId, linkedPostIds);
       if (!result.success || !result.data) {
-        const statusCode = result.error instanceof AppError ? result.error.statusCode : 400;
+        const statusCode = result.error instanceof AppError
+          ? result.error.statusCode
+          : 400;
         const response = errorResponse(
           result.error?.message || "Failed to link translations",
           statusCode,
@@ -92,4 +110,3 @@ export const handler: Handlers = {
     }
   },
 };
-

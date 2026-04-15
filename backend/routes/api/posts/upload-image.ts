@@ -34,7 +34,10 @@ export const handler: Handlers = {
       }
 
       if (typeof title !== "string" || typeof slug !== "string") {
-        const response = errorResponse("Image title and slug are required", 400);
+        const response = errorResponse(
+          "Image title and slug are required",
+          400,
+        );
         headers.forEach((value, key) => response.headers.set(key, value));
         return response;
       }

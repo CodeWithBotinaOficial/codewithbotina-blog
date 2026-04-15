@@ -17,18 +17,31 @@ export const handler: Handlers = {
     const headers = corsHeaders(origin);
     const url = new URL(req.url);
     const languageParam = url.searchParams.get("language");
-    const normalizedLanguage = languageParam ? languageParam.trim().toLowerCase() : null;
-    const supportedLanguages = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
-    const language = normalizedLanguage && supportedLanguages.has(normalizedLanguage)
-      ? normalizedLanguage
+    const normalizedLanguage = languageParam
+      ? languageParam.trim().toLowerCase()
       : null;
+    const supportedLanguages = new Set([
+      "en",
+      "es",
+      "fr",
+      "de",
+      "pt",
+      "ja",
+      "zh",
+    ]);
+    const language =
+      normalizedLanguage && supportedLanguages.has(normalizedLanguage)
+        ? normalizedLanguage
+        : null;
     const allowedPerPage = new Set([10, 50, 100]);
     const limitRaw = Number(url.searchParams.get("limit") ?? "20");
     const offsetRaw = Number(url.searchParams.get("offset") ?? "0");
     const limit = Number.isFinite(limitRaw) && allowedPerPage.has(limitRaw)
       ? Math.trunc(limitRaw)
       : 20;
-    const offset = Number.isFinite(offsetRaw) ? Math.max(0, Math.trunc(offsetRaw)) : 0;
+    const offset = Number.isFinite(offsetRaw)
+      ? Math.max(0, Math.trunc(offsetRaw))
+      : 0;
 
     try {
       const slug = ctx.params.slug?.trim();
@@ -76,8 +89,10 @@ export const handler: Handlers = {
         postsQuery = postsQuery.eq("language", language);
       }
 
-      const [{ count: total_posts, error: countErr }, { data, error: postsErr }] =
-        await Promise.all([countQuery, postsQuery]);
+      const [
+        { count: total_posts, error: countErr },
+        { data, error: postsErr },
+      ] = await Promise.all([countQuery, postsQuery]);
 
       if (countErr || postsErr) {
         console.error("Supabase error:", countErr || postsErr);
@@ -86,7 +101,17 @@ export const handler: Handlers = {
         return response;
       }
 
-      const posts = (data ?? []).map((row: any) => ({
+      type PostRow = {
+        id: string;
+        titulo: string;
+        slug: string;
+        body: string;
+        imagen_url: string | null;
+        fecha: string | null;
+        language: string;
+      };
+
+      const posts = ((data ?? []) as unknown as PostRow[]).map((row) => ({
         id: row.id,
         titulo: row.titulo,
         slug: row.slug,
@@ -96,7 +121,11 @@ export const handler: Handlers = {
         language: row.language,
       }));
 
-      const response = successResponse({ tag, posts, total_posts: total_posts ?? 0 });
+      const response = successResponse({
+        tag,
+        posts,
+        total_posts: total_posts ?? 0,
+      });
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {

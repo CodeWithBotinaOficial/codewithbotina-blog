@@ -5,14 +5,36 @@ import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
 import { FreshContext } from "$fresh/server.ts";
 
 Deno.test("Integration: GET /api/tags returns tag list", async () => {
-  const supabaseAny = supabase as unknown as { from: (...args: unknown[]) => unknown };
-  const queryBuilder: any = {
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
+  type TagRow = {
+    id: string;
+    name: string;
+    slug: string;
+    usage_count: number;
+    created_at: string | null;
+    description: string | null;
+  };
+  type QueryBuilder = {
+    ilike: () => QueryBuilder;
+    order: () => QueryBuilder;
+    range: () => Promise<{ data: TagRow[]; error: null; count: number }>;
+  };
+  const queryBuilder: QueryBuilder = {
     ilike: () => queryBuilder,
     order: () => queryBuilder,
     range: () =>
       Promise.resolve({
         data: [
-          { id: "tag-1", name: "React", slug: "react", usage_count: 5, created_at: null, description: null },
+          {
+            id: "tag-1",
+            name: "React",
+            slug: "react",
+            usage_count: 5,
+            created_at: null,
+            description: null,
+          },
         ],
         error: null,
         count: 1,

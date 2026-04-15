@@ -1,6 +1,10 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { AuthRepository } from "../repositories/auth.repository.ts";
-import { AuthSession, AuthenticatedUser, UserProfile } from "../types/auth.types.ts";
+import {
+  AuthenticatedUser,
+  AuthSession,
+  UserProfile,
+} from "../types/auth.types.ts";
 import { AppError } from "../utils/errors.ts";
 import { supabase } from "../lib/supabase.ts";
 
@@ -126,7 +130,9 @@ export class AuthService {
       },
     );
 
-    const data = await response.json() as PkceTokenResponse & { error?: string };
+    const data = await response.json() as PkceTokenResponse & {
+      error?: string;
+    };
 
     if (!response.ok || !data?.access_token || !data?.user?.id) {
       const message = data?.error
@@ -170,7 +176,10 @@ export class AuthService {
           (error as { name?: string })?.name === "AuthApiError",
       );
       console.error("Auth getUser exception:", error);
-      throw new AppError(isAuthError ? "Unauthorized" : "Failed to fetch user", isAuthError ? 401 : 500);
+      throw new AppError(
+        isAuthError ? "Unauthorized" : "Failed to fetch user",
+        isAuthError ? 401 : 500,
+      );
     }
   }
 
@@ -195,7 +204,10 @@ export class AuthService {
   async signOut(token: string): Promise<void> {
     if (!token) return;
 
-    const { error } = await this.adminClient.auth.admin.signOut(token, "global");
+    const { error } = await this.adminClient.auth.admin.signOut(
+      token,
+      "global",
+    );
 
     if (error) {
       console.error("Sign out error:", error);

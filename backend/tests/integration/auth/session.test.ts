@@ -1,4 +1,8 @@
-import { assertEquals, assertMatch, assertStringIncludes } from "https://deno.land/std@0.216.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertMatch,
+  assertStringIncludes,
+} from "https://deno.land/std@0.216.0/assert/mod.ts";
 import { handler } from "../../../routes/api/auth/callback.ts";
 import { handler as meHandler } from "../../../routes/api/auth/me.ts";
 import { handler as refreshHandler } from "../../../routes/api/auth/refresh.ts";
@@ -82,7 +86,7 @@ Deno.test("Integration: POST /api/auth/refresh returns new tokens", async () => 
 });
 
 Deno.test("Integration: GET /api/auth/me restores session from refresh cookie", async () => {
-  const refreshStub = stub(
+  stub(
     AuthService.prototype,
     "refreshAccessToken",
     () =>
@@ -93,7 +97,7 @@ Deno.test("Integration: GET /api/auth/me restores session from refresh cookie", 
         token_type: "bearer",
       }),
   );
-  const userStub = stub(
+  stub(
     AuthService.prototype,
     "getUserFromToken",
     (token: string) =>

@@ -19,24 +19,29 @@ const adminUser = {
 };
 
 Deno.test("Integration: GET /api/posts/:postId/translations returns translations", async () => {
-  const _serviceStub = stub(PostTranslationService.prototype, "getTranslations", () =>
-    Promise.resolve({
-      success: true,
-      data: [
-        {
-          post_id: "11111111-1111-1111-1111-111111111111",
-          language: "es",
-          slug: "hola",
-          titulo: "Hola",
-          fecha: new Date().toISOString(),
-          imagen_url: null,
-          translation_group_id: "22222222-2222-2222-2222-222222222222",
-        },
-      ],
-    })
+  const _serviceStub = stub(
+    PostTranslationService.prototype,
+    "getTranslations",
+    () =>
+      Promise.resolve({
+        success: true,
+        data: [
+          {
+            post_id: "11111111-1111-1111-1111-111111111111",
+            language: "es",
+            slug: "hola",
+            titulo: "Hola",
+            fecha: new Date().toISOString(),
+            imagen_url: null,
+            translation_group_id: "22222222-2222-2222-2222-222222222222",
+          },
+        ],
+      }),
   );
 
-  const ctx = { params: { slug: "11111111-1111-1111-1111-111111111111" } } as unknown as FreshContext;
+  const ctx = {
+    params: { slug: "11111111-1111-1111-1111-111111111111" },
+  } as unknown as FreshContext;
   const req = new Request("http://localhost/api/posts/111/translations", {
     method: "GET",
     headers: { "Origin": "http://localhost:8000" },
@@ -53,18 +58,27 @@ Deno.test("Integration: GET /api/posts/:postId/translations returns translations
 });
 
 Deno.test("Integration: POST /api/posts/:postId/translations requires admin and links posts", async () => {
-  const _authStub = stub(AuthService.prototype, "getUserFromToken", () => Promise.resolve(adminUser));
-  const _serviceStub = stub(PostTranslationService.prototype, "linkTranslations", () =>
-    Promise.resolve({
-      success: true,
-      data: {
-        translation_group_id: "22222222-2222-2222-2222-222222222222",
-        translations: [],
-      },
-    })
+  const _authStub = stub(
+    AuthService.prototype,
+    "getUserFromToken",
+    () => Promise.resolve(adminUser),
+  );
+  const _serviceStub = stub(
+    PostTranslationService.prototype,
+    "linkTranslations",
+    () =>
+      Promise.resolve({
+        success: true,
+        data: {
+          translation_group_id: "22222222-2222-2222-2222-222222222222",
+          translations: [],
+        },
+      }),
   );
 
-  const ctx = { params: { slug: "11111111-1111-1111-1111-111111111111" } } as unknown as FreshContext;
+  const ctx = {
+    params: { slug: "11111111-1111-1111-1111-111111111111" },
+  } as unknown as FreshContext;
   const req = new Request("http://localhost/api/posts/111/translations", {
     method: "POST",
     headers: {
@@ -72,7 +86,9 @@ Deno.test("Integration: POST /api/posts/:postId/translations requires admin and 
       "Content-Type": "application/json",
       "Authorization": "Bearer token",
     },
-    body: JSON.stringify({ linked_post_ids: ["33333333-3333-3333-3333-333333333333"] }),
+    body: JSON.stringify({
+      linked_post_ids: ["33333333-3333-3333-3333-333333333333"],
+    }),
   });
 
   const res = await translationsHandler.POST!(req, ctx);
@@ -80,18 +96,28 @@ Deno.test("Integration: POST /api/posts/:postId/translations requires admin and 
 
   assertEquals(res.status, 200);
   assertEquals(body.success, true);
-  assertEquals(body.data.translation_group_id, "22222222-2222-2222-2222-222222222222");
+  assertEquals(
+    body.data.translation_group_id,
+    "22222222-2222-2222-2222-222222222222",
+  );
 
   restore();
 });
 
 Deno.test("Integration: DELETE /api/posts/:postId/translations/:linkedPostId requires admin and unlinks", async () => {
-  const _authStub = stub(AuthService.prototype, "getUserFromToken", () => Promise.resolve(adminUser));
-  const _serviceStub = stub(PostTranslationService.prototype, "unlinkTranslation", () =>
-    Promise.resolve({
-      success: true,
-      data: { translation_group_id: "22222222-2222-2222-2222-222222222222" },
-    })
+  const _authStub = stub(
+    AuthService.prototype,
+    "getUserFromToken",
+    () => Promise.resolve(adminUser),
+  );
+  const _serviceStub = stub(
+    PostTranslationService.prototype,
+    "unlinkTranslation",
+    () =>
+      Promise.resolve({
+        success: true,
+        data: { translation_group_id: "22222222-2222-2222-2222-222222222222" },
+      }),
   );
 
   const ctx = {
@@ -114,14 +140,19 @@ Deno.test("Integration: DELETE /api/posts/:postId/translations/:linkedPostId req
 
   assertEquals(res.status, 200);
   assertEquals(body.success, true);
-  assertEquals(body.data.translation_group_id, "22222222-2222-2222-2222-222222222222");
+  assertEquals(
+    body.data.translation_group_id,
+    "22222222-2222-2222-2222-222222222222",
+  );
 
   restore();
 });
 
 Deno.test("Integration: GET /api/posts/:postId/translation/:language returns 404 when missing", async () => {
-  const _serviceStub = stub(PostTranslationService.prototype, "getTranslationForLanguage", () =>
-    Promise.resolve({ success: true, data: null })
+  const _serviceStub = stub(
+    PostTranslationService.prototype,
+    "getTranslationForLanguage",
+    () => Promise.resolve({ success: true, data: null }),
   );
 
   const ctx = {
@@ -144,4 +175,3 @@ Deno.test("Integration: GET /api/posts/:postId/translation/:language returns 404
 
   restore();
 });
-

@@ -3,7 +3,7 @@ import { corsHeaders } from "../../../../middleware/cors.ts";
 import { requireAuth } from "../../../../middleware/auth.ts";
 import { AppError } from "../../../../utils/errors.ts";
 import { errorResponse } from "../../../../utils/responses.ts";
-import { getUserReaction } from "../_helpers.ts";
+import { getUserReaction } from "../../../../lib/reactions.helpers.ts";
 
 export const handler: Handlers = {
   OPTIONS(req) {

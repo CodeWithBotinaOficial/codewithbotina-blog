@@ -60,7 +60,11 @@ export class PostService {
       }
 
       const sanitized = this.validateAndSanitize(data, "es");
-      const unique = await this.isSlugUnique(sanitized.slug, undefined, sanitized.language);
+      const unique = await this.isSlugUnique(
+        sanitized.slug,
+        undefined,
+        sanitized.language,
+      );
       if (!unique) {
         return {
           success: false,
@@ -95,7 +99,9 @@ export class PostService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -117,7 +123,10 @@ export class PostService {
 
       const posts = Array.isArray(data?.posts) ? data.posts : [];
       if (posts.length < 1) {
-        return { success: false, error: new ValidationError("At least one post is required") };
+        return {
+          success: false,
+          error: new ValidationError("At least one post is required"),
+        };
       }
 
       const sanitizedPosts = posts.map((post) => {
@@ -130,7 +139,12 @@ export class PostService {
       for (const post of sanitizedPosts) {
         const lang = post.language;
         if (seenLangs.has(lang)) {
-          return { success: false, error: new ValidationError("Only one post per language can be created") };
+          return {
+            success: false,
+            error: new ValidationError(
+              "Only one post per language can be created",
+            ),
+          };
         }
         seenLangs.add(lang);
       }
@@ -140,13 +154,23 @@ export class PostService {
       for (const post of sanitizedPosts) {
         const key = `${post.language}:${post.slug}`;
         if (seenSlugKeys.has(key)) {
-          return { success: false, error: new ValidationError("Duplicate slug detected in request") };
+          return {
+            success: false,
+            error: new ValidationError("Duplicate slug detected in request"),
+          };
         }
         seenSlugKeys.add(key);
 
-        const unique = await this.isSlugUnique(post.slug, undefined, post.language);
+        const unique = await this.isSlugUnique(
+          post.slug,
+          undefined,
+          post.language,
+        );
         if (!unique) {
-          return { success: false, error: new ValidationError("Slug already exists") };
+          return {
+            success: false,
+            error: new ValidationError("Slug already exists"),
+          };
         }
       }
 
@@ -162,7 +186,7 @@ export class PostService {
 
       const { data: createdRows, error } = await supabase
         .from("posts")
-        .insert(insertRows as any)
+        .insert(insertRows as unknown as Record<string, unknown>[])
         .select("id, titulo, slug, body, imagen_url, fecha, language");
 
       if (error || !createdRows || createdRows.length !== insertRows.length) {
@@ -172,13 +196,14 @@ export class PostService {
 
       // Map (language, slug) -> created post id for tag linking.
       const idByKey = new Map<string, string>();
-      for (const row of createdRows as any[]) {
+      for (const row of createdRows as PostRecord[]) {
         idByKey.set(`${row.language}:${row.slug}`, row.id);
         createdPostIds.push(row.id);
       }
 
       for (const original of posts) {
-        const fallbackLanguage = this.normalizeLanguage(original.language) ?? "es";
+        const fallbackLanguage = this.normalizeLanguage(original.language) ??
+          "es";
         const normalized = this.validateAndSanitize(original, fallbackLanguage);
         const postId = idByKey.get(`${normalized.language}:${normalized.slug}`);
         if (!postId) continue;
@@ -190,9 +215,13 @@ export class PostService {
 
       if (createdPostIds.length > 1) {
         const baseId = createdPostIds[0];
-        const linkResult = await translationService.linkTranslations(baseId, createdPostIds.slice(1));
+        const linkResult = await translationService.linkTranslations(
+          baseId,
+          createdPostIds.slice(1),
+        );
         if (!linkResult.success) {
-          throw linkResult.error ?? new DatabaseError("Failed to link translations");
+          throw linkResult.error ??
+            new DatabaseError("Failed to link translations");
         }
         createdGroupId = linkResult.data?.translation_group_id ?? null;
       }
@@ -208,12 +237,18 @@ export class PostService {
       // Best-effort rollback for multi-step operations.
       if (createdPostIds.length > 0) {
         try {
-          await supabase.from("post_translations").delete().in("post_id", createdPostIds);
+          await supabase.from("post_translations").delete().in(
+            "post_id",
+            createdPostIds,
+          );
         } catch (_e) {
           // ignore
         }
         try {
-          await supabase.from("post_tags").delete().in("post_id", createdPostIds);
+          await supabase.from("post_tags").delete().in(
+            "post_id",
+            createdPostIds,
+          );
         } catch (_e) {
           // ignore
         }
@@ -226,7 +261,9 @@ export class PostService {
 
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -245,7 +282,10 @@ export class PostService {
     // Rollback snapshots.
     const postSnapshotById = new Map<string, PostRecord>();
     const tagSnapshotByPostId = new Map<string, string[]>();
-    const translationSnapshotByGroupId = new Map<string, Array<{ post_id: string; translation_group_id: string; language: string }>>();
+    const translationSnapshotByGroupId = new Map<
+      string,
+      Array<{ post_id: string; translation_group_id: string; language: string }>
+    >();
     const translationGroupIdsCreated = new Set<string>();
 
     try {
@@ -258,23 +298,40 @@ export class PostService {
       const creates = Array.isArray(data?.creates) ? data.creates : [];
       const unlinks = Array.isArray(data?.unlinks) ? data.unlinks : [];
 
-      const updateIds = Array.from(new Set(updates.map((u) => String(u.post_id ?? "").trim()).filter(Boolean)));
+      const updateIds = Array.from(
+        new Set(
+          updates.map((u) => String(u.post_id ?? "").trim()).filter(Boolean),
+        ),
+      );
       if (updateIds.some((id) => !this.isValidUuid(id))) {
-        return { success: false, error: new ValidationError("Invalid post_id") };
+        return {
+          success: false,
+          error: new ValidationError("Invalid post_id"),
+        };
       }
 
       const baseIds = Array.from(
-        new Set(creates.map((c) => String(c.base_post_id ?? "").trim()).filter(Boolean)),
+        new Set(
+          creates.map((c) => String(c.base_post_id ?? "").trim()).filter(
+            Boolean,
+          ),
+        ),
       );
       if (baseIds.some((id) => !this.isValidUuid(id))) {
-        return { success: false, error: new ValidationError("Invalid base_post_id") };
+        return {
+          success: false,
+          error: new ValidationError("Invalid base_post_id"),
+        };
       }
 
       for (const unlink of unlinks) {
         const postId = String(unlink?.post_id ?? "").trim();
         const linkedId = String(unlink?.linked_post_id ?? "").trim();
         if (!this.isValidUuid(postId) || !this.isValidUuid(linkedId)) {
-          return { success: false, error: new ValidationError("Invalid unlink post_id") };
+          return {
+            success: false,
+            error: new ValidationError("Invalid unlink post_id"),
+          };
         }
       }
 
@@ -293,11 +350,15 @@ export class PostService {
       for (const baseId of baseIds) touchedTranslationPostIds.add(baseId);
       for (const unlink of unlinks) {
         touchedTranslationPostIds.add(String(unlink.post_id ?? "").trim());
-        touchedTranslationPostIds.add(String(unlink.linked_post_id ?? "").trim());
+        touchedTranslationPostIds.add(
+          String(unlink.linked_post_id ?? "").trim(),
+        );
       }
 
       if (touchedTranslationPostIds.size > 0) {
-        const ids = Array.from(touchedTranslationPostIds).filter((id) => id && this.isValidUuid(id));
+        const ids = Array.from(touchedTranslationPostIds).filter((id) =>
+          id && this.isValidUuid(id)
+        );
         const { data: touchedLinks, error: touchedError } = await supabase
           .from("post_translations")
           .select("post_id, translation_group_id, language")
@@ -307,7 +368,12 @@ export class PostService {
           throw new DatabaseError("Failed to load translation links");
         }
         const groupIds = Array.from(
-          new Set((touchedLinks ?? []).map((row: any) => String(row.translation_group_id ?? "").trim()).filter(Boolean)),
+          new Set(
+            ((touchedLinks ?? []) as Array<
+              { translation_group_id?: string | null }
+            >).map((row) => String(row.translation_group_id ?? "").trim())
+              .filter(Boolean),
+          ),
         );
         for (const groupId of groupIds) {
           const { data: groupRows, error: groupError } = await supabase
@@ -320,7 +386,15 @@ export class PostService {
           }
           translationSnapshotByGroupId.set(
             groupId,
-            (groupRows ?? []).map((row: any) => ({
+            ((groupRows ?? []) as Array<
+              {
+                post_id: string;
+                translation_group_id: string;
+                language: string;
+              }
+            >).map((
+              row,
+            ) => ({
               post_id: String(row.post_id),
               translation_group_id: String(row.translation_group_id),
               language: String(row.language),
@@ -337,17 +411,30 @@ export class PostService {
         if (!postId) continue;
         const existing = postSnapshotById.get(postId);
         if (!existing) continue;
-        const sanitized = this.validateAndSanitize(item.post as PostUpdate, existing.language);
+        const sanitized = this.validateAndSanitize(
+          item.post as PostUpdate,
+          existing.language,
+        );
 
         const key = `${sanitized.language}:${sanitized.slug}`;
         if (updateSlugKeys.has(key)) {
-          return { success: false, error: new ValidationError("Duplicate slug detected in request") };
+          return {
+            success: false,
+            error: new ValidationError("Duplicate slug detected in request"),
+          };
         }
         updateSlugKeys.add(key);
 
-        const unique = await this.isSlugUnique(sanitized.slug, postId, sanitized.language);
+        const unique = await this.isSlugUnique(
+          sanitized.slug,
+          postId,
+          sanitized.language,
+        );
         if (!unique) {
-          return { success: false, error: new ValidationError("Slug already exists") };
+          return {
+            success: false,
+            error: new ValidationError("Slug already exists"),
+          };
         }
 
         sanitizedUpdates.set(postId, sanitized);
@@ -415,10 +502,15 @@ export class PostService {
           .select("translation_group_id")
           .eq("post_id", basePostId)
           .maybeSingle();
-        const baseHadGroup = Boolean((baseLinkRow as any)?.translation_group_id);
+        const baseHadGroup = Boolean(
+          (baseLinkRow as { translation_group_id?: string | null } | null)
+            ?.translation_group_id,
+        );
 
         // Determine which languages are already linked to this base post.
-        const existingLinks = await translationService.getTranslations(basePostId);
+        const existingLinks = await translationService.getTranslations(
+          basePostId,
+        );
         const languagesInGroup = new Set<string>();
         languagesInGroup.add(basePost.language);
         if (existingLinks.success) {
@@ -428,19 +520,32 @@ export class PostService {
         }
 
         const sanitizedNewPosts: SanitizedPost[] = newPosts.map((post) => {
-          const fallbackLanguage = this.normalizeLanguage(post.language) ?? basePost.language;
+          const fallbackLanguage = this.normalizeLanguage(post.language) ??
+            basePost.language;
           return this.validateAndSanitize(post, fallbackLanguage);
         });
 
         for (const post of sanitizedNewPosts) {
           if (languagesInGroup.has(post.language)) {
-            return { success: false, error: new ValidationError("Only one post per language can be linked") };
+            return {
+              success: false,
+              error: new ValidationError(
+                "Only one post per language can be linked",
+              ),
+            };
           }
           languagesInGroup.add(post.language);
 
-          const unique = await this.isSlugUnique(post.slug, undefined, post.language);
+          const unique = await this.isSlugUnique(
+            post.slug,
+            undefined,
+            post.language,
+          );
           if (!unique) {
-            return { success: false, error: new ValidationError("Slug already exists") };
+            return {
+              success: false,
+              error: new ValidationError("Slug already exists"),
+            };
           }
         }
 
@@ -456,7 +561,7 @@ export class PostService {
 
         const { data: createdRows, error } = await supabase
           .from("posts")
-          .insert(insertRows as any)
+          .insert(insertRows as unknown as Record<string, unknown>[])
           .select("id, titulo, slug, body, imagen_url, fecha, language");
 
         if (error || !createdRows || createdRows.length !== insertRows.length) {
@@ -465,16 +570,22 @@ export class PostService {
         }
 
         const idByKey = new Map<string, string>();
-        for (const row of createdRows as any[]) {
+        for (const row of createdRows as PostRecord[]) {
           idByKey.set(`${row.language}:${row.slug}`, row.id);
           createdPostIds.push(row.id);
         }
 
         // Tag linking (best-effort).
         for (const original of newPosts) {
-          const fallbackLanguage = this.normalizeLanguage(original.language) ?? basePost.language;
-          const normalized = this.validateAndSanitize(original, fallbackLanguage);
-          const postId = idByKey.get(`${normalized.language}:${normalized.slug}`);
+          const fallbackLanguage = this.normalizeLanguage(original.language) ??
+            basePost.language;
+          const normalized = this.validateAndSanitize(
+            original,
+            fallbackLanguage,
+          );
+          const postId = idByKey.get(
+            `${normalized.language}:${normalized.slug}`,
+          );
           if (!postId) continue;
           const tagIds = this.normalizeTagIds(original.tag_ids);
           if (tagIds.length > 0) {
@@ -482,9 +593,13 @@ export class PostService {
           }
         }
 
-        const baseLinkResult = await translationService.linkTranslations(basePostId, Array.from(idByKey.values()));
+        const baseLinkResult = await translationService.linkTranslations(
+          basePostId,
+          Array.from(idByKey.values()),
+        );
         if (!baseLinkResult.success) {
-          throw baseLinkResult.error ?? new DatabaseError("Failed to link translations");
+          throw baseLinkResult.error ??
+            new DatabaseError("Failed to link translations");
         }
         const groupId = baseLinkResult.data?.translation_group_id ?? null;
         translationGroupByBase[basePostId] = groupId;
@@ -498,9 +613,13 @@ export class PostService {
         const postId = String(unlink.post_id ?? "").trim();
         const linkedPostId = String(unlink.linked_post_id ?? "").trim();
         if (!postId || !linkedPostId) continue;
-        const result = await translationService.unlinkTranslation(postId, linkedPostId);
+        const result = await translationService.unlinkTranslation(
+          postId,
+          linkedPostId,
+        );
         if (!result.success) {
-          throw result.error ?? new DatabaseError("Failed to unlink translation");
+          throw result.error ??
+            new DatabaseError("Failed to unlink translation");
         }
         unlinkedPostIds.push(linkedPostId);
       }
@@ -538,8 +657,14 @@ export class PostService {
         }
 
         if (createdPostIds.length > 0) {
-          await supabase.from("post_translations").delete().in("post_id", createdPostIds);
-          await supabase.from("post_tags").delete().in("post_id", createdPostIds);
+          await supabase.from("post_translations").delete().in(
+            "post_id",
+            createdPostIds,
+          );
+          await supabase.from("post_tags").delete().in(
+            "post_id",
+            createdPostIds,
+          );
           await supabase.from("posts").delete().in("id", createdPostIds);
         }
 
@@ -551,10 +676,18 @@ export class PostService {
             .in("translation_group_id", Array.from(translationGroupIdsCreated));
         }
 
-        for (const [groupId, snapshotRows] of translationSnapshotByGroupId.entries()) {
-          await supabase.from("post_translations").delete().eq("translation_group_id", groupId);
+        for (
+          const [groupId, snapshotRows] of translationSnapshotByGroupId
+            .entries()
+        ) {
+          await supabase.from("post_translations").delete().eq(
+            "translation_group_id",
+            groupId,
+          );
           if (snapshotRows.length > 0) {
-            await supabase.from("post_translations").insert(snapshotRows as any);
+            await supabase.from("post_translations").insert(
+              snapshotRows as unknown as Record<string, unknown>[],
+            );
           }
         }
       } catch (_rollbackError) {
@@ -563,7 +696,9 @@ export class PostService {
 
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -579,7 +714,8 @@ export class PostService {
         return { success: false, error: new AppError("Forbidden", 403) };
       }
 
-      const preferredLanguage = this.normalizeLanguage(data.language) ?? undefined;
+      const preferredLanguage = this.normalizeLanguage(data.language) ??
+        undefined;
       let existing = await this.getPostBySlug(slug, preferredLanguage);
       if (!existing && !preferredLanguage) {
         existing = await this.getPostBySlug(slug);
@@ -590,7 +726,11 @@ export class PostService {
 
       const sanitized = this.validateAndSanitize(data, existing.language);
       if (sanitized.slug !== existing.slug) {
-        const unique = await this.isSlugUnique(sanitized.slug, existing.id, sanitized.language);
+        const unique = await this.isSlugUnique(
+          sanitized.slug,
+          existing.id,
+          sanitized.language,
+        );
         if (!unique) {
           return {
             success: false,
@@ -627,7 +767,9 @@ export class PostService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -663,7 +805,9 @@ export class PostService {
 
       let imageDeleted = false;
       if (existing.imagen_url) {
-        const filename = this.imageService.getFilenameFromUrl(existing.imagen_url);
+        const filename = this.imageService.getFilenameFromUrl(
+          existing.imagen_url,
+        );
         if (filename) {
           imageDeleted = await this.imageService.deleteImage(filename);
         }
@@ -681,7 +825,9 @@ export class PostService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error : new AppError("Internal server error"),
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
       };
     }
   }
@@ -712,12 +858,13 @@ export class PostService {
       throw new DatabaseError("Failed to fetch reaction count");
     }
 
-    const likesCount = (reactions ?? []).filter((reaction) =>
-      reaction.reaction_type === "like"
-    ).length;
-    const dislikesCount = (reactions ?? []).filter((reaction) =>
-      reaction.reaction_type === "dislike"
-    ).length;
+    const likesCount =
+      (reactions ?? []).filter((reaction) => reaction.reaction_type === "like")
+        .length;
+    const dislikesCount =
+      (reactions ?? []).filter((reaction) =>
+        reaction.reaction_type === "dislike"
+      ).length;
     const reactionCount = likesCount + dislikesCount;
 
     return {
@@ -803,12 +950,18 @@ export class PostService {
         ALLOWED_ATTR: [],
       });
     } catch (error) {
-      console.error("Markdown sanitization failed, falling back to text cleanup", error);
+      console.error(
+        "Markdown sanitization failed, falling back to text cleanup",
+        error,
+      );
       return sanitizeInput(content);
     }
   }
 
-  private typeGuardLanguage(value: unknown, fallback: PostLanguage): PostLanguage {
+  private typeGuardLanguage(
+    value: unknown,
+    fallback: PostLanguage,
+  ): PostLanguage {
     if (typeof value === "string" && value.trim()) {
       const normalized = this.normalizeLanguage(value);
       if (!normalized) throw new ValidationError("Language is not supported");
@@ -862,7 +1015,7 @@ export class PostService {
       );
     }
 
-    const language = this.typeGuardLanguage((data as any).language, fallbackLanguage);
+    const language = this.typeGuardLanguage(data.language, fallbackLanguage);
 
     return {
       titulo,
@@ -918,7 +1071,9 @@ export class PostService {
     const existingIds = new Set((data ?? []).map((row) => row.tag_id));
     const incomingIds = new Set(tagIds);
 
-    const toRemove = Array.from(existingIds).filter((id) => !incomingIds.has(id));
+    const toRemove = Array.from(existingIds).filter((id) =>
+      !incomingIds.has(id)
+    );
     const toAdd = tagIds.filter((id) => !existingIds.has(id));
 
     if (toRemove.length > 0) {
@@ -997,11 +1152,16 @@ export class PostService {
       console.error("Supabase error:", error);
       return [];
     }
-    const ids = (data ?? []).map((row: any) => String(row.tag_id ?? "").trim()).filter(Boolean);
+    const ids = ((data ?? []) as Array<{ tag_id?: unknown }>).map((row) =>
+      String(row.tag_id ?? "").trim()
+    ).filter(Boolean);
     return Array.from(new Set(ids));
   }
 
-  private async syncTranslationLanguage(postId: string, language: PostLanguage): Promise<void> {
+  private async syncTranslationLanguage(
+    postId: string,
+    language: PostLanguage,
+  ): Promise<void> {
     const id = String(postId ?? "").trim();
     if (!id || !this.isValidUuid(id)) return;
     const lang = this.normalizeLanguage(language) ?? null;
