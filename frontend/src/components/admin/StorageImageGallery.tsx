@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
-import { getApiUrl } from "../../lib/env";
+import { getAdminRoute } from "../../lib/admin-endpoints";
 import ImageThumbnail from "./ImageThumbnail";
 import ImagePreviewPanel from "./ImagePreviewPanel";
 
@@ -42,7 +42,7 @@ interface Props {
   disabled?: boolean;
 }
 
-const API_URL = getApiUrl().replace(/\/$/, "");
+const ADMIN_API = getAdminRoute("");
 
 export default function StorageImageGallery({ labels, appliedImage, onUse, disabled }: Props) {
   const [items, setItems] = useState<StorageImageItem[]>([]);
@@ -59,7 +59,7 @@ export default function StorageImageGallery({ labels, appliedImage, onUse, disab
     try {
       setLoading(true);
       setError(null);
-      const url = new URL(`${API_URL}/api/storage/images`);
+      const url = new URL(`${ADMIN_API}/storage/images`, window.location.origin);
       url.searchParams.set("limit", "48");
       url.searchParams.set("offset", String(nextOffset));
       if (q) url.searchParams.set("q", q);

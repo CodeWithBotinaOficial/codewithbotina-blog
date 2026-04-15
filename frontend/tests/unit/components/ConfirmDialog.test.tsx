@@ -11,6 +11,7 @@ describe("ConfirmDialog component", () => {
   });
 
   afterEach(() => {
+    render(null, container);
     document.body.removeChild(container);
   });
 
@@ -27,8 +28,8 @@ describe("ConfirmDialog component", () => {
       container,
     );
 
-    expect(container.textContent).toContain("Delete Post");
-    expect(container.textContent).toContain("Are you sure?");
+    expect(document.body.textContent).toContain("Delete Post");
+    expect(document.body.textContent).toContain("Are you sure?");
   });
 
   it("calls onConfirm and onClose when confirming", () => {
@@ -46,7 +47,7 @@ describe("ConfirmDialog component", () => {
       container,
     );
 
-    const confirmButton = Array.from(container.querySelectorAll("button")).find((btn) =>
+    const confirmButton = Array.from(document.body.querySelectorAll("button")).find((btn) =>
       btn.textContent?.includes("Confirm"));
 
     confirmButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -71,7 +72,7 @@ describe("ConfirmDialog component", () => {
       container,
     );
 
-    const cancelButton = Array.from(container.querySelectorAll("button")).find((btn) =>
+    const cancelButton = Array.from(document.body.querySelectorAll("button")).find((btn) =>
       btn.textContent?.includes("Cancel"));
 
     cancelButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));

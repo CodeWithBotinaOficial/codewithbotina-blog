@@ -11,6 +11,7 @@ describe("GlobalSearchModal", () => {
   });
 
   afterEach(() => {
+    render(null, container);
     document.body.removeChild(container);
   });
 
@@ -23,7 +24,7 @@ describe("GlobalSearchModal", () => {
 
     await new Promise((r) => setTimeout(r, 0));
 
-    const backdrop = container.querySelector("[data-modal-backdrop]") as HTMLDivElement | null;
+    const backdrop = document.body.querySelector("[data-modal-backdrop]") as HTMLDivElement | null;
     expect(backdrop).toBeTruthy();
 
     // Wait for keydown listener effect to attach.
@@ -33,6 +34,6 @@ describe("GlobalSearchModal", () => {
 
     // Allow effect cleanup.
     await new Promise((r) => setTimeout(r, 0));
-    expect(container.querySelector("[data-modal-backdrop]")).toBeNull();
+    expect(document.body.querySelector("[data-modal-backdrop]")).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { MoreVertical, Pencil, Trash2 } from "lucide-preact";
-import { getApiUrl } from "../../lib/env";
+import { getAdminRoute } from "../../lib/admin-endpoints";
 import { useSession } from "../../hooks/useSession";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import Toast from "../ui/Toast";
@@ -24,7 +24,7 @@ interface Props {
   };
 }
 
-const API_URL = getApiUrl();
+const ADMIN_API = getAdminRoute("");
 
 export default function AdminPostMenu({ slug, titulo, language, labels }: Props) {
   const { isAdmin, loading } = useSession();
@@ -78,7 +78,7 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
   const fetchDeleteInfo = async () => {
     const query = language ? `?language=${encodeURIComponent(language)}` : "";
     const response = await fetch(
-      `${API_URL}/api/posts/${slug}/delete${query}`,
+      `${ADMIN_API}/posts/${slug}/delete${query}`,
       {
         method: "DELETE",
         credentials: "include",
@@ -121,7 +121,7 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
     try {
       const query = language ? `?language=${encodeURIComponent(language)}&confirm=true` : "?confirm=true";
       const response = await fetch(
-        `${API_URL}/api/posts/${slug}/delete${query}`,
+        `${ADMIN_API}/posts/${slug}/delete${query}`,
         {
           method: "DELETE",
           credentials: "include",

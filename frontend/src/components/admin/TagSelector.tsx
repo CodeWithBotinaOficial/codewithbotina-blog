@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
+import { getAdminRoute } from "../../lib/admin-endpoints";
 import type { TagSelectorLabels } from "../../lib/admin-editor";
 
 export interface TagOption {
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const API_URL = getApiUrl();
+const ADMIN_API = getAdminRoute("");
 
 export default function TagSelector({ title, body, selectedTags, onChange, labels }: Props) {
   const copy: TagSelectorLabels = labels ?? {
@@ -147,7 +149,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
     if (name.length < 2) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/tags/create`, {
+      const response = await fetch(`${ADMIN_API}/tags/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
