@@ -62,15 +62,33 @@ export default function SearchFiltersController({
             // Copy the same params used in the UI
             for (const [k, v] of params.entries()) apiUrl.searchParams.set(k, v);
 
-            const res = await fetch(apiUrl.toString());
+            // Try primary endpoint then fall back to legacy /api/search if the
+            // response is not JSON (some environments may route the paths
+            // differently and return an HTML page).
+            let res = await fetch(apiUrl.toString());
             if (!res.ok) {
-              console.error("Search API error", res.status);
+              console.error("Search API error", res.status, apiUrl.toString());
               return;
             }
-            const contentType = res.headers.get("content-type") ?? "";
+            let contentType = res.headers.get("content-type") ?? "";
             if (!contentType.includes("application/json")) {
-              console.error("Search API returned non-JSON response", contentType);
-              return;
+              // Attempt compatibility path
+              try {
+                const fallbackUrl = new URL("/api/search", window.location.origin);
+                for (const [k, v] of params.entries()) fallbackUrl.searchParams.set(k, v);
+                const fallback = await fetch(fallbackUrl.toString());
+                const fallbackCt = fallback.headers.get("content-type") ?? "";
+                if (fallback.ok && fallbackCt.includes("application/json")) {
+                  res = fallback;
+                  contentType = fallbackCt;
+                } else {
+                  console.error("Search API returned non-JSON response", contentType, "attempted fallback:", fallbackCt);
+                  return;
+                }
+              } catch (err) {
+                console.error("Search API fetch/fallback error", err);
+                return;
+              }
             }
             let payload: any = null;
             try {
