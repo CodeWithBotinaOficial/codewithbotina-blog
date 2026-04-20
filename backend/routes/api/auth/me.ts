@@ -44,7 +44,8 @@ export const handler: Handlers = {
 
         try {
           const session = await authService.refreshAccessToken(refreshToken);
-          setAuthCookies(headers, req, session);
+          // Keep original session creation time; do not extend session lifetime on refresh
+          setAuthCookies(headers, req, session, { setCreated: false });
           user = await authService.getUserFromToken(session.access_token);
         } catch (refreshError) {
           clearAuthCookies(headers, req);

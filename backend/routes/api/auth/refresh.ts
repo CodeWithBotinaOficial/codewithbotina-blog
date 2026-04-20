@@ -45,7 +45,8 @@ export const handler: Handlers = {
 
     try {
       const session = await authService.refreshAccessToken(refreshToken);
-      setAuthCookies(headers, req, session);
+      // Do NOT reset the session-created cookie on refresh: keep absolute 7-day lifetime
+      setAuthCookies(headers, req, session, { setCreated: false });
 
       const body = {
         success: true,

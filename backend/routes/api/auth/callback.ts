@@ -77,7 +77,8 @@ export const handler: Handlers = {
         code,
         codeVerifier,
       );
-      setAuthCookies(headers, req, session);
+      // New login: set session creation cookie (absolute 7-day lifetime)
+      setAuthCookies(headers, req, session, { setCreated: true });
       clearPkceCookie(headers, req);
 
       const { frontendUrl } = getEnvironmentConfig();

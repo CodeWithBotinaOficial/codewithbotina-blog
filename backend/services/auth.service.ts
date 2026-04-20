@@ -213,6 +213,7 @@ export class AuthService {
       console.error("Sign out error:", error);
       throw new AppError("Failed to sign out", 500);
     }
+
   }
 
   async isAdmin(userId: string): Promise<boolean> {

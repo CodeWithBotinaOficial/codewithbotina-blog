@@ -276,6 +276,7 @@ const paginationLabels = {
       </div>
     ) : null}
 
+    <div id="cwb-posts-root">
     {hasPostsError ? (
       <div class="text-center py-12">
         <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
@@ -301,5 +302,6 @@ const paginationLabels = {
         />
       </>
     )}
+    </div>
   </section>
 </BaseLayout>

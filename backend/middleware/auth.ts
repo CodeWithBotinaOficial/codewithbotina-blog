@@ -2,6 +2,7 @@ import { getCookies } from "$std/http/cookie.ts";
 import { AuthService } from "../services/auth.service.ts";
 import { AuthenticatedUser } from "../types/auth.types.ts";
 import { AppError } from "../utils/errors.ts";
+import { SESSION_CREATED_COOKIE_NAME } from "../utils/auth.cookies.ts";
 
 export const ACCESS_COOKIE_NAME = "cwb_access";
 export const REFRESH_COOKIE_NAME = "cwb_refresh";
@@ -37,6 +38,25 @@ export async function requireAuth(req: Request): Promise<AuthenticatedUser> {
     throw new AppError("Unauthorized", 401);
   }
 
+  // Enforce absolute 7-day expiry using the session-created cookie (set at login)
+  try {
+    const cookies = getCookies(req.headers);
+    const created = cookies[SESSION_CREATED_COOKIE_NAME];
+    if (created) {
+      const createdAt = new Date(created);
+      if (!isNaN(createdAt.getTime())) {
+        const expiresAt = new Date(createdAt.getTime() + 1000 * 60 * 60 * 24 * 7);
+        if (new Date() > expiresAt) {
+          throw new AppError("Session expired", 401);
+        }
+      }
+    }
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    console.error("Session age validation error:", err);
+    throw new AppError("Unauthorized", 401);
+  }
+
   return await authService.getUserFromToken(token);
 }
 
@@ -47,6 +67,18 @@ export async function optionalAuth(
   if (!token) return null;
 
   try {
+    const cookies = getCookies(req.headers);
+    const created = cookies[SESSION_CREATED_COOKIE_NAME];
+    if (created) {
+      const createdAt = new Date(created);
+      if (!isNaN(createdAt.getTime())) {
+        const expiresAt = new Date(createdAt.getTime() + 1000 * 60 * 60 * 24 * 7);
+        if (new Date() > expiresAt) {
+          return null;
+        }
+      }
+    }
+
     return await authService.getUserFromToken(token);
   } catch (_error) {
     return null;

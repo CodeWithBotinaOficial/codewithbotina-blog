@@ -191,6 +191,7 @@ const paginationLabels = {
 
   <section class="py-16">
     <div class="container-responsive">
+      <div id="cwb-posts-root">
       {(countError || error) && (
         <div class="text-center py-20">
           <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
@@ -241,6 +242,7 @@ const paginationLabels = {
           )}
         </>
       )}
-    </div>
+      </div>
+
   </section>
 </BaseLayout>

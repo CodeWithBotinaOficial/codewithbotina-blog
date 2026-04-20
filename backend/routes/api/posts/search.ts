@@ -34,7 +34,56 @@ type SearchResultPost = {
   dislikes_count?: number;
   reactions_count?: number;
   comments_count?: number;
+  preview?: string;
 };
+
+function stripMarkdown(value: string): string {
+  if (!value) return "";
+  let s = String(value);
+  // Remove fenced code blocks
+  s = s.replace(/```[\s\S]*?```/g, " ");
+  // Remove inline code
+  s = s.replace(/`([^`]*)`/g, "$1");
+  // Remove images: ![alt](url) -> alt
+  s = s.replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1");
+  // Links: [text](url) -> text
+  s = s.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  // Headings
+  s = s.replace(/^#+\s+/gm, "");
+  // Blockquotes
+  s = s.replace(/^>\s+/gm, "");
+  // Emphasis
+  s = s.replace(/\*\*(.*?)\*\*/g, "$1");
+  s = s.replace(/\*(.*?)\*/g, "$1");
+  s = s.replace(/__(.*?)__/g, "$1");
+  s = s.replace(/_(.*?)_/g, "$1");
+  // Lists
+  s = s.replace(/^[\-\*\+]\s+/gm, "");
+  // Remove remaining markdown characters
+  s = s.replace(/[#*_>`~-]/g, "");
+  // Collapse whitespace
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+
+function truncateText(text: string, max = 150): string {
+  if (!text) return "";
+  if (text.length <= max) return text;
+  // Try to avoid cutting mid-word
+  const truncated = text.slice(0, max);
+  const lastSpace = truncated.lastIndexOf(" ");
+  if (lastSpace > Math.floor(max * 0.6)) return truncated.slice(0, lastSpace) + "...";
+  return truncated + "...";
+}
+
+function attachPreview(posts: SearchResultPost[]): SearchResultPost[] {
+  return posts.map((p) => {
+    const source = p.body ?? "";
+    const plain = stripMarkdown(source);
+    const preview = truncateText(plain.replace(/\s+/g, " ").trim(), 150);
+    return { ...p, preview };
+  });
+}
 
 function parseCsv(raw: string | null): string[] {
   if (!raw) return [];
@@ -464,7 +513,7 @@ export const handler: Handlers = {
         if (ids.length === 0) {
           const response = successResponse(
             {
-              posts: [],
+              posts: attachPreview([]),
               total: 0,
               limit,
               offset,
@@ -506,7 +555,7 @@ export const handler: Handlers = {
           if (qTagIds.length === 0) {
             const response = successResponse(
               {
-                posts: [],
+                posts: attachPreview([]),
                 total: 0,
                 limit,
                 offset,
@@ -528,7 +577,7 @@ export const handler: Handlers = {
           if (tagSearchPostIds.length === 0) {
             const response = successResponse(
               {
-                posts: [],
+                posts: attachPreview([]),
                 total: 0,
                 limit,
                 offset,
@@ -637,7 +686,7 @@ export const handler: Handlers = {
         const total = posts.length;
         if (total === 0) {
           const response = successResponse(
-            { posts: [], total: 0, limit, offset, phase },
+            { posts: attachPreview([]), total: 0, limit, offset, phase },
             "No results",
             200,
           );
@@ -671,7 +720,7 @@ export const handler: Handlers = {
 
         const pagePosts = posts.slice(offset, offset + limit);
         const response = successResponse(
-          { posts: pagePosts, total, limit, offset, phase, relevance },
+          { posts: attachPreview(pagePosts), total, limit, offset, phase, relevance },
           "Posts fetched successfully",
           200,
         );
@@ -717,7 +766,7 @@ export const handler: Handlers = {
 
         const pagePosts = merged.slice(offset, offset + limit);
         const response = successResponse(
-          { posts: pagePosts, total, limit, offset, phase, relevance, sort },
+          { posts: attachPreview(pagePosts), total, limit, offset, phase, relevance, sort },
           "Posts fetched successfully",
           200,
         );
@@ -738,7 +787,7 @@ export const handler: Handlers = {
 
       if (total === 0) {
         const response = successResponse(
-          { posts: [], total: 0, limit, offset, phase, relevance, sort },
+          { posts: attachPreview([]), total: 0, limit, offset, phase, relevance, sort },
           "No results",
           200,
         );
@@ -774,7 +823,7 @@ export const handler: Handlers = {
 
       const response = successResponse(
         {
-          posts: (data ?? []) as SearchResultPost[],
+          posts: attachPreview((data ?? []) as SearchResultPost[]),
           total,
           limit,
           offset,
