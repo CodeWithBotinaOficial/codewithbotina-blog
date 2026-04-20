@@ -192,56 +192,59 @@ const paginationLabels = {
   <section class="py-16">
     <div class="container-responsive">
       <div id="cwb-posts-root">
-      {(countError || error) && (
-        <div class="text-center py-20">
-          <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
-        </div>
-      )}
-      {!(countError || error) && (
-        <>
-          {totalPosts === 0 ? (
+        <div id="cwb-posts-default">
+          {(countError || error) && (
             <div class="text-center py-20">
-              <p class="text-xl text-[var(--color-text-secondary)]">
-                {hasOtherParams ? t(language, "search.noResults") : t(language, "pagination.noPosts")}
-              </p>
+              <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
             </div>
-          ) : (
+          )}
+          {!(countError || error) && (
             <>
-              {hasOtherParams && initialFilters.search.trim() && phase === "content" ? (
-                <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-                  {t(language, "search.foundInContent")}
+              {totalPosts === 0 ? (
+                <div class="text-center py-20">
+                  <p class="text-xl text-[var(--color-text-secondary)]">
+                    {hasOtherParams ? t(language, "search.noResults") : t(language, "pagination.noPosts")}
+                  </p>
                 </div>
-              ) : null}
-              {hasOtherParams && initialFilters.search.trim() && phase === "tags" ? (
-                <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-                  {t(language, "search.foundInTags", "common", { term: initialFilters.search.trim() })}
-                </div>
-              ) : null}
+              ) : (
+                <>
+                  {hasOtherParams && initialFilters.search.trim() && phase === "content" ? (
+                    <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+                      {t(language, "search.foundInContent")}
+                    </div>
+                  ) : null}
+                  {hasOtherParams && initialFilters.search.trim() && phase === "tags" ? (
+                    <div class="mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+                      {t(language, "search.foundInTags", "common", { term: initialFilters.search.trim() })}
+                    </div>
+                  ) : null}
 
-              {hasOtherParams ? (
-                <div class="mb-6 text-sm text-[var(--color-text-tertiary)]">
-                  {t(language, "search.resultsCount", "common", { count: totalPosts })}
-                </div>
-              ) : null}
+                  {hasOtherParams ? (
+                    <div class="mb-6 text-sm text-[var(--color-text-tertiary)]">
+                      {t(language, "search.resultsCount", "common", { count: totalPosts })}
+                    </div>
+                  ) : null}
 
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {allPosts.map((post) => (
-                  <PostCard post={post} language={language} />
-                ))}
-              </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {allPosts.map((post) => (
+                      <PostCard post={post} language={language} />
+                    ))}
+                  </div>
 
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                perPage={perPage}
-                baseUrl={`/${language}/`}
-                labels={paginationLabels}
-                client:load
-              />
+                  <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    perPage={perPage}
+                    baseUrl={`/${language}/`}
+                    labels={paginationLabels}
+                    client:load
+                  />
+                </>
+              )}
             </>
           )}
-        </>
-      )}
+        </div>
+        <div id="cwb-posts-search" class="hidden"></div>
       </div>
 
   </section>

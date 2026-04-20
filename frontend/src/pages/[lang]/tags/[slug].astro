@@ -277,31 +277,34 @@ const paginationLabels = {
     ) : null}
 
     <div id="cwb-posts-root">
-    {hasPostsError ? (
-      <div class="text-center py-12">
-        <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
+      <div id="cwb-posts-default">
+        {hasPostsError ? (
+          <div class="text-center py-12">
+            <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
+          </div>
+        ) : posts.length === 0 ? (
+          <div class="text-center py-12 text-[var(--color-text-secondary)]">
+            {t(language, "noTagPosts", "post")}
+          </div>
+        ) : (
+          <>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {posts.map((post) => (
+                <PostCard post={post} language={language} />
+              ))}
+            </div>
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              perPage={perPage}
+              baseUrl={`/${language}/tags/${tag.slug}`}
+              labels={paginationLabels}
+              client:load
+            />
+          </>
+        )}
       </div>
-    ) : posts.length === 0 ? (
-      <div class="text-center py-12 text-[var(--color-text-secondary)]">
-        {t(language, "noTagPosts", "post")}
-      </div>
-    ) : (
-      <>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.map((post) => (
-            <PostCard post={post} language={language} />
-          ))}
-        </div>
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          perPage={perPage}
-          baseUrl={`/${language}/tags/${tag.slug}`}
-          labels={paginationLabels}
-          client:load
-        />
-      </>
-    )}
+      <div id="cwb-posts-search" class="hidden"></div>
     </div>
   </section>
 </BaseLayout>

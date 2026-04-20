@@ -121,9 +121,17 @@ export default function TagsBrowser({
   useEffect(() => {
     if (!didMountRef.current) return;
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    const trimmed = queryInput.trim();
+    if (!trimmed) {
+      // Clearing should apply immediately so the URL returns to the normal `/tags` route quickly.
+      setPage(1);
+      setQuery("");
+      return;
+    }
+
     debounceRef.current = window.setTimeout(() => {
       setPage(1);
-      setQuery(queryInput.trim());
+      setQuery(trimmed);
     }, 450);
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);

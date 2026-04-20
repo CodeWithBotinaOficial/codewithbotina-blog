@@ -7,10 +7,32 @@ import type { SupportedLanguage } from "../../lib/i18n";
 
 function decodeBase64Utf8(value: string): string {
   const raw = value ?? "";
-  const binary = atob(raw);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
+  if (!raw) return "";
+
+  // Prefer browser `atob`, but fall back to Node `Buffer` for test environments.
+  try {
+    if (typeof atob === "function") {
+      const binary = atob(raw);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+  } catch (_err) {
+    // fall through
+  }
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const buf = (globalThis as any).Buffer;
+    if (buf?.from) {
+      const bytes = buf.from(raw, "base64") as Uint8Array;
+      return new TextDecoder().decode(bytes);
+    }
+  } catch (_err) {
+    // ignore
+  }
+
+  return "";
 }
 
 interface Props {

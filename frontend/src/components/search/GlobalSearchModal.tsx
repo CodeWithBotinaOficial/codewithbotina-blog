@@ -59,7 +59,7 @@ function stripMarkdown(value: string): string {
   s = s.replace(/__(.*?)__/g, "$1");
   s = s.replace(/_(.*?)_/g, "$1");
   // Remove list markers
-  s = s.replace(/^[\-\*\+]\s+/gm, "");
+  s = s.replace(/^[-*+]\s+/gm, "");
   // Collapse whitespace
   s = s.replace(/\s+/g, " ").trim();
   return s;
@@ -129,7 +129,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
       let payload: any = null;
       try {
         payload = await res.json();
-      } catch (err) {
+      } catch (_err) {
         throw new Error("Failed to parse JSON response from search API");
       }
       const data = (payload?.data ?? payload) as Partial<SearchResponseData>;
