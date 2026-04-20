@@ -116,11 +116,26 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
       params.set("limit", "20");
       params.set("offset", "0");
 
-      const res = await fetch(`${API_URL}/api/posts/search?${params.toString()}`);
+      // Primary search endpoint; fall back to legacy /api/search if we get
+      // a non-JSON response (some deployments may route the newer path to
+      // HTML pages).
+      let res = await fetch(`${API_URL}/api/posts/search?${params.toString()}`);
       if (!res.ok) throw new Error(`Search failed (${res.status})`);
-      const contentType = res.headers.get("content-type") ?? "";
+      let contentType = res.headers.get("content-type") ?? "";
       if (!contentType.includes("application/json")) {
-        throw new Error(`Expected JSON response but got: ${contentType}`);
+        // Try /api/search as a compatibility fallback
+        try {
+          const fallback = await fetch(`${API_URL}/api/search?${params.toString()}`);
+          const fallbackCt = fallback.headers.get("content-type") ?? "";
+          if (fallback.ok && fallbackCt.includes("application/json")) {
+            res = fallback;
+            contentType = fallbackCt;
+          } else {
+            throw new Error(`Expected JSON response but got: ${contentType}`);
+          }
+        } catch (_e) {
+          throw new Error(`Expected JSON response but got: ${contentType}`);
+        }
       }
       let payload: any = null;
       try {

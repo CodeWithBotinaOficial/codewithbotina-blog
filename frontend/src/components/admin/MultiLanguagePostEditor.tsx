@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Lock, ShieldX, X } from "lucide-preact";
+import TranslationLinker, { type TranslationPost } from "./TranslationLinker";
 import { getApiUrl } from "../../lib/env";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 import { getAuthRoute } from "../../lib/auth-endpoints";
@@ -152,6 +153,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   // Edit-mode translation loading
   const [linkedLoaded, setLinkedLoaded] = useState(false);
   const [unlinks, setUnlinks] = useState<Array<{ post_id: string; linked_post_id: string }>>([]);
+  // Manual linking UI state (tracks posts selected via the TranslationLinker)
+  const [selectedLinkedPosts, setSelectedLinkedPosts] = useState<TranslationPost[]>([]);
+  const [initialSelectedLinkedIds, setInitialSelectedLinkedIds] = useState<string[]>([]);
 
   const activeLanguages = useMemo(() => {
     const set = new Set<LanguageCode>();
@@ -253,6 +257,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           .filter((row) => row.id !== postId);
 
         const loadedLanguages: string[] = [];
+        const loadedLinkedPosts: TranslationPost[] = [];
         for (const row of others) {
           const details = await fetch(
             `${API_URL}/api/posts/${encodeURIComponent(row.slug)}?language=${encodeURIComponent(row.language)}`,
@@ -283,11 +288,24 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             [row.language]: defaultImageValue(post.imagen_url ?? null),
           }));
           loadedLanguages.push(row.language);
+          // collect a shape compatible with TranslationLinker so the UI can show current links
+          loadedLinkedPosts.push({
+            post_id: String(post.id),
+            language: String(post.language ?? row.language).trim().toLowerCase(),
+            slug: String(post.slug ?? ""),
+            titulo: String(post.titulo ?? ""),
+            fecha: post.fecha ?? null,
+            imagen_url: post.imagen_url ?? null,
+          });
         }
 
         // Pre-populate translationLanguages based on loaded linked sections.
         const linkedLangs = loadedLanguages.filter((l) => l && l !== primaryLanguage);
         setTranslationLanguages(Array.from(new Set(linkedLangs)));
+        if (loadedLinkedPosts.length > 0) {
+          setSelectedLinkedPosts(loadedLinkedPosts);
+          setInitialSelectedLinkedIds(loadedLinkedPosts.map((p) => p.post_id).sort());
+        }
       } finally {
         setLinkedLoaded(true);
       }
@@ -459,6 +477,31 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         const createdCount = Array.isArray(payload?.data?.posts) ? payload.data.posts.length : 1;
         showToast(t(interfaceLanguage, "multiLang.postsCreated", "admin", { count: createdCount }), "success");
 
+        // If admin selected existing posts to link, attempt to link them to the
+        // newly-created primary post. The create endpoint returns created posts
+        // (and a translation_group_id for batch creates) – prefer the created
+        // post whose language matches the primary language as the base for linking.
+        try {
+          const createdPosts = Array.isArray(payload?.data?.posts)
+            ? payload.data.posts
+            : payload?.data
+            ? [payload.data]
+            : [];
+          const primaryCreated = createdPosts.find((p: any) => p.language === primaryLanguage) ?? createdPosts[0];
+          const primaryId = primaryCreated?.id as string | undefined;
+          if (primaryId && selectedLinkedPosts.length > 0) {
+            await fetch(`${ADMIN_API}/posts/${encodeURIComponent(primaryId)}/translations`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ linked_post_ids: selectedLinkedPosts.map((p) => p.post_id) }),
+            });
+          }
+        } catch (_e) {
+          // Non-fatal: linking failures shouldn't block the redirect. Errors are
+          // surfaced in server logs and the admin can retry from the edit page.
+        }
+
         const nextSlug = posts.find((p) => p.language === primaryLanguage)?.slug ?? posts[0].slug;
         window.setTimeout(() => {
           window.location.assign(`/${primaryLanguage}/posts/${nextSlug}`);
@@ -517,6 +560,25 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         }),
       });
       if (!res.ok) throw new Error("Failed to update posts");
+      // If the admin selected additional existing posts to link, ensure they
+      // are linked to the base post. Unlinks are already handled via the
+      // bulk-update payload (unlinks array).
+      try {
+        const basePostId = String(initialData?.id ?? "").trim();
+        const selectedIds = (selectedLinkedPosts ?? []).map((p) => String(p.post_id));
+        const selectedKey = selectedIds.slice().sort().join(",");
+        const initialKey = initialSelectedLinkedIds.slice().sort().join(",");
+        if (basePostId && selectedIds.length > 0 && selectedKey !== initialKey) {
+          await fetch(`${ADMIN_API}/posts/${encodeURIComponent(basePostId)}/translations`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ linked_post_ids: selectedIds }),
+          });
+        }
+      } catch (_e) {
+        // Non-fatal; proceed with redirect.
+      }
 
       const nextSlug = sections[primaryLanguage]?.slug ?? initialData?.slug ?? "";
       showToast(t(interfaceLanguage, "multiLang.postsUpdated", "admin", { count: updates.length }), "success");
@@ -598,6 +660,16 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
   const translationsTitle = t(interfaceLanguage, "multiLang.translations", "admin");
   const translationsDesc = t(interfaceLanguage, "multiLang.translationsDescription", "admin");
+  const translationLinkerLabels = {
+    title: translationsTitle,
+    empty: t(interfaceLanguage, "editor.translationsEmpty", "admin"),
+    searchPlaceholder: t(interfaceLanguage, "editor.translationsSearchPlaceholder", "admin"),
+    searching: t(interfaceLanguage, "editor.translationsSearching", "admin"),
+    noResults: t(interfaceLanguage, "editor.translationsNoResults", "admin"),
+    removeLabel: t(interfaceLanguage, "editor.translationsRemoveLabel", "admin"),
+    languageLabel: t(interfaceLanguage, "editor.translationsLanguageLabel", "admin"),
+    dateLabel: t(interfaceLanguage, "editor.translationsDateLabel", "admin"),
+  };
 
   return (
     <form onSubmit={handleSubmit} class="space-y-8">
@@ -685,6 +757,18 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             )}
           </div>
         </div>
+      </section>
+
+      <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
+        <TranslationLinker
+          currentPostId={mode === "edit" ? String(initialData?.id ?? "") : undefined}
+          currentPostLanguage={primaryLanguage}
+          selected={selectedLinkedPosts}
+          onChange={setSelectedLinkedPosts}
+          labels={translationLinkerLabels}
+          uiLocale={interfaceLanguage === "es" ? "es-ES" : "en-US"}
+          disabled={isSubmitting}
+        />
       </section>
 
       <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">

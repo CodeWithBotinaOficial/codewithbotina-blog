@@ -84,11 +84,33 @@ export default function TranslationLinker(
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`${API_URL}/api/posts?q=${encodeURIComponent(q)}&limit=12`, {
+        // Try the primary posts search endpoint, but fall back to the compatibility
+        // `/api/search` endpoint if the first one returns non-JSON (some deployments
+        // may proxy legacy paths differently). This avoids throwing raw HTML parse
+        // errors in the admin UI.
+        let res = await fetch(`${API_URL}/api/posts?q=${encodeURIComponent(q)}&limit=12`, {
           credentials: "include",
         });
+        let contentType = res.headers.get("content-type") ?? "";
+        if (!res.ok || !contentType.includes("application/json")) {
+          // Attempt compatibility path
+          try {
+            const fallback = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(q)}&limit=12`, {
+              credentials: "include",
+            });
+            if (fallback.ok) {
+              const fallbackCt = fallback.headers.get("content-type") ?? "";
+              if (fallbackCt.includes("application/json")) {
+                res = fallback;
+                contentType = fallbackCt;
+              }
+            }
+          } catch (_e) {
+            // ignore fallback errors and continue to parse original response error below
+          }
+        }
+
         if (!res.ok) throw new Error("Search failed");
-        const contentType = res.headers.get("content-type") ?? "";
         if (!contentType.includes("application/json")) {
           throw new Error("Search returned non-JSON response");
         }
