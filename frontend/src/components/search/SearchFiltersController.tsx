@@ -57,19 +57,28 @@ export default function SearchFiltersController({
             history.pushState({}, "", href);
             window.dispatchEvent(new CustomEvent("cwb:search:applied", { detail: { href } }));
 
-            // Fetch search results from API and update posts container
+            // Fetch search results from API and update posts container.
+            // Include explicit headers so reverse proxies/hosting prefer JSON responses
+            // and avoid HTML redirects that some CDNs return for unknown API paths.
             const apiUrl = new URL("/api/posts/search", window.location.origin);
             // Copy the same params used in the UI
             for (const [k, v] of params.entries()) apiUrl.searchParams.set(k, v);
 
-            const res = await fetch(apiUrl.toString());
+            const headers = new Headers();
+            headers.set("Accept", "application/json");
+            headers.set("X-Requested-With", "XMLHttpRequest");
+
+            const res = await fetch(apiUrl.toString(), { credentials: "same-origin", headers });
             if (!res.ok) {
-              console.error("Search API error", res.status);
+              console.error("Search API error", res.status, apiUrl.toString());
               return;
             }
             const contentType = res.headers.get("content-type") ?? "";
             if (!contentType.includes("application/json")) {
-              console.error("Search API returned non-JSON response", contentType);
+              // If the server returned HTML (some hosts redirect unknown API paths to the 404 page)
+              // don't attempt to parse it — just log and abort. Avoid falling back to legacy
+              // /api/search which in some deployments is intercepted and redirects to HTML.
+              console.error("Search API returned non-JSON response", contentType, apiUrl.toString());
               return;
             }
             let payload: any = null;

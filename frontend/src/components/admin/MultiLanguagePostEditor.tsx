@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Lock, ShieldX, X } from "lucide-preact";
+import TranslationLinker, { type TranslationPost } from "./TranslationLinker";
 import { getApiUrl } from "../../lib/env";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 import { getAuthRoute } from "../../lib/auth-endpoints";
@@ -112,6 +113,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const initialPrimary = String(initialData?.language ?? interfaceLanguage).trim().toLowerCase();
   const [primaryLanguage, setPrimaryLanguage] = useState<LanguageCode>(initialPrimary || "en");
   const [translationLanguages, setTranslationLanguages] = useState<LanguageCode[]>([]);
+  // Manual linking UI state: store ids selected in the translation linker so we can
+  // send them to the admin translations endpoint when saving.
+  const [manualLinks, setManualLinks] = useState<TranslationPost[]>([]);
   const [useSharedTags, setUseSharedTags] = useState(false);
   const [sharedTags, setSharedTags] = useState<TagOption[]>([]);
 
@@ -520,6 +524,28 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
       const nextSlug = sections[primaryLanguage]?.slug ?? initialData?.slug ?? "";
       showToast(t(interfaceLanguage, "multiLang.postsUpdated", "admin", { count: updates.length }), "success");
+      // If the admin selected manual links via the TranslationLinker, send them to the
+      // server to be linked to this post. This is best-effort; failures won't block the
+      // normal update flow but will be logged and surfaced to the admin.
+      try {
+        const basePostId = String(initialData?.id ?? "").trim();
+        if (basePostId && manualLinks.length > 0) {
+          const linkRes = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(basePostId)}/translations`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ linked_post_ids: manualLinks.map((m) => m.post_id) }),
+          });
+          if (!linkRes.ok) {
+            console.error("Failed to link manual translations", await linkRes.text());
+            showToast(t(interfaceLanguage, "editor.toastError", "admin"), "error");
+          }
+        }
+      } catch (err) {
+        console.error("Error linking manual translations", err);
+        showToast(t(interfaceLanguage, "editor.toastError", "admin"), "error");
+      }
+
       window.setTimeout(() => {
         window.location.assign(`/${primaryLanguage}/posts/${nextSlug}`);
       }, 500);
@@ -684,6 +710,43 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               </div>
             )}
           </div>
+            {/* Manual linking UI - show translation linker so admins can search and select existing posts to link */}
+            <div class="space-y-2">
+              <label class="text-sm font-semibold">{t(interfaceLanguage, "multiLang.linkExisting", "admin")}</label>
+              {mode === "edit" || mode === "create" ? (
+                <div>
+                  <TranslationLinker
+                    currentPostId={String(initialData?.id ?? "")}
+                    currentPostLanguage={primaryLanguage}
+                    selected={manualLinks}
+                    onChange={(next) => setManualLinks(next)}
+                    labels={{
+                      title: translationsTitle,
+                      empty: t(interfaceLanguage, "multiLang.translationsEmpty", "admin"),
+                      searchPlaceholder: t(interfaceLanguage, "translationsSearchPlaceholder", "admin"),
+                      searching: t(interfaceLanguage, "translationsSearching", "admin"),
+                      noResults: t(interfaceLanguage, "translationsNoResults", "admin"),
+                      removeLabel: t(interfaceLanguage, "translationsRemoveLabel", "admin"),
+                      languageLabel: t(interfaceLanguage, "translationsLanguageLabel", "admin"),
+                      dateLabel: t(interfaceLanguage, "translationsDateLabel", "admin"),
+                    }}
+                    uiLocale={interfaceLanguage === "es" ? "es-ES" : "en-US"}
+                    disabled={isSubmitting}
+                  />
+
+                  {manualLinks.length > 0 ? (
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      {manualLinks.map((m) => (
+                        <span key={m.post_id} class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm">
+                          <span class="font-semibold text-xs">{String(m.language).toUpperCase()}</span>
+                          <span class="truncate max-w-[200px]">{m.titulo}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
         </div>
       </section>
 

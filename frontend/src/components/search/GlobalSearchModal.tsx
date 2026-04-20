@@ -116,7 +116,11 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
       params.set("limit", "20");
       params.set("offset", "0");
 
-      const res = await fetch(`${API_URL}/api/posts/search?${params.toString()}`);
+      const headers = new Headers();
+      headers.set("Accept", "application/json");
+      headers.set("X-Requested-With", "XMLHttpRequest");
+
+      const res = await fetch(`${API_URL}/api/posts/search?${params.toString()}`, { credentials: "same-origin", headers });
       if (!res.ok) throw new Error(`Search failed (${res.status})`);
       const contentType = res.headers.get("content-type") ?? "";
       if (!contentType.includes("application/json")) {

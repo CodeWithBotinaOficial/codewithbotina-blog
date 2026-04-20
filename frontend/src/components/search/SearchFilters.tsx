@@ -228,6 +228,13 @@ export default function SearchFilters({
             const value = (e.target as HTMLInputElement).value;
             setFilters((prev) => ({ ...prev, search: value }));
           }}
+          onKeyDown={(e) => {
+            // Prevent Enter from submitting any outer form and trigger our JS search instead.
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitSearch(filters);
+            }
+          }}
           placeholder={t(uiLanguage, "search.placeholder")}
           class="w-full pl-12 pr-12 py-4 rounded-full border border-[var(--color-border)] bg-white shadow-sm focus:ring-2 focus:ring-[var(--color-accent-primary)] focus:border-transparent outline-none transition-all"
         />
