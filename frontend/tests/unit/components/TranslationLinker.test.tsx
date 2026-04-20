@@ -22,6 +22,7 @@ describe("TranslationLinker", () => {
     let selected: any[] = [];
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
       json: async () => ({
         data: {
           posts: [

@@ -88,7 +88,16 @@ export default function TranslationLinker(
           credentials: "include",
         });
         if (!res.ok) throw new Error("Search failed");
-        const payload = await res.json();
+        const contentType = res.headers.get("content-type") ?? "";
+        if (!contentType.includes("application/json")) {
+          throw new Error("Search returned non-JSON response");
+        }
+        let payload: any = null;
+        try {
+          payload = await res.json();
+        } catch (_e) {
+          throw new Error("Failed to parse search response");
+        }
         const posts = (payload?.data?.posts ?? payload?.posts ?? []) as any[];
 
         const mapped: TranslationPost[] = posts.map((p) => ({

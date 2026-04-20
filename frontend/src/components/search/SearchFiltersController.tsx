@@ -67,7 +67,18 @@ export default function SearchFiltersController({
               console.error("Search API error", res.status);
               return;
             }
-            const payload = await res.json();
+            const contentType = res.headers.get("content-type") ?? "";
+            if (!contentType.includes("application/json")) {
+              console.error("Search API returned non-JSON response", contentType);
+              return;
+            }
+            let payload: any = null;
+            try {
+              payload = await res.json();
+            } catch (err) {
+              console.error("Failed to parse search JSON response", err);
+              return;
+            }
             const posts = payload?.data?.posts ?? payload?.posts ?? [];
             const total = payload?.data?.total ?? payload?.total ?? 0;
 
