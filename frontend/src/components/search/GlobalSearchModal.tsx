@@ -39,6 +39,32 @@ function stripHtml(value: string): string {
   return String(value ?? "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 }
 
+function stripMarkdown(value: string): string {
+  if (!value) return "";
+  let s = String(value);
+  // Remove code blocks
+  s = s.replace(/```[\s\S]*?```/g, " ");
+  // Remove inline code
+  s = s.replace(/`([^`]*)`/g, "$1");
+  // Images: ![alt](url) -> alt
+  s = s.replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1");
+  // Links: [text](url) -> text
+  s = s.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  // Headings and blockquote markers
+  s = s.replace(/^#+\s+/gm, "");
+  s = s.replace(/^>\s+/gm, "");
+  // Remove emphasis characters
+  s = s.replace(/\*\*(.*?)\*\*/g, "$1");
+  s = s.replace(/\*(.*?)\*/g, "$1");
+  s = s.replace(/__(.*?)__/g, "$1");
+  s = s.replace(/_(.*?)_/g, "$1");
+  // Remove list markers
+  s = s.replace(/^[\-\*\+]\s+/gm, "");
+  // Collapse whitespace
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+
 function formatDateShort(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -173,7 +199,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
               <div class="mt-4 grid grid-cols-1 gap-3">
                 {results.posts.map((post) => {
                   const href = `/${post.language}/posts/${post.slug}`;
-                  const excerpt = stripHtml(post.body).slice(0, 140);
+                  const excerpt = stripMarkdown(post.body).slice(0, 140);
                   const date = formatDateShort(post.fecha);
                   return (
                     <a
