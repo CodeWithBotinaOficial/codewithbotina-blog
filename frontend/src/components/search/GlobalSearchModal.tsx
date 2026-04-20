@@ -118,7 +118,16 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
 
       const res = await fetch(`${API_URL}/api/posts/search?${params.toString()}`);
       if (!res.ok) throw new Error(`Search failed (${res.status})`);
-      const payload = await res.json();
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        throw new Error(`Expected JSON response but got: ${contentType}`);
+      }
+      let payload: any = null;
+      try {
+        payload = await res.json();
+      } catch (err) {
+        throw new Error("Failed to parse JSON response from search API");
+      }
       const data = (payload?.data ?? payload) as Partial<SearchResponseData>;
 
       if (requestIdRef.current !== requestId) return;
