@@ -5,8 +5,7 @@ import BaseLayout from "../../../components/BaseLayout.astro";
 import { supabase } from "../../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
-import TagSearchBar from "../../../components/tags/TagSearchBar";
-import TagPaginationControls from "../../../components/pagination/TagPaginationControls";
+import TagsBrowser from "../../../components/tags/TagsBrowser";
 import {
   buildTagsPageHref,
   getTagsPaginationState,
@@ -156,56 +155,26 @@ const paginationLabels = {
       <p class="text-[var(--color-text-secondary)] max-w-2xl">{metaDescription}</p>
     </div>
 
-    <div class="mb-10">
-      <TagSearchBar
-        uiLanguage={language}
-        basePath={`/${language}/tags`}
-        initialQuery={query}
-        initialSort={sort}
-        initialLanguageFilter={languageFilter}
-        client:load
-      />
-    </div>
-
     {hasError ? (
       <div class="text-center py-12">
         <p class="text-xl text-[var(--color-error)]">{t(language, "errors.fetchPosts")}</p>
       </div>
-    ) : tags.length === 0 ? (
-      <div class="text-center py-12 text-[var(--color-text-secondary)]">
-        {t(language, "tagsEmpty", "post")}
-      </div>
     ) : (
-      <>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tags.map((tag) => {
-            const count = tag.usage_count_language ?? tag.usage_count ?? 0;
-            const usageLabel = t(language, "tagPage.postsCount", "common", { count });
-
-            return (
-              <a
-                href={`/${language}/tags/${tag.slug}`}
-                class="border border-[var(--color-border)] rounded-xl p-5 hover:shadow-lg transition"
-              >
-                <p class="text-lg font-semibold mb-1">#{tag.name}</p>
-                <p class="text-sm text-[var(--color-text-secondary)]">
-                  {tag.description || t(language, "tagDescriptionFallback", "post")}
-                </p>
-                <p class="text-xs text-[var(--color-text-tertiary)] mt-3">{usageLabel}</p>
-              </a>
-            );
-          })}
-        </div>
-
-        <TagPaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          perPage={perPage as AllowedTagsPerPage}
-          baseUrl={`/${language}/tags`}
+      <div class="mb-10">
+        <TagsBrowser
+          uiLanguage={language}
+          basePath={`/${language}/tags`}
+          initialQuery={query}
+          initialSort={sort}
+          initialLanguageFilter={languageFilter}
+          initialTags={tags}
+          initialTotal={totalTags}
+          initialPage={currentPage}
+          initialPerPage={perPage as AllowedTagsPerPage}
           labels={paginationLabels}
           client:load
         />
-      </>
+      </div>
     )}
   </section>
 </BaseLayout>

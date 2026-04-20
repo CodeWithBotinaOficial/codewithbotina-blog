@@ -19,7 +19,9 @@ export function corsHeaders(origin: string | null): Headers {
   );
   headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Origin, Authorization",
+    // Keep in sync with frontend fetch() usage.
+    // `X-Requested-With` is used by some clients to signal an AJAX request.
+    "Content-Type, Origin, Authorization, X-Requested-With, Accept",
   );
   headers.set("Access-Control-Allow-Credentials", "true");
 

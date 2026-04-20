@@ -1,5 +1,6 @@
 import SearchFilters from "./SearchFilters";
 import { filtersToUrlParams } from "../../lib/search-filters";
+import { getApiUrl } from "../../lib/env";
 import type { SearchFilters as SearchFiltersType } from "../../types/search";
 
 interface Props {
@@ -13,6 +14,8 @@ interface Props {
   defaultFiltersOpen?: boolean;
 }
 
+const API_URL = getApiUrl().replace(/\/$/, "");
+
 function withPreservedPerPage(params: URLSearchParams) {
   if (typeof window === "undefined") return params;
 
@@ -20,6 +23,16 @@ function withPreservedPerPage(params: URLSearchParams) {
   const perPage = current.get("per_page");
   if (perPage) params.set("per_page", perPage);
   return params;
+}
+
+function inferTagSlugFromBasePath(basePath: string): string | null {
+  // basePath is expected to be something like:
+  // - "/en/" (home)
+  // - "/en/tags/react" (tag detail)
+  const pathname = basePath.split("?")[0];
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length >= 3 && parts[1] === "tags") return parts[2];
+  return null;
 }
 
 export default function SearchFiltersController({
@@ -41,7 +54,7 @@ export default function SearchFiltersController({
       compact={compact}
       autoApplySearch={autoApplySearch}
       defaultFiltersOpen={defaultFiltersOpen}
-        onSearch={async (filters) => {
+      onSearch={async (filters) => {
         const params = filtersToUrlParams(filters);
         withPreservedPerPage(params);
 
@@ -60,9 +73,36 @@ export default function SearchFiltersController({
             // Fetch search results from API and update posts container.
             // Include explicit headers so reverse proxies/hosting prefer JSON responses
             // and avoid HTML redirects that some CDNs return for unknown API paths.
-            const apiUrl = new URL("/api/posts/search", window.location.origin);
-            // Copy the same params used in the UI
-            for (const [k, v] of params.entries()) apiUrl.searchParams.set(k, v);
+            const apiUrl = new URL(`${API_URL}/api/posts/search`);
+
+            const term = filters.search.trim();
+            if (term) apiUrl.searchParams.set("q", term);
+            if (filters.from) apiUrl.searchParams.set("from", filters.from);
+            if (filters.to) apiUrl.searchParams.set("to", filters.to);
+            if (filters.relevance) apiUrl.searchParams.set("relevance", filters.relevance);
+            if (filters.sort) apiUrl.searchParams.set("sort", filters.sort);
+            if (filters.scope) apiUrl.searchParams.set("scope", filters.scope);
+            if (filters.tags.length > 0) apiUrl.searchParams.set("tags", filters.tags.join(","));
+
+            // If this controller is mounted on a tag detail route, keep the search scoped to that tag.
+            const fixedTagSlug = inferTagSlugFromBasePath(basePath);
+            if (fixedTagSlug) apiUrl.searchParams.set("tag_slug", fixedTagSlug);
+
+            // Language filtering: if the language filter UI isn't shown (e.g. tag pages),
+            // always scope to the current UI language.
+            if (showLanguageFilter === false || filters.languageMode === "current") {
+              apiUrl.searchParams.set("language", filters.uiLanguage);
+            } else if (filters.languageMode === "selected" && filters.languages.length > 0) {
+              apiUrl.searchParams.set("languages", filters.languages.join(","));
+            } else {
+              // all languages: omit language params.
+            }
+
+            // Match the server-side pagination size (per_page) when present; default to 10.
+            const perPageRaw = params.get("per_page");
+            const limit = Number.parseInt(perPageRaw ?? "10", 10);
+            if (Number.isFinite(limit) && limit > 0) apiUrl.searchParams.set("limit", String(limit));
+            apiUrl.searchParams.set("offset", "0");
 
             const headers = new Headers();
             headers.set("Accept", "application/json");

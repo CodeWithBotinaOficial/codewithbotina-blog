@@ -10,7 +10,7 @@ Deno.test("corsHeaders allows exact origin match", () => {
   );
   assertEquals(
     headers.get("Access-Control-Allow-Headers"),
-    "Content-Type, Origin, Authorization",
+    "Content-Type, Origin, Authorization, X-Requested-With, Accept",
   );
   assertEquals(headers.get("Access-Control-Allow-Credentials"), "true");
 });
