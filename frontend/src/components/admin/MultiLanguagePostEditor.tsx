@@ -855,6 +855,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             selectedTags={sharedTags}
             onChange={setSharedTags}
             labels={tagLabels}
+            inputId="post-tags-shared"
           />
         ) : null}
       </section>
@@ -1101,6 +1102,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                   selectedTags={section.tags ?? []}
                   onChange={(next) => setSections((prev) => ({ ...prev, [lang]: { ...prev[lang], tags: next } }))}
                   labels={tagLabels}
+                  inputId={`post-tags-${lang}`}
                 />
               ) : null}
             </section>

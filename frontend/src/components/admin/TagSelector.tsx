@@ -16,12 +16,13 @@ interface Props {
   selectedTags: TagOption[];
   onChange: (_tags: TagOption[]) => void;
   labels?: TagSelectorLabels;
+  inputId?: string;
 }
 
-const API_URL = getApiUrl();
+const API_URL = getApiUrl().replace(/\/$/, "");
 const ADMIN_API = getAdminRoute("");
 
-export default function TagSelector({ title, body, selectedTags, onChange, labels }: Props) {
+export default function TagSelector({ title, body, selectedTags, onChange, labels, inputId }: Props) {
   const copy: TagSelectorLabels = labels ?? {
     title: "Tags (SEO)",
     emptyHint: "Add 3-7 tags to improve search visibility.",
@@ -57,7 +58,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
   );
   const showCreate = canShowDropdown && !hasExactMatch && !alreadySelected;
   const shouldRenderDropdown = canShowDropdown && (autocomplete.length > 0 || showCreate);
-  const inputId = "post-tags";
+  const resolvedInputId = inputId ?? "post-tags";
 
   useEffect(() => {
     if (title.trim().length < 10 || body.trim().length < 50) {
@@ -83,6 +84,8 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
           throw new Error("Failed to load tag suggestions");
         }
 
+        const ct = response.headers?.get?.("content-type") ?? "";
+        if (ct && !ct.includes("application/json")) throw new Error("Non-JSON response");
         const payload = await response.json();
         const list = payload?.data?.suggestions || payload?.suggestions || [];
         setSuggestions(list);
@@ -117,6 +120,8 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
         if (!response.ok) {
           throw new Error("Failed to autocomplete tags");
         }
+        const ct = response.headers?.get?.("content-type") ?? "";
+        if (ct && !ct.includes("application/json")) throw new Error("Non-JSON response");
         const payload = await response.json();
         const list = payload?.data?.tags || payload?.tags || [];
         setAutocomplete(list);
@@ -158,7 +163,20 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
         body: JSON.stringify({ name }),
       });
 
-      const payload = await response.json();
+      const ct = response.headers?.get?.("content-type") ?? "";
+      if (ct && !ct.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(`Unexpected response (${response.status}): ${text.slice(0, 120)}`);
+      }
+
+      // Some test/mock environments omit content-type headers; attempt JSON parse anyway.
+      let payload: any = null;
+      try {
+        payload = await response.json();
+      } catch (_err) {
+        const text = await response.text();
+        throw new Error(`Unexpected response (${response.status}): ${text.slice(0, 120)}`);
+      }
       if (!response.ok) {
         throw new Error(payload?.error || payload?.message || "Failed to create tag");
       }
@@ -184,7 +202,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
 
   return (
     <div class="space-y-3">
-      <label class="text-sm font-semibold" htmlFor={inputId}>{copy.title}</label>
+      <label class="text-sm font-semibold" htmlFor={resolvedInputId}>{copy.title}</label>
 
       <div class="flex flex-wrap gap-2">
         {selectedTags.length === 0 ? (
@@ -211,7 +229,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
       <div class="relative">
         <input
           type="text"
-          id={inputId}
+          id={resolvedInputId}
           name="tags"
           value={inputValue}
           onInput={(event) => setInputValue((event.currentTarget as HTMLInputElement).value)}

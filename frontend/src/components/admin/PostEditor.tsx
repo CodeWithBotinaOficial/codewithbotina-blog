@@ -899,6 +899,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         selectedTags={tags}
         onChange={setTags}
         labels={tagLabels}
+        inputId="post-tags"
       />
 
       <div class="space-y-3">
