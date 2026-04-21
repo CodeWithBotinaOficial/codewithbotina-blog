@@ -113,9 +113,6 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const initialPrimary = String(initialData?.language ?? interfaceLanguage).trim().toLowerCase();
   const [primaryLanguage, setPrimaryLanguage] = useState<LanguageCode>(initialPrimary || "en");
   const [translationLanguages, setTranslationLanguages] = useState<LanguageCode[]>([]);
-  // Manual linking UI state: store ids selected in the translation linker so we can
-  // send them to the admin translations endpoint when saving.
-  const [manualLinks, setManualLinks] = useState<TranslationPost[]>([]);
   const [useSharedTags, setUseSharedTags] = useState(false);
   const [sharedTags, setSharedTags] = useState<TagOption[]>([]);
 
@@ -156,7 +153,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   // Edit-mode translation loading
   const [linkedLoaded, setLinkedLoaded] = useState(false);
   const [unlinks, setUnlinks] = useState<Array<{ post_id: string; linked_post_id: string }>>([]);
-  // Manual linking UI state (tracks posts selected via the TranslationLinker)
+  // Posts selected in the TranslationLinker (used to link/unlink translations on save).
   const [selectedLinkedPosts, setSelectedLinkedPosts] = useState<TranslationPost[]>([]);
   const [initialSelectedLinkedIds, setInitialSelectedLinkedIds] = useState<string[]>([]);
 
@@ -435,6 +432,68 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     return trimmedUrl ? trimmedUrl : null;
   };
 
+  const syncTranslations = async (args: {
+    postId: string;
+    mode: "create" | "edit";
+    selected: string[];
+    initial: string[];
+  }): Promise<void> => {
+    const postId = String(args.postId ?? "").trim();
+    if (!postId) return;
+
+    const uniqueSelected = Array.from(
+      new Set((args.selected ?? []).map((id) => String(id).trim()).filter(Boolean)),
+    );
+    const uniqueInitial = Array.from(
+      new Set((args.initial ?? []).map((id) => String(id).trim()).filter(Boolean)),
+    );
+
+    const postLink = async (linkedIds: string[]) => {
+      const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ linked_post_ids: linkedIds }),
+      });
+      if (!res.ok) throw new Error("Failed to link translations");
+    };
+
+    const unlinkOne = async (linkedPostId: string) => {
+      const id = String(linkedPostId ?? "").trim();
+      if (!id) return;
+      const res = await fetch(
+        `${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(id)}`,
+        { method: "DELETE", credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed to unlink translation");
+    };
+
+    if (args.mode === "create") {
+      if (uniqueSelected.length === 0) return;
+      await postLink(uniqueSelected);
+      return;
+    }
+
+    // Edit mode
+    if (uniqueSelected.length === 0) {
+      if (uniqueInitial.length === 0) return;
+      await postLink([]);
+      return;
+    }
+
+    const initialSet = new Set(uniqueInitial);
+    const selectedSet = new Set(uniqueSelected);
+    const toAdd = uniqueSelected.filter((id) => !initialSet.has(id));
+    const toRemove = uniqueInitial.filter((id) => !selectedSet.has(id));
+
+    if (toAdd.length > 0) {
+      await postLink(toAdd);
+    }
+    for (const id of toRemove) {
+      await unlinkOne(id);
+    }
+  };
+
   const submit = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -492,14 +551,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             : [];
           const primaryCreated = createdPosts.find((p: any) => p.language === primaryLanguage) ?? createdPosts[0];
           const primaryId = primaryCreated?.id as string | undefined;
-          if (primaryId && selectedLinkedPosts.length > 0) {
-            await fetch(`${ADMIN_API}/posts/${encodeURIComponent(primaryId)}/translations`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ linked_post_ids: selectedLinkedPosts.map((p) => p.post_id) }),
-            });
-          }
+          await syncTranslations({
+            postId: primaryId ?? "",
+            mode: "create",
+            selected: selectedLinkedPosts.map((p) => p.post_id),
+            initial: [],
+          });
         } catch (_e) {
           // Non-fatal: linking failures shouldn't block the redirect. Errors are
           // surfaced in server logs and the admin can retry from the edit page.
@@ -563,49 +620,20 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         }),
       });
       if (!res.ok) throw new Error("Failed to update posts");
-      // If the admin selected additional existing posts to link, ensure they
-      // are linked to the base post. Unlinks are already handled via the
-      // bulk-update payload (unlinks array).
+      // Sync TranslationLinker selection (link + unlink) after the content update.
       try {
-        const basePostId = String(initialData?.id ?? "").trim();
-        const selectedIds = (selectedLinkedPosts ?? []).map((p) => String(p.post_id));
-        const selectedKey = selectedIds.slice().sort().join(",");
-        const initialKey = initialSelectedLinkedIds.slice().sort().join(",");
-        if (basePostId && selectedIds.length > 0 && selectedKey !== initialKey) {
-          await fetch(`${ADMIN_API}/posts/${encodeURIComponent(basePostId)}/translations`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ linked_post_ids: selectedIds }),
-          });
-        }
+        await syncTranslations({
+          postId: basePostId,
+          mode: "edit",
+          selected: (selectedLinkedPosts ?? []).map((p) => p.post_id),
+          initial: initialSelectedLinkedIds,
+        });
       } catch (_e) {
         // Non-fatal; proceed with redirect.
       }
 
       const nextSlug = sections[primaryLanguage]?.slug ?? initialData?.slug ?? "";
       showToast(t(interfaceLanguage, "multiLang.postsUpdated", "admin", { count: updates.length }), "success");
-      // If the admin selected manual links via the TranslationLinker, send them to the
-      // server to be linked to this post. This is best-effort; failures won't block the
-      // normal update flow but will be logged and surfaced to the admin.
-      try {
-        const basePostId = String(initialData?.id ?? "").trim();
-        if (basePostId && manualLinks.length > 0) {
-          const linkRes = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(basePostId)}/translations`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ linked_post_ids: manualLinks.map((m) => m.post_id) }),
-          });
-          if (!linkRes.ok) {
-            console.error("Failed to link manual translations", await linkRes.text());
-            showToast(t(interfaceLanguage, "editor.toastError", "admin"), "error");
-          }
-        }
-      } catch (err) {
-        console.error("Error linking manual translations", err);
-        showToast(t(interfaceLanguage, "editor.toastError", "admin"), "error");
-      }
 
       window.setTimeout(() => {
         window.location.assign(`/${primaryLanguage}/posts/${nextSlug}`);
@@ -686,7 +714,8 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const translationsTitle = t(interfaceLanguage, "multiLang.translations", "admin");
   const translationsDesc = t(interfaceLanguage, "multiLang.translationsDescription", "admin");
   const translationLinkerLabels = {
-    title: translationsTitle,
+    // Avoid confusing this with the "Translations" section above (multi-language creation UI).
+    title: t(interfaceLanguage, "multiLang.linkedVersions", "admin"),
     empty: t(interfaceLanguage, "editor.translationsEmpty", "admin"),
     searchPlaceholder: t(interfaceLanguage, "editor.translationsSearchPlaceholder", "admin"),
     searching: t(interfaceLanguage, "editor.translationsSearching", "admin"),
@@ -781,43 +810,6 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               </div>
             )}
           </div>
-            {/* Manual linking UI - show translation linker so admins can search and select existing posts to link */}
-            <div class="space-y-2">
-              <label class="text-sm font-semibold">{t(interfaceLanguage, "multiLang.linkExisting", "admin")}</label>
-              {mode === "edit" || mode === "create" ? (
-                <div>
-                  <TranslationLinker
-                    currentPostId={String(initialData?.id ?? "")}
-                    currentPostLanguage={primaryLanguage}
-                    selected={manualLinks}
-                    onChange={(next) => setManualLinks(next)}
-                    labels={{
-                      title: translationsTitle,
-                      empty: t(interfaceLanguage, "multiLang.translationsEmpty", "admin"),
-                      searchPlaceholder: t(interfaceLanguage, "translationsSearchPlaceholder", "admin"),
-                      searching: t(interfaceLanguage, "translationsSearching", "admin"),
-                      noResults: t(interfaceLanguage, "translationsNoResults", "admin"),
-                      removeLabel: t(interfaceLanguage, "translationsRemoveLabel", "admin"),
-                      languageLabel: t(interfaceLanguage, "translationsLanguageLabel", "admin"),
-                      dateLabel: t(interfaceLanguage, "translationsDateLabel", "admin"),
-                    }}
-                    uiLocale={interfaceLanguage === "es" ? "es-ES" : "en-US"}
-                    disabled={isSubmitting}
-                  />
-
-                  {manualLinks.length > 0 ? (
-                    <div class="mt-3 flex flex-wrap gap-2">
-                      {manualLinks.map((m) => (
-                        <span key={m.post_id} class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm">
-                          <span class="font-semibold text-xs">{String(m.language).toUpperCase()}</span>
-                          <span class="truncate max-w-[200px]">{m.titulo}</span>
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
         </div>
       </section>
 
