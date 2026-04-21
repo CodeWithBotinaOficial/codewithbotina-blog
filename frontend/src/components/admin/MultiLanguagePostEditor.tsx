@@ -6,6 +6,7 @@ import { getAdminRoute } from "../../lib/admin-endpoints";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { t, type SupportedLanguage, LANGUAGE_NAMES, SUPPORTED_LANGUAGES as UI_LANGS } from "../../lib/i18n";
 import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
+import { pickLinkedPostImageUrl } from "../../lib/admin-linked-image";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
 import ConfirmDialog from "../ui/ConfirmDialog";
@@ -118,6 +119,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
   const [imageAppliesTo, setImageAppliesTo] = useState<"all" | "custom" | LanguageCode>("all");
   const [sharedImage, setSharedImage] = useState<ImageValue>(defaultImageValue(initialData?.imagen_url ?? null));
+  const [sharedImageTouched, setSharedImageTouched] = useState(false);
 
   const [sections, setSections] = useState<Record<LanguageCode, MultiLangEditorPost>>(() => {
     const lang = initialPrimary || "en";
@@ -188,6 +190,24 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       return { ...prev, [lang]: defaultImageValue(null) };
     });
   };
+
+  // If the user links an existing post and the shared image is still "empty",
+  // auto-inherit the linked post image when the scope remains the default "all versions".
+  useEffect(() => {
+    if (imageAppliesTo !== "all") return;
+    if (sharedImageTouched) return;
+    if (sharedImage.file) return;
+    if (sharedImage.url.trim()) return;
+    const linkedUrl = pickLinkedPostImageUrl(selectedLinkedPosts);
+    if (!linkedUrl) return;
+    setSharedImage(defaultImageValue(linkedUrl));
+  }, [
+    imageAppliesTo,
+    sharedImageTouched,
+    sharedImage.file,
+    sharedImage.url,
+    selectedLinkedPosts,
+  ]);
 
   useEffect(() => {
     for (const lang of activeLanguages) ensureSection(lang);
@@ -895,7 +915,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             langLabel={t(interfaceLanguage, "multiLang.allVersions", "admin")}
             uiLanguage={interfaceLanguage}
             value={sharedImage}
-            onChange={setSharedImage}
+            onChange={(next) => {
+              setSharedImageTouched(true);
+              setSharedImage(next);
+            }}
             disabled={isSubmitting}
             locale={locale}
           />
