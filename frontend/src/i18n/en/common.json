@@ -27,6 +27,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "publish": "Publish",
+    "toggleMenu": "Toggle menu",
     "search": "Search"
   },
   "time": {

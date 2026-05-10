@@ -19,6 +19,7 @@ const SUPPORTED_LANGUAGES: Set<PostLanguage> = new Set([
   "fr",
   "de",
   "pt",
+  "pt-br",
   "ja",
   "zh",
 ]);

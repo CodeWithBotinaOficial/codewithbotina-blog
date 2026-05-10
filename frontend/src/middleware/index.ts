@@ -16,7 +16,7 @@ export const onRequest = defineMiddleware(async ({ request, cookies, redirect, u
     return next();
   }
 
-  const hasLangPrefix = /^\/(en|es)(\/|$)/.test(pathname);
+  const hasLangPrefix = /^\/(en|es|pt-br)(\/|$)/.test(pathname);
   if (hasLangPrefix) {
     return next();
   }

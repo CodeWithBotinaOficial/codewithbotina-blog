@@ -341,7 +341,7 @@ export default function TagsBrowser({
 
           <div class="mt-12 flex flex-col gap-4 border-t border-[var(--color-border)] pt-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <nav class="flex items-center justify-center sm:justify-start gap-2 flex-wrap" aria-label="Pagination">
+              <nav class="flex items-center justify-center sm:justify-start gap-2 flex-wrap" aria-label={labels.page}>
                 <button
                   type="button"
                   class={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${

@@ -24,6 +24,13 @@ const styles = {
 
 export default function Toast({ message, type, onClose, duration = 5000 }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const dismissLabel = (() => {
+    if (typeof document === "undefined") return "Dismiss notification";
+    const lang = (document.documentElement.lang || "en").toLowerCase();
+    if (lang === "es") return "Cerrar notificacion";
+    if (lang === "pt-br") return "Fechar notificacao";
+    return "Dismiss notification";
+  })();
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -52,7 +59,7 @@ export default function Toast({ message, type, onClose, duration = 5000 }: Toast
             setIsVisible(false);
             window.setTimeout(onClose, 250);
           }}
-          aria-label="Dismiss notification"
+          aria-label={dismissLabel}
         >
           <X className="h-4 w-4" />
         </button>

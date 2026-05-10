@@ -4,7 +4,16 @@ import { corsHeaders } from "../../../../middleware/cors.ts";
 import { AppError, ValidationError } from "../../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../../utils/responses.ts";
 
-const SUPPORTED_LANGUAGES = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
+const SUPPORTED_LANGUAGES = new Set([
+  "en",
+  "es",
+  "fr",
+  "de",
+  "pt",
+  "pt-br",
+  "ja",
+  "zh",
+]);
 
 export const handler: Handlers = {
   OPTIONS(req) {

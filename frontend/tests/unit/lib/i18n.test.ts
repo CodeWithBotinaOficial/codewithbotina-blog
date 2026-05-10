@@ -26,13 +26,20 @@ describe("i18n helpers", () => {
     expect(fallback).toBe(DEFAULT_LANGUAGE);
   });
 
+  it("detects pt-br from browser language variants", () => {
+    expect(detectLanguage(makeCookies() as never, "pt-BR,pt;q=0.9,en;q=0.8")).toBe("pt-br");
+    expect(detectLanguage(makeCookies() as never, "pt,es;q=0.9,en;q=0.8")).toBe("pt-br");
+  });
+
   it("builds localized paths", () => {
     expect(getLocalizedPath("/en/posts/hello", "es")).toBe("/es/posts/hello");
+    expect(getLocalizedPath("/es/contacto", "pt-br")).toBe("/pt-br/contato");
     expect(getLocalizedPath("/posts/hello", "en")).toBe("/en/posts/hello");
   });
 
   it("extracts language from path", () => {
     expect(getLanguageFromPath("/es/posts/hello")).toBe("es");
+    expect(getLanguageFromPath("/pt-br/posts/hello")).toBe("pt-br");
     expect(getLanguageFromPath("/unknown")).toBe(DEFAULT_LANGUAGE);
   });
 

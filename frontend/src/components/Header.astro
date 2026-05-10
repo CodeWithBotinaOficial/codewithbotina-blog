@@ -52,7 +52,7 @@ const isHome = currentPath === `/${currentLanguage}/` || currentPath === `/${cur
       <button
         id="mobile-menu-btn"
         class="p-2 text-[var(--color-text-primary)] hover:bg-[var(--color-bg-subtle)] rounded-lg"
-        aria-label="Toggle menu"
+        aria-label={t(currentLanguage, "actions.toggleMenu")}
       >
         <Menu size={24} class="menu-icon" />
         <X size={24} class="close-icon hidden" />

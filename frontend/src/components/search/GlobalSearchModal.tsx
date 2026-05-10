@@ -65,14 +65,15 @@ function stripMarkdown(value: string): string {
   return s;
 }
 
-function formatDateShort(iso: string | null): string {
+function formatDateShort(iso: string | null, locale: string): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
 }
 
 export default function GlobalSearchModal({ currentLanguage }: Props) {
+  const locale = currentLanguage === "es" ? "es-ES" : currentLanguage === "pt-br" ? "pt-BR" : "en-US";
   const [open, setOpen] = useState(false);
   const initial = useMemo(() => DEFAULT_SEARCH_FILTERS(currentLanguage), [currentLanguage]);
   const [results, setResults] = useState<SearchResponseData | null>(null);
@@ -213,7 +214,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
                 {results.posts.map((post) => {
                   const href = `/${post.language}/posts/${post.slug}`;
                   const excerpt = stripMarkdown(post.body).slice(0, 140);
-                  const date = formatDateShort(post.fecha);
+                  const date = formatDateShort(post.fecha, locale);
                   return (
                     <a
                       key={post.id}

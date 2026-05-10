@@ -838,7 +838,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         selected={linkedPosts}
         onChange={setLinkedPosts}
         labels={translationLabels}
-        uiLocale={language === "es" ? "es-ES" : "en-US"}
+        uiLocale={language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US"}
         disabled={isSubmitting}
       />
 
@@ -1088,7 +1088,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
                     error: copy.imageSection.error,
                     retry: copy.imageSection.retry,
                     loadMore: copy.imageSection.loadMore,
-                    locale: language === "es" ? "es-ES" : "en-US",
+                    locale: language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US",
                   }}
                 />
               ) : (

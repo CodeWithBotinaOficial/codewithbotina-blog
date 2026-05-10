@@ -45,7 +45,9 @@ export async function requireAuth(req: Request): Promise<AuthenticatedUser> {
     if (created) {
       const createdAt = new Date(created);
       if (!isNaN(createdAt.getTime())) {
-        const expiresAt = new Date(createdAt.getTime() + 1000 * 60 * 60 * 24 * 7);
+        const expiresAt = new Date(
+          createdAt.getTime() + 1000 * 60 * 60 * 24 * 7,
+        );
         if (new Date() > expiresAt) {
           throw new AppError("Session expired", 401);
         }
@@ -72,7 +74,9 @@ export async function optionalAuth(
     if (created) {
       const createdAt = new Date(created);
       if (!isNaN(createdAt.getTime())) {
-        const expiresAt = new Date(createdAt.getTime() + 1000 * 60 * 60 * 24 * 7);
+        const expiresAt = new Date(
+          createdAt.getTime() + 1000 * 60 * 60 * 24 * 7,
+        );
         if (new Date() > expiresAt) {
           return null;
         }

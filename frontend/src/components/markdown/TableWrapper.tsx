@@ -172,8 +172,8 @@ export default function TableWrapper({ tableHtml, labels }: Props) {
             onClick={() => setFormatOpen((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={formatOpen}
-            aria-label="Copy options"
-            title="Copy options"
+            aria-label={labels.copy}
+            title={labels.copy}
           >
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -217,4 +217,3 @@ export default function TableWrapper({ tableHtml, labels }: Props) {
     </div>
   );
 }
-

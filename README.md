@@ -43,8 +43,9 @@ The blog supports creating and editing posts in multiple languages simultaneousl
 
 ### Supported Languages
 
-- English (`en`)
-- Spanish (`es`)
+- 🇺🇸 English (`en`)
+- 🇪🇸 Español (`es`)
+- 🇧🇷 Portugues (Brasil) (`pt-br`)
 
 ## 🚀 Tech Stack
 

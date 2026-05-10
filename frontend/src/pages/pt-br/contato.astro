@@ -1,0 +1,97 @@
+---
+import BaseLayout from "../../components/BaseLayout.astro";
+import ContactForm from "../../components/ContactForm.astro";
+import { Mail, MessageSquare } from "lucide-astro";
+import { getSiteUrl } from "../../lib/env";
+import { getLocalizedPath, SUPPORTED_LANGUAGES } from "../../lib/i18n";
+
+const language = "pt-br";
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+const canonicalUrl = `${siteUrl}${Astro.url.pathname}`;
+const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
+  lang,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+}));
+const labels = {
+  nameLabel: "Nome",
+  namePlaceholder: "Seu nome",
+  nameError: "O nome e obrigatorio",
+  emailLabel: "Email",
+  emailPlaceholder: "voce@exemplo.com",
+  emailError: "Informe um email valido",
+  messageLabel: "Mensagem",
+  messagePlaceholder: "Como posso ajudar?",
+  messageError: "A mensagem deve ter pelo menos 10 caracteres",
+  submit: "Enviar mensagem",
+  successMessage: "Mensagem enviada com sucesso! Vou responder em breve.",
+  errorMessage: "Falha ao enviar a mensagem. Tente novamente mais tarde.",
+};
+---
+
+<BaseLayout
+  title="Contato"
+  description="Entre em contato com Diego Botina. Envie uma mensagem ou conecte-se por email e redes sociais."
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/contact`} />
+  </Fragment>
+  <div class="bg-[var(--color-bg-subtle)] py-16 border-b border-[var(--color-border)]">
+    <div class="container-responsive text-center">
+      <h1 class="text-4xl font-bold mb-4">Entre em contato</h1>
+      <p class="text-xl text-[var(--color-text-secondary)] max-w-2xl mx-auto">
+        Tem uma pergunta ou quer colaborar? Envie uma mensagem.
+      </p>
+    </div>
+  </div>
+
+  <div class="container-responsive py-16">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
+      <div>
+        <ContactForm labels={labels} />
+      </div>
+
+      <div class="space-y-8 lg:pl-12 lg:border-l border-[var(--color-border)]">
+        <div>
+          <h2 class="text-2xl font-bold mb-6">Informacoes de contato</h2>
+          <div class="space-y-6">
+            <a
+              href="mailto:support@codewithbotina.com"
+              class="flex items-center gap-4 p-4 rounded-xl bg-[var(--color-bg-subtle)] hover:bg-[var(--color-border)] transition-colors group"
+            >
+              <div class="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                <Mail class="text-[var(--color-accent-primary)]" size={24} />
+              </div>
+              <div>
+                <p class="text-sm text-[var(--color-text-tertiary)]">Escreva para</p>
+                <p class="font-medium text-[var(--color-text-primary)]">support@codewithbotina.com</p>
+              </div>
+            </a>
+
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-[var(--color-bg-subtle)]">
+              <div class="bg-white p-3 rounded-full shadow-sm">
+                <MessageSquare class="text-[var(--color-accent-primary)]" size={24} />
+              </div>
+              <div>
+                <p class="text-sm text-[var(--color-text-tertiary)]">Tempo de resposta</p>
+                <p class="font-medium text-[var(--color-text-primary)]">Normalmente em 24-48 horas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-[var(--color-text-secondary)]">
+            Voce tambem pode me encontrar nas redes sociais (links no rodape).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+

@@ -179,7 +179,8 @@ export default function SearchFiltersController({
             const searchRoot = document.getElementById(POSTS_SEARCH_ID);
             if (!searchRoot) return;
 
-            const locale = filters.uiLanguage === "es" ? "es-ES" : "en-US";
+            const locale =
+              filters.uiLanguage === "es" ? "es-ES" : filters.uiLanguage === "pt-br" ? "pt-BR" : "en-US";
             const readMoreLabel = t(filters.uiLanguage, "actions.readMore");
 
             // Render search results with the same structure/classes as PostCard.astro

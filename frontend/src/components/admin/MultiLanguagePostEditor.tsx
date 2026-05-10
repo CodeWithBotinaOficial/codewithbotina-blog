@@ -105,7 +105,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const { toasts, showToast, removeToast } = useToast();
 
   const interfaceLanguage = uiLanguage;
-  const locale = interfaceLanguage === "es" ? "es-ES" : "en-US";
+  const locale = interfaceLanguage === "es" ? "es-ES" : interfaceLanguage === "pt-br" ? "pt-BR" : "en-US";
   const markdownLabels = useMemo(() => getMarkdownFeatureLabels(interfaceLanguage), [interfaceLanguage]);
 
   const [signingIn, setSigningIn] = useState(false);
@@ -840,7 +840,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           selected={selectedLinkedPosts}
           onChange={setSelectedLinkedPosts}
           labels={translationLinkerLabels}
-          uiLocale={interfaceLanguage === "es" ? "es-ES" : "en-US"}
+          uiLocale={
+            interfaceLanguage === "es" ? "es-ES" : interfaceLanguage === "pt-br" ? "pt-BR" : "en-US"
+          }
           disabled={isSubmitting}
         />
       </section>

@@ -21,7 +21,7 @@
 - 📧 Contact form with backend API integration
 - 🏷️ Intelligent tag system with tag pages
 - 🍪 Cookie consent banner (GDPR/CCPA)
-- 🌐 Bilingual i18n (English/Spanish) with language detection
+- 🌐 i18n (English/Spanish/Portuguese) with language detection
 - 🔐 SEO optimized (meta tags, Open Graph, Schema.org, hreflang)
 - 🧭 Language-specific RSS feeds and sitemaps
 - 📱 Fully responsive and accessible (WCAG AA)
@@ -149,12 +149,26 @@ Uploads only occur when you click Create/Update, preventing abandoned files.
 
 ### Admin Language Support
 
-Admin editor supports English and Spanish routes:
+Admin editor supports English, Spanish, and Portuguese routes:
 
 - `/en/admin/create-post`
 - `/es/admin/create-post`
+- `/pt-br/admin/create-post`
 - `/en/admin/edit-post/[slug]`
 - `/es/admin/edit-post/[slug]`
+- `/pt-br/admin/edit-post/[slug]`
+
+## Internationalization
+
+Translation files located in:
+- `src/i18n/en/` - English
+- `src/i18n/es/` - Spanish
+- `src/i18n/pt-br/` - Brazilian Portuguese
+
+Legal documents:
+- `legal-docs/en/` - English
+- `legal-docs/es/` - Spanish
+- `legal-docs/pt-br/` - Brazilian Portuguese
 
 ---
 

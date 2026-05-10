@@ -1,4 +1,4 @@
-import type { Handlers } from "$fresh/server.ts";
+import type { HandlerContext, Handlers } from "$fresh/server.ts";
 import { handler as postsSearchHandler } from "./posts/search.ts";
 
 // Lightweight compatibility route so clients calling `/api/search` (older paths
@@ -9,7 +9,10 @@ export const handler: Handlers = {
   OPTIONS(req) {
     // Delegate to posts search OPTIONS if available.
     if (typeof postsSearchHandler.OPTIONS === "function") {
-      return postsSearchHandler.OPTIONS(req as Request, undefined as any);
+      return postsSearchHandler.OPTIONS(
+        req as Request,
+        undefined as unknown as HandlerContext,
+      );
     }
     return new Response(null, { status: 204 });
   },
@@ -18,12 +21,17 @@ export const handler: Handlers = {
     // Simply delegate to the posts search handler so the logic and headers
     // remain identical.
     if (typeof postsSearchHandler.GET === "function") {
-      return await postsSearchHandler.GET(req as Request, undefined as any);
+      return await postsSearchHandler.GET(
+        req as Request,
+        undefined as unknown as HandlerContext,
+      );
     }
-    return new Response(JSON.stringify({ success: false, error: "Not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ success: false, error: "Not found" }),
+      {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   },
 };
-

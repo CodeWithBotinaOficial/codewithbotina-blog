@@ -4,7 +4,16 @@ import { corsHeaders } from "../../../middleware/cors.ts";
 import { AppError, ValidationError } from "../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../utils/responses.ts";
 
-const SUPPORTED_LANGUAGES = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
+const SUPPORTED_LANGUAGES = new Set([
+  "en",
+  "es",
+  "fr",
+  "de",
+  "pt",
+  "pt-br",
+  "ja",
+  "zh",
+]);
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 const MAX_QUERY_LENGTH = 80;

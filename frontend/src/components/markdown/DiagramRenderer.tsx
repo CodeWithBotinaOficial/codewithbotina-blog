@@ -431,7 +431,7 @@ function DiagramViewer({
         class={`md-diagram__viewport ${isDragging ? "is-dragging" : ""}`}
         ref={viewportRef}
         type="button"
-        aria-label="Diagram viewport"
+        aria-label={labels.viewDiagram}
         onPointerDown={onPointerDown as any}
         onPointerMove={onPointerMove as any}
         onPointerUp={(e) => endPointer((e as PointerEvent).pointerId)}
@@ -637,12 +637,12 @@ export default function DiagramRenderer({ code, diagramLang, labels, language, f
   }, [code, isMermaid, inView, labels.errorDetail, attempt]);
 
   const toggleMode = (next: ViewMode) => setMode(next);
-  const retryLabel = language === "es" ? "Reintentar" : "Retry";
+  const retryLabel = language === "es" ? "Reintentar" : language === "pt-br" ? "Tentar novamente" : "Retry";
 
   return (
     <div class="md-diagram__container" ref={rootRef}>
       <div class="md-diagram__topbar">
-        <div class="md-diagram__toggles" role="tablist" aria-label="Diagram view mode">
+        <div class="md-diagram__toggles" role="tablist" aria-label={labels.viewDiagram}>
           <button
             type="button"
             class={`md-diagram__toggle ${mode === "diagram" ? "is-active" : ""}`}

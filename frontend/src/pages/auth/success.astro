@@ -9,7 +9,7 @@ function extractLanguageFromNext(nextValue: string): SupportedLanguage | null {
   if (!nextValue) return null;
   try {
     const nextUrl = new URL(nextValue, "https://blog.codewithbotina.com");
-    const match = nextUrl.pathname.match(/^\/(en|es)(\/|$)/);
+    const match = nextUrl.pathname.match(/^\/(en|es|pt-br)(\/|$)/);
     if (match && isSupportedLanguage(match[1])) {
       return match[1] as SupportedLanguage;
     }
