@@ -6,6 +6,8 @@ interface Props {
     signIn: string;
     signOut: string;
     loading: string;
+    openProfile: string;
+    userAlt: string;
   };
   profileHref: string;
 }
@@ -34,11 +36,11 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
         href={profileHref}
         class="auth-avatar cursor-pointer transition-transform hover:scale-[1.03] hover:opacity-90"
         title={user.full_name || user.email}
-        aria-label="Open profile"
+        aria-label={labels.openProfile}
       >
         <img
           src={user.avatar_url || "/avatar-placeholder.png"}
-          alt={user.full_name || "User"}
+          alt={user.full_name || labels.userAlt}
           width={48}
           height={48}
           class="avatar-img"
@@ -48,7 +50,7 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
       <a
         href={profileHref}
         class="auth-name hover:underline"
-        aria-label="Open profile"
+        aria-label={labels.openProfile}
       >
         {user.full_name || user.email}
       </a>

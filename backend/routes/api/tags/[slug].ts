@@ -26,6 +26,7 @@ export const handler: Handlers = {
       "fr",
       "de",
       "pt",
+      "pt-br",
       "ja",
       "zh",
     ]);

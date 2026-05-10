@@ -150,7 +150,7 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
       <button
         type="button"
         class="rounded-full border border-[var(--color-border)] bg-white p-2 shadow-sm transition hover:bg-[var(--color-bg-subtle)]"
-        aria-label="Admin actions"
+        aria-label={mergedLabels.edit}
         onClick={() => setIsOpen((prev) => !prev)}
       >
         <MoreVertical className="h-5 w-5 text-[var(--color-text-secondary)]" />

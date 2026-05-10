@@ -12,7 +12,7 @@ interface Props {
 const { post, language } = Astro.props;
 const readTime = calculateReadTime(post.body);
 const plainExcerpt = stripMarkdown(post.excerpt || post.body);
-const locale = language === "es" ? "es-ES" : "en-US";
+const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
 const readTimeLabel = t(language, "time.readTime", "common", { minutes: readTime });
 ---
 

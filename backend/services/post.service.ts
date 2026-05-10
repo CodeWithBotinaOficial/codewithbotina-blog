@@ -37,6 +37,7 @@ export class PostService {
     "fr",
     "de",
     "pt",
+    "pt-br",
     "ja",
     "zh",
   ]);

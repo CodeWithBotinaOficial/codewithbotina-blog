@@ -4,7 +4,16 @@ import { supabase } from "../../../lib/supabase.ts";
 import { AppError, ValidationError } from "../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../utils/responses.ts";
 
-const SUPPORTED_LANGUAGES = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
+const SUPPORTED_LANGUAGES = new Set([
+  "en",
+  "es",
+  "fr",
+  "de",
+  "pt",
+  "pt-br",
+  "ja",
+  "zh",
+]);
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
 const MAX_OFFSET = 50_000;
@@ -72,7 +81,9 @@ function truncateText(text: string, max = 150): string {
   // Try to avoid cutting mid-word
   const truncated = text.slice(0, max);
   const lastSpace = truncated.lastIndexOf(" ");
-  if (lastSpace > Math.floor(max * 0.6)) return truncated.slice(0, lastSpace) + "...";
+  if (lastSpace > Math.floor(max * 0.6)) {
+    return truncated.slice(0, lastSpace) + "...";
+  }
   return truncated + "...";
 }
 
@@ -720,7 +731,14 @@ export const handler: Handlers = {
 
         const pagePosts = posts.slice(offset, offset + limit);
         const response = successResponse(
-          { posts: attachPreview(pagePosts), total, limit, offset, phase, relevance },
+          {
+            posts: attachPreview(pagePosts),
+            total,
+            limit,
+            offset,
+            phase,
+            relevance,
+          },
           "Posts fetched successfully",
           200,
         );
@@ -766,7 +784,15 @@ export const handler: Handlers = {
 
         const pagePosts = merged.slice(offset, offset + limit);
         const response = successResponse(
-          { posts: attachPreview(pagePosts), total, limit, offset, phase, relevance, sort },
+          {
+            posts: attachPreview(pagePosts),
+            total,
+            limit,
+            offset,
+            phase,
+            relevance,
+            sort,
+          },
           "Posts fetched successfully",
           200,
         );
@@ -787,7 +813,15 @@ export const handler: Handlers = {
 
       if (total === 0) {
         const response = successResponse(
-          { posts: attachPreview([]), total: 0, limit, offset, phase, relevance, sort },
+          {
+            posts: attachPreview([]),
+            total: 0,
+            limit,
+            offset,
+            phase,
+            relevance,
+            sort,
+          },
           "No results",
           200,
         );

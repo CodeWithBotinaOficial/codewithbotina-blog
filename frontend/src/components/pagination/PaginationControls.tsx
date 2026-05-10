@@ -95,7 +95,7 @@ export default function PaginationControls({
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <nav
           class="flex items-center justify-center sm:justify-start gap-2 flex-wrap"
-          aria-label="Pagination"
+          aria-label={labels.page}
         >
           <button
             type="button"

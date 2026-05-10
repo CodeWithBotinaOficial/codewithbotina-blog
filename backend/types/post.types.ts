@@ -9,7 +9,15 @@ export interface PostRecord {
   language: PostLanguage;
 }
 
-export type PostLanguage = "en" | "es" | "fr" | "de" | "pt" | "ja" | "zh";
+export type PostLanguage =
+  | "en"
+  | "es"
+  | "fr"
+  | "de"
+  | "pt"
+  | "pt-br"
+  | "ja"
+  | "zh";
 
 export interface PostCreate {
   titulo: string;

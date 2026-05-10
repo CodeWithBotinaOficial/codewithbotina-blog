@@ -25,20 +25,25 @@ import * as $api_posts_slug_translation_language_ from "./routes/api/posts/[slug
 import * as $api_posts_slug_translations_linkedPostId_ from "./routes/api/posts/[slug]/translations/[linkedPostId].ts";
 import * as $api_posts_slug_translations_index from "./routes/api/posts/[slug]/translations/index.ts";
 import * as $api_posts_slug_update from "./routes/api/posts/[slug]/update.ts";
+import * as $api_posts_bulk_update from "./routes/api/posts/bulk-update.ts";
 import * as $api_posts_create from "./routes/api/posts/create.ts";
 import * as $api_posts_index from "./routes/api/posts/index.ts";
+import * as $api_posts_search from "./routes/api/posts/search.ts";
 import * as $api_posts_test from "./routes/api/posts/test.ts";
 import * as $api_posts_upload_image from "./routes/api/posts/upload-image.ts";
 import * as $api_reactions_postId_dislike from "./routes/api/reactions/[postId]/dislike.ts";
 import * as $api_reactions_postId_index from "./routes/api/reactions/[postId]/index.ts";
 import * as $api_reactions_postId_like from "./routes/api/reactions/[postId]/like.ts";
 import * as $api_reactions_user_postId_ from "./routes/api/reactions/user/[postId].ts";
+import * as $api_search from "./routes/api/search.ts";
 import * as $api_storage_images from "./routes/api/storage/images.ts";
 import * as $api_tags_slug_ from "./routes/api/tags/[slug].ts";
 import * as $api_tags_autocomplete from "./routes/api/tags/autocomplete.ts";
 import * as $api_tags_create from "./routes/api/tags/create.ts";
 import * as $api_tags_index from "./routes/api/tags/index.ts";
 import * as $api_tags_suggest from "./routes/api/tags/suggest.ts";
+import * as $api_users_delete_account from "./routes/api/users/delete-account.ts";
+import * as $api_users_profile from "./routes/api/users/profile.ts";
 import * as $index from "./routes/index.tsx";
 import * as $StatusIndicator from "./islands/StatusIndicator.tsx";
 import * as $TryItOut from "./islands/TryItOut.tsx";
@@ -72,20 +77,25 @@ const manifest = {
     "./routes/api/posts/[slug]/translations/index.ts":
       $api_posts_slug_translations_index,
     "./routes/api/posts/[slug]/update.ts": $api_posts_slug_update,
+    "./routes/api/posts/bulk-update.ts": $api_posts_bulk_update,
     "./routes/api/posts/create.ts": $api_posts_create,
     "./routes/api/posts/index.ts": $api_posts_index,
+    "./routes/api/posts/search.ts": $api_posts_search,
     "./routes/api/posts/test.ts": $api_posts_test,
     "./routes/api/posts/upload-image.ts": $api_posts_upload_image,
     "./routes/api/reactions/[postId]/dislike.ts": $api_reactions_postId_dislike,
     "./routes/api/reactions/[postId]/index.ts": $api_reactions_postId_index,
     "./routes/api/reactions/[postId]/like.ts": $api_reactions_postId_like,
     "./routes/api/reactions/user/[postId].ts": $api_reactions_user_postId_,
+    "./routes/api/search.ts": $api_search,
     "./routes/api/storage/images.ts": $api_storage_images,
     "./routes/api/tags/[slug].ts": $api_tags_slug_,
     "./routes/api/tags/autocomplete.ts": $api_tags_autocomplete,
     "./routes/api/tags/create.ts": $api_tags_create,
     "./routes/api/tags/index.ts": $api_tags_index,
     "./routes/api/tags/suggest.ts": $api_tags_suggest,
+    "./routes/api/users/delete-account.ts": $api_users_delete_account,
+    "./routes/api/users/profile.ts": $api_users_profile,
     "./routes/index.tsx": $index,
   },
   islands: {

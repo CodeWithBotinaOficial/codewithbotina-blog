@@ -75,7 +75,7 @@ try {
 const currentPost = post as Post;
 const content = renderMarkdownHtml(currentPost.body);
 const readTime = calculateReadTime(currentPost.body);
-const locale = language === "es" ? "es-ES" : "en-US";
+const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
 const siteUrl = getSiteUrl().replace(/\/$/, "");
 const canonicalUrl = `${siteUrl}/${language}/posts/${currentPost.slug}`;
 const imageUrl = currentPost.imagen_url || `${siteUrl}/og-image.png`;

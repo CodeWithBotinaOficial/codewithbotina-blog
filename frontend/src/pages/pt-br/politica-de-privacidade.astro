@@ -1,0 +1,49 @@
+---
+import BaseLayout from "../../components/BaseLayout.astro";
+import fs from "node:fs";
+import path from "node:path";
+import { getSiteUrl } from "../../lib/env";
+import { getLocalizedPath, SUPPORTED_LANGUAGES } from "../../lib/i18n";
+import { renderMarkdownHtml } from "../../lib/markdown";
+import MarkdownEnhancer from "../../components/markdown/MarkdownEnhancer";
+import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
+
+const language = "pt-br";
+const policyPath = path.join(process.cwd(), "..", "legal-docs", "pt-br", "privacy-policy.md");
+const markdown = fs.readFileSync(policyPath, "utf-8");
+const html = renderMarkdownHtml(markdown);
+const siteUrl = getSiteUrl().replace(/\/$/, "");
+const canonicalUrl = `${siteUrl}${Astro.url.pathname}`;
+const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
+  lang,
+  href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
+}));
+const markdownLabels = getMarkdownFeatureLabels(language);
+---
+
+<BaseLayout
+  title="Politica de Privacidade"
+  description="Politica de privacidade do CodeWithBotina."
+  canonical={canonicalUrl}
+  currentLanguage={language}
+  currentPath={Astro.url.pathname}
+>
+  <Fragment slot="head">
+    {alternateLinks.map((link) => (
+      <link rel="alternate" hreflang={link.lang} href={link.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/privacy-policy`} />
+  </Fragment>
+  <section class="container-responsive py-12">
+    <article id="politica-de-privacidade-markdown" class="prose prose-lg max-w-none">
+      <Fragment set:html={html} />
+      <MarkdownEnhancer
+        containerId="politica-de-privacidade-markdown"
+        language={language}
+        labels={markdownLabels}
+        client:load
+      />
+    </article>
+  </section>
+</BaseLayout>
+

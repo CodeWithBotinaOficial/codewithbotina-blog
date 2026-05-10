@@ -11,6 +11,11 @@ legal-docs/
 │   ├── terms-of-service.md
 │   ├── cookie-policy.md
 │   └── data-deletion.md
+├── pt-br/
+│   ├── privacy-policy.md
+│   ├── terms-of-service.md
+│   ├── cookie-policy.md
+│   └── data-deletion.md
 └── es/
     ├── politica-de-privacidad.md
     ├── terminos-de-servicio.md
@@ -22,3 +27,10 @@ legal-docs/
 
 - The frontend loads language-specific markdown based on the current locale.
 - When a translation is missing, the system falls back to English.
+
+## Brazilian Portuguese (pt-br)
+
+- Privacy Policy: privacy-policy.md
+- Terms of Service: terms-of-service.md
+- Cookie Policy: cookie-policy.md
+- Data Deletion: data-deletion.md

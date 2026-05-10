@@ -23,6 +23,12 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
 
   if (!isOpen) return null;
   if (typeof document === "undefined") return null;
+  const closeLabel = (() => {
+    const lang = (document.documentElement.lang || "en").toLowerCase();
+    if (lang === "es") return "Cerrar";
+    if (lang === "pt-br") return "Fechar";
+    return "Close";
+  })();
 
   // Render into document.body to avoid being clipped by ancestors (e.g. a header with backdrop-filter).
   return createPortal((
@@ -44,7 +50,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
               type="button"
               onClick={onClose}
               class="rounded-full p-2 text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-subtle)]"
-              aria-label="Close"
+              aria-label={closeLabel}
             >
               <X className="h-5 w-5" />
             </button>

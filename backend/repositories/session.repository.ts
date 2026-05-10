@@ -87,11 +87,13 @@ export class SessionRepository {
   }
 
   async deleteSessionsByUserId(userId: string) {
-    const { error } = await this.db.from("auth_sessions").delete().eq("user_id", userId);
+    const { error } = await this.db.from("auth_sessions").delete().eq(
+      "user_id",
+      userId,
+    );
     if (error) {
       console.error("Supabase error deleting sessions by user:", error);
       throw new DatabaseError("Failed to delete sessions for user");
     }
   }
 }
-

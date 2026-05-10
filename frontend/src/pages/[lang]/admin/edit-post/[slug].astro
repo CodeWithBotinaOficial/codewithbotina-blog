@@ -73,7 +73,7 @@ if (postError || !post) {
   return Astro.redirect(`/${language}/404`);
 }
 
-const locale = language === "es" ? "es-ES" : "en-US";
+const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
 const createdAt = post.fecha ? formatDate(post.fecha, locale) : t(language, "editor.unknownDate", "admin");
 const updatedAt = post.updated_at ? formatDate(post.updated_at, locale) : null;
 const tags = Array.isArray(post?.tags)

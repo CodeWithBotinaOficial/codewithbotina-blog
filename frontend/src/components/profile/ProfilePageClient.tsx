@@ -74,7 +74,7 @@ export default function ProfilePageClient({ language, labels }: Props) {
   const [payload, setPayload] = useState<ProfilePayload | null>(null);
   const [showAllLikes, setShowAllLikes] = useState(false);
 
-  const locale = language === "es" ? "es-ES" : "en-US";
+  const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
 
   useEffect(() => {
     if (loading) return;

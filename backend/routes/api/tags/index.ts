@@ -4,7 +4,16 @@ import { supabase } from "../../../lib/supabase.ts";
 import { ValidationError } from "../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../utils/responses.ts";
 
-const SUPPORTED_LANGUAGES = new Set(["en", "es", "fr", "de", "pt", "ja", "zh"]);
+const SUPPORTED_LANGUAGES = new Set([
+  "en",
+  "es",
+  "fr",
+  "de",
+  "pt",
+  "pt-br",
+  "ja",
+  "zh",
+]);
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const MAX_OFFSET = 50_000;

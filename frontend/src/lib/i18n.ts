@@ -9,24 +9,30 @@ import esPost from "../i18n/es/post.json";
 import esAdmin from "../i18n/es/admin.json";
 import esAuth from "../i18n/es/auth.json";
 import esLegal from "../i18n/es/legal.json";
+import ptBrCommon from "../i18n/pt-br/common.json";
+import ptBrPost from "../i18n/pt-br/post.json";
+import ptBrAdmin from "../i18n/pt-br/admin.json";
+import ptBrAuth from "../i18n/pt-br/auth.json";
+import ptBrLegal from "../i18n/pt-br/legal.json";
 
-export const SUPPORTED_LANGUAGES = ["en", "es"] as const;
+export const SUPPORTED_LANGUAGES = ["en", "es", "pt-br"] as const;
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
-export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
+export const DEFAULT_LANGUAGE: SupportedLanguage = "es";
 
 export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
   en: "English",
   es: "Español",
+  "pt-br": "Portugues (BR)",
 };
 
 export const ROUTE_SEGMENTS = {
-  about: { en: "about", es: "acerca-de" },
-  contact: { en: "contact", es: "contacto" },
-  privacyPolicy: { en: "privacy-policy", es: "politica-de-privacidad" },
-  termsOfService: { en: "terms-of-service", es: "terminos-de-servicio" },
-  cookiePolicy: { en: "cookie-policy", es: "politica-de-cookies" },
-  dataDeletion: { en: "data-deletion", es: "eliminacion-de-datos" },
+  about: { en: "about", es: "acerca-de", "pt-br": "sobre" },
+  contact: { en: "contact", es: "contacto", "pt-br": "contato" },
+  privacyPolicy: { en: "privacy-policy", es: "politica-de-privacidad", "pt-br": "politica-de-privacidade" },
+  termsOfService: { en: "terms-of-service", es: "terminos-de-servicio", "pt-br": "termos-de-servico" },
+  cookiePolicy: { en: "cookie-policy", es: "politica-de-cookies", "pt-br": "politica-de-cookies" },
+  dataDeletion: { en: "data-deletion", es: "eliminacion-de-datos", "pt-br": "exclusao-de-dados" },
 } as const;
 
 export type RouteKey = keyof typeof ROUTE_SEGMENTS;
@@ -45,6 +51,13 @@ const TRANSLATIONS = {
     admin: esAdmin,
     auth: esAuth,
     legal: esLegal,
+  },
+  "pt-br": {
+    common: ptBrCommon,
+    post: ptBrPost,
+    admin: ptBrAdmin,
+    auth: ptBrAuth,
+    legal: ptBrLegal,
   },
 } as const;
 
@@ -98,16 +111,28 @@ function parseBrowserLanguage(header: string): SupportedLanguage | null {
     .map((lang) => {
       const [code, qStr] = lang.trim().split(";");
       const q = qStr ? parseFloat(qStr.split("=")[1]) : 1;
-      return { code: code.split("-")[0].toLowerCase(), q };
+      return { code: code.toLowerCase(), q };
     })
     .sort((a, b) => b.q - a.q);
 
   for (const { code } of languages) {
-    if (isSupportedLanguage(code)) {
-      return code;
+    const normalized = normalizeBrowserLang(code);
+    if (normalized) return normalized;
+    const primary = code.split("-")[0].toLowerCase();
+    const normalizedPrimary = normalizeBrowserLang(primary);
+    if (normalizedPrimary) return normalizedPrimary;
+    if (isSupportedLanguage(primary)) {
+      return primary;
     }
   }
 
+  return null;
+}
+
+function normalizeBrowserLang(code: string): SupportedLanguage | null {
+  const lower = code.toLowerCase();
+  if (isSupportedLanguage(lower)) return lower;
+  if (lower === "pt" || lower === "pt-br" || lower.startsWith("pt-br")) return "pt-br";
   return null;
 }
 
@@ -126,7 +151,7 @@ export function setLanguagePreference(cookies: AstroCookies, language: Supported
 }
 
 export function getLocalizedPath(path: string, language: SupportedLanguage): string {
-  const cleanPath = path.replace(/^\/(en|es)(\/|$)/, "/");
+  const cleanPath = path.replace(/^\/(en|es|pt-br)(\/|$)/, "/");
   const normalized = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
   const parts = normalized.split("/").filter(Boolean);
   const [first, ...rest] = parts;
@@ -141,7 +166,7 @@ export function getLocalizedPath(path: string, language: SupportedLanguage): str
 }
 
 export function getLanguageFromPath(pathname: string): SupportedLanguage {
-  const match = pathname.match(/^\/(en|es)(\/|$)/);
+  const match = pathname.match(/^\/(en|es|pt-br)(\/|$)/);
   if (match && isSupportedLanguage(match[1])) {
     return match[1];
   }

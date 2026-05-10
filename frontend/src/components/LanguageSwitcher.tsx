@@ -1,7 +1,7 @@
 import { Globe } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import { getApiUrl } from "../lib/env";
-import { getLocalizedPath, LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../lib/i18n";
+import { getLocalizedPath, LANGUAGE_NAMES, SUPPORTED_LANGUAGES, t } from "../lib/i18n";
 import type { SupportedLanguage } from "../lib/i18n";
 
 interface Props {
@@ -63,7 +63,7 @@ export default function LanguageSwitcher({ currentLanguage, currentPath, current
           setIsOpen((prev) => !prev);
         }}
         class="flex items-center gap-2 rounded-lg px-3 py-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)]"
-        aria-label="Switch language"
+        aria-label={t(currentLanguage, "language.current")}
       >
         <Globe className="h-5 w-5" />
         <span class="hidden sm:inline">{LANGUAGE_NAMES[currentLanguage]}</span>
