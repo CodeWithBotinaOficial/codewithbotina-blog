@@ -8,6 +8,7 @@ CodeWithBotina is bilingual (English and Spanish) using language-prefixed URLs a
 
 - English (`en`) – default
 - Spanish (`es`)
+- Brazilian Portuguese (`pt-br`)
 
 ## URL Structure
 
@@ -16,6 +17,8 @@ CodeWithBotina is bilingual (English and Spanish) using language-prefixed URLs a
 /en/posts/my-post   → English post
 /es/                → Spanish homepage
 /es/posts/mi-post   → Spanish post
+/pt-br/             → Portuguese homepage
+/pt-br/posts/meu-post → Portuguese post
 ```
 
 Static pages are localized by route segment:
@@ -59,7 +62,13 @@ frontend/src/i18n/
 │   ├── admin.json
 │   ├── auth.json
 │   └── legal.json
-└── es/
+├── es/
+│   ├── common.json
+│   ├── post.json
+│   ├── admin.json
+│   ├── auth.json
+│   └── legal.json
+└── pt-br/
     ├── common.json
     ├── post.json
     ├── admin.json

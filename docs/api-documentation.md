@@ -19,7 +19,7 @@ Create a new post (admin only).
 - `language` (string, required)
 
 **Language requirements:**
-- Only supported codes are allowed: `es`, `en`, `fr`, `de`, `pt`, `ja`, `zh`.
+- Only supported codes are allowed: `es`, `en`, `pt-br`, `fr`, `de`, `pt`, `ja`, `zh`.
 - Invalid values return a validation error.
 
 **Response:**
@@ -50,6 +50,7 @@ List posts with optional language filtering.
 **Language filtering (in words):**
 - To list English posts, filter results where the post language equals `en`.
 - To list Spanish posts, filter results where the post language equals `es`.
+- To list Portuguese posts, filter results where the post language equals `pt-br`.
 
 ### GET `/api/posts/:slug`
 

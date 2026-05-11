@@ -39,6 +39,60 @@ Deno.test("PostTranslationService.linkTranslations rejects duplicate languages",
   restore();
 });
 
+Deno.test("PostTranslationService.linkTranslations accepts pt-br", async () => {
+  const service = new PostTranslationService();
+  const postId = "839af606-1fe1-4ab2-aee0-f4416baeee79";
+  const linkedId = "11111111-1111-4111-8111-111111111111";
+
+  const supabaseAny = supabase as unknown as {
+    from: (table: string) => any;
+  };
+  const _fromStub = stub(supabaseAny, "from", (table: string) => {
+    if (table === "posts") {
+      return {
+        select: () => ({
+          in: () =>
+            Promise.resolve({
+              data: [
+                { id: postId, language: "en" },
+                { id: linkedId, language: "pt-br" },
+              ],
+              error: null,
+            }),
+        }),
+      };
+    }
+    if (table === "post_translations") {
+      return {
+        select: () => ({
+          in: () =>
+            Promise.resolve({
+              data: [],
+              error: null,
+            }),
+          eq: () => ({
+            maybeSingle: () =>
+              Promise.resolve({ data: { translation_group_id: "839af606-1fe1-4ab2-aee0-f4416baeee70" }, error: null }),
+          }),
+        }),
+        upsert: () => Promise.resolve({ error: null }),
+      };
+    }
+    return {};
+  });
+
+  const _getTranslationsStub = stub(
+    service,
+    "getTranslations",
+    () => Promise.resolve({ success: true, data: [] }),
+  );
+
+  const result = await service.linkTranslations(postId, [linkedId]);
+  assertEquals(result.success, true);
+
+  restore();
+});
+
 Deno.test("PostTranslationService.getTranslations rejects invalid postId", async () => {
   const service = new PostTranslationService();
   const result = await service.getTranslations("not-a-uuid");

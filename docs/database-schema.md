@@ -19,7 +19,7 @@ This document summarizes the core database schema for the blog, with emphasis on
 **`language` column details:**
 - Type: `VARCHAR(5)`
 - Default: `'es'`
-- Constraint: `CHECK (language IN ('es', 'en', 'fr', 'de', 'pt', 'ja', 'zh'))`
+- Constraint: `CHECK (language IN ('es', 'en', 'fr', 'de', 'pt', 'pt-br', 'ja', 'zh'))`
 - Purpose: Ensures posts are stored and queried by language for i18n.
 
 **Indexes:**
