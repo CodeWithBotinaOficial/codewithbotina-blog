@@ -17,6 +17,14 @@ Deno.test("generateSlug normalizes accents and punctuation", () => {
   assertEquals(slug, "hola-mundo");
 });
 
+Deno.test("generateSlug normalizes Portuguese characters", () => {
+  const slug = service.generateSlug("Bem-vindos ao CodeWithBotina 🌟");
+  assertEquals(slug, "bem-vindos-ao-codewithbotina");
+
+  const slug2 = service.generateSlug("Coração de Programador");
+  assertEquals(slug2, "coracao-de-programador");
+});
+
 Deno.test("generateSlug collapses whitespace", () => {
   const slug = service.generateSlug("  Hello    World  ");
   assertEquals(slug, "hello-world");
@@ -30,6 +38,12 @@ Deno.test("sanitizeMarkdown strips raw HTML", () => {
 Deno.test("sanitizeMarkdown keeps markdown text intact", () => {
   const sanitized = service.sanitizeMarkdown("**Bold** text");
   assertStringIncludes(sanitized, "**Bold**");
+});
+
+Deno.test("supportedLanguages includes pt-br", () => {
+  // @ts-ignore: testing private property
+  const supported = service.supportedLanguages;
+  assertEquals(supported.has("pt-br"), true);
 });
 
 Deno.test("createPostsBatch rejects duplicate languages", async () => {
