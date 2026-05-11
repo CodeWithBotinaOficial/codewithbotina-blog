@@ -1,3 +1,5 @@
+export type Language = "es" | "en" | "pt-br";
+
 export interface Post {
   id: string;
   titulo: string;
@@ -7,7 +9,13 @@ export interface Post {
   fecha: string;
   tags?: string[];
   excerpt?: string;
-  language?: string;
+  language?: Language;
+}
+
+export interface PostTranslations {
+  es?: Post;
+  en?: Post;
+  "pt-br"?: Post;
 }
 
 export interface ContactFormData {

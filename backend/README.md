@@ -363,7 +363,7 @@ exist in the `admin_users` table.
 
 **Payload notes:**
 
-- `language` is required for bilingual posts (`en`/`es`).
+- `language` is required for multi-language posts (`en`/`es`/`pt-br`).
 - `tag_ids` accepts an array of tag UUIDs and drives the many-to-many
   `post_tags` junction table.
 

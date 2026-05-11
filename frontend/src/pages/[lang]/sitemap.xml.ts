@@ -15,14 +15,16 @@ function toIsoDate(value: string | null | undefined): string | null {
 function buildAlternateLinks(siteUrl: string, path: string): string {
   return SUPPORTED_LANGUAGES.map((lang) => {
     const href = `${siteUrl}/${lang}${path}`;
-    return `<xhtml:link rel="alternate" hreflang="${lang}" href="${href}" />`;
+    const hreflang = lang === "pt-br" ? "pt-BR" : lang;
+    return `<xhtml:link rel="alternate" hreflang="${hreflang}" href="${href}" />`;
   }).join("");
 }
 
 function buildRouteAlternates(siteUrl: string, routeKey: Parameters<typeof getRoutePath>[1]): string {
   return SUPPORTED_LANGUAGES.map((lang) => {
     const href = `${siteUrl}${getRoutePath(lang, routeKey)}`;
-    return `<xhtml:link rel="alternate" hreflang="${lang}" href="${href}" />`;
+    const hreflang = lang === "pt-br" ? "pt-BR" : lang;
+    return `<xhtml:link rel="alternate" hreflang="${hreflang}" href="${href}" />`;
   }).join("");
 }
 
@@ -89,7 +91,7 @@ export const GET: APIRoute = async ({ params }) => {
     {
       loc: `/${language}/`,
       alternates: SUPPORTED_LANGUAGES.map((lang) =>
-        `<xhtml:link rel="alternate" hreflang="${lang}" href="${siteUrl}/${lang}/" />`).join(""),
+        `<xhtml:link rel="alternate" hreflang="${lang === "pt-br" ? "pt-BR" : lang}" href="${siteUrl}/${lang}/" />`).join(""),
       changefreq: "daily",
       priority: "1.0",
     },
@@ -155,7 +157,8 @@ export const GET: APIRoute = async ({ params }) => {
       const alternateLinks = versions
         .filter((version) => SUPPORTED_LANGUAGES.includes(version.language as SupportedLanguage))
         .map((version) => {
-          return `<xhtml:link rel="alternate" hreflang="${version.language}" href="${siteUrl}/${version.language}/posts/${slug}" />`;
+          const hreflang = version.language === "pt-br" ? "pt-BR" : version.language;
+          return `<xhtml:link rel="alternate" hreflang="${hreflang}" href="${siteUrl}/${version.language}/posts/${slug}" />`;
         })
         .join("");
 
