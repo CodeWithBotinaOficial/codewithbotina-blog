@@ -83,6 +83,11 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+const hreflangByLanguage: Record<SupportedLanguage, string> = {
+  en: "en",
+  es: "es",
+  "pt-br": "pt-BR",
+};
 type TagInfo = { id?: string; name: string; slug: string };
 
 function slugifyTag(value: string): string {
@@ -267,7 +272,7 @@ const markdownLabels = getMarkdownFeatureLabels(language);
       <meta property="article:tag" content={tag.name} />
     ))}
     {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={link.lang} href={link.href} />
+      <link rel="alternate" hreflang={hreflangByLanguage[link.lang]} href={link.href} />
     ))}
     <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/posts/${currentPost.slug}`} />
     <script type="application/ld+json">

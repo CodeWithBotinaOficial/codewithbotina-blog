@@ -12,7 +12,7 @@ import { errorResponse } from "../../../utils/responses.ts";
 import { getEnvironmentConfig } from "../../../lib/env.ts";
 import { readPkceToken } from "../../../lib/pkce.token.ts";
 
-const SUPPORTED_LANGUAGES = new Set(["en", "es"]);
+const SUPPORTED_LANGUAGES = new Set(["en", "es", "pt-br"]);
 
 function isValidNext(next: string, frontendUrl: string): boolean {
   if (!next) return false;
@@ -32,7 +32,7 @@ function extractLanguageFromNext(
   if (!next) return null;
   try {
     const nextUrl = new URL(next, frontendUrl);
-    const match = nextUrl.pathname.match(/^\/(en|es)(\/|$)/);
+    const match = nextUrl.pathname.match(/^\/(en|es|pt-br)(\/|$)/);
     if (match && SUPPORTED_LANGUAGES.has(match[1])) {
       return match[1];
     }

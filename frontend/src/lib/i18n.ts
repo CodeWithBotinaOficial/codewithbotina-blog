@@ -23,7 +23,7 @@ export const DEFAULT_LANGUAGE: SupportedLanguage = "es";
 export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
   en: "English",
   es: "Español",
-  "pt-br": "Portugues (BR)",
+  "pt-br": "Português (BR)",
 };
 
 export const ROUTE_SEGMENTS = {

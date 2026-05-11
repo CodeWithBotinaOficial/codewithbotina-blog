@@ -10,7 +10,7 @@ import { createPkceToken } from "../../../lib/pkce.token.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ||
   "https://placeholder.supabase.co";
-const SUPPORTED_LANGUAGES = new Set(["en", "es"]);
+const SUPPORTED_LANGUAGES = new Set(["en", "es", "pt-br"]);
 
 async function generatePkcePair() {
   const verifierBytes = crypto.getRandomValues(new Uint8Array(32));
@@ -50,7 +50,7 @@ function extractLanguageFromNext(
   if (!next) return null;
   try {
     const nextUrl = new URL(next, frontendUrl);
-    const match = nextUrl.pathname.match(/^\/(en|es)(\/|$)/);
+    const match = nextUrl.pathname.match(/^\/(en|es|pt-br)(\/|$)/);
     if (match && SUPPORTED_LANGUAGES.has(match[1])) {
       return match[1];
     }
