@@ -7,6 +7,7 @@ export interface PostRecord {
   fecha: string;
   updated_at?: string | null;
   language: PostLanguage;
+  is_pinned?: boolean;
 }
 
 export type PostLanguage =
@@ -26,6 +27,7 @@ export interface PostCreate {
   imagen_url?: string | null;
   tag_ids?: string[];
   language?: PostLanguage;
+  is_pinned?: boolean;
 }
 
 export interface PostUpdate {
@@ -35,6 +37,7 @@ export interface PostUpdate {
   imagen_url?: string | null;
   tag_ids?: string[];
   language?: PostLanguage;
+  is_pinned?: boolean;
 }
 
 export interface PostCreateBatchRequest {

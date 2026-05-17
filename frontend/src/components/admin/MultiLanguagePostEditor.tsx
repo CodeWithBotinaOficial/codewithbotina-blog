@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { Lock, ShieldX, X } from "lucide-preact";
+import { Lock, ShieldX, Star, X } from "lucide-preact";
 import TranslationLinker, { type TranslationPost } from "./TranslationLinker";
 import { getApiUrl } from "../../lib/env";
 import { getAdminRoute } from "../../lib/admin-endpoints";
@@ -37,6 +37,7 @@ export interface MultiLangEditorPost {
   body: string;
   imagen_url?: string | null;
   tags?: TagOption[];
+  is_pinned?: boolean;
 }
 
 interface Props {
@@ -117,6 +118,15 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const [useSharedTags, setUseSharedTags] = useState(false);
   const [sharedTags, setSharedTags] = useState<TagOption[]>([]);
 
+  const [pinMode, setPinMode] = useState<"all" | "selected">(() =>
+    mode === "edit" ? "selected" : "all"
+  );
+  const [pinAll, setPinAll] = useState<boolean>(Boolean((initialData as any)?.is_pinned ?? false));
+  const [pinnedByLanguage, setPinnedByLanguage] = useState<Record<LanguageCode, boolean>>(() => {
+    const lang = initialPrimary || "en";
+    return { [lang]: Boolean((initialData as any)?.is_pinned ?? false) };
+  });
+
   const [imageAppliesTo, setImageAppliesTo] = useState<"all" | "custom" | LanguageCode>("all");
   const [sharedImage, setSharedImage] = useState<ImageValue>(defaultImageValue(initialData?.imagen_url ?? null));
   const [sharedImageTouched, setSharedImageTouched] = useState(false);
@@ -132,6 +142,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         body: initialData?.body ?? "",
         imagen_url: initialData?.imagen_url ?? null,
         tags: initialData?.tags ?? [],
+        is_pinned: (initialData as any)?.is_pinned ?? false,
       },
     };
   });
@@ -182,12 +193,16 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       if (prev[lang]) return prev;
       return {
         ...prev,
-        [lang]: { language: lang, titulo: "", slug: "", body: "", imagen_url: null, tags: [] },
+        [lang]: { language: lang, titulo: "", slug: "", body: "", imagen_url: null, tags: [], is_pinned: false },
       };
     });
     setImageByLanguage((prev) => {
       if (prev[lang]) return prev;
       return { ...prev, [lang]: defaultImageValue(null) };
+    });
+    setPinnedByLanguage((prev) => {
+      if (typeof prev[lang] === "boolean") return prev;
+      return { ...prev, [lang]: false };
     });
   };
 
@@ -301,8 +316,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               body: String(post.body ?? ""),
               imagen_url: post.imagen_url ?? null,
               tags: Array.isArray(post.tags) ? post.tags : [],
+              is_pinned: Boolean(post.is_pinned),
             },
           }));
+          setPinnedByLanguage((prev) => ({ ...prev, [row.language]: Boolean(post.is_pinned) }));
           setImageByLanguage((prev) => ({
             ...prev,
             [row.language]: defaultImageValue(post.imagen_url ?? null),
@@ -429,6 +446,11 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const getTagIdsForLanguage = (lang: LanguageCode): string[] => {
     if (useSharedTags) return sharedTags.map((t) => t.id);
     return (sections[lang]?.tags ?? []).map((t) => t.id);
+  };
+
+  const getPinnedForLanguage = (lang: LanguageCode): boolean => {
+    if (pinMode === "all") return Boolean(pinAll);
+    return Boolean(pinnedByLanguage[lang]);
   };
 
   const getImageValueForLanguage = (lang: LanguageCode): ImageValue => {
@@ -606,6 +628,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               imagen_url: finalImageUrlByLanguage[lang],
               language: lang,
               tag_ids: getTagIdsForLanguage(lang),
+              is_pinned: getPinnedForLanguage(lang),
             },
           };
         })
@@ -624,6 +647,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               imagen_url: finalImageUrlByLanguage[lang],
               language: lang,
               tag_ids: getTagIdsForLanguage(lang),
+              is_pinned: getPinnedForLanguage(lang),
             },
           };
         })
@@ -747,6 +771,74 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
   return (
     <form onSubmit={handleSubmit} class="space-y-8">
+      <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <h2 class="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">
+              <Star className="h-4 w-4 text-[var(--color-warning)]" />
+              {t(interfaceLanguage, "pinnedPostSettings", "admin")}
+            </h2>
+          </div>
+        </div>
+
+        <div class="grid gap-3">
+          <label class="flex items-start gap-3 text-sm">
+            <input
+              type="radio"
+              name="pin-mode"
+              value="all"
+              checked={pinMode === "all"}
+              onChange={() => setPinMode("all")}
+              disabled={isSubmitting}
+            />
+            <span>{t(interfaceLanguage, "pinAllTranslations", "admin")}</span>
+          </label>
+          <label class="flex items-start gap-3 text-sm">
+            <input
+              type="radio"
+              name="pin-mode"
+              value="selected"
+              checked={pinMode === "selected"}
+              onChange={() => setPinMode("selected")}
+              disabled={isSubmitting}
+            />
+            <span>{t(interfaceLanguage, "pinSelectedPosts", "admin")}</span>
+          </label>
+        </div>
+
+        {pinMode === "all" ? (
+          <label class="flex items-center gap-3 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={pinAll}
+              disabled={isSubmitting}
+              onChange={(e) => setPinAll((e.currentTarget as HTMLInputElement).checked)}
+            />
+            <span>{t(interfaceLanguage, "pinAllCheckbox", "admin")}</span>
+          </label>
+        ) : (
+          <div class="grid gap-2 sm:grid-cols-3">
+            {activeLanguages.map((lang) => (
+              <label key={lang} class="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm">
+                <span class="font-semibold">{getLanguageName(lang)}</span>
+                <span class="flex items-center gap-2">
+                  <span class="text-xs text-[var(--color-text-tertiary)]">{t(interfaceLanguage, "pinThisPost", "admin")}</span>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(pinnedByLanguage[lang])}
+                    disabled={isSubmitting}
+                    onChange={(e) => {
+                      const next = (e.currentTarget as HTMLInputElement).checked;
+                      setPinnedByLanguage((prev) => ({ ...prev, [lang]: next }));
+                    }}
+                  />
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </section>
+
       <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0">

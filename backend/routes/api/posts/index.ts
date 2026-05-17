@@ -53,7 +53,10 @@ export const handler: Handlers = {
 
       let query = supabase
         .from("posts")
-        .select("id, titulo, slug, body, imagen_url, fecha, language")
+        .select(
+          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+        )
+        .order("is_pinned", { ascending: false })
         .order("fecha", { ascending: false });
 
       if (language) {

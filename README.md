@@ -22,6 +22,7 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ **Tag persistence in edit flows (no accidental unlinking)**
 - ✅ **Post translation linking (equivalent posts across languages)**
 - ✅ **Simultaneous Post Translation: create/edit multiple language versions in one admin interface**
+- ✅ **Pinned/featured posts (pin individual posts or entire translation groups)**
 - ✅ **Smart language switcher (redirects to translated post when available, translation-aware 404 when missing)**
 - ✅ Hybrid rendering (dynamic content without rebuilds)
 - ✅ SEO optimized (JSON-LD, Open Graph, keywords, RSS, sitemaps)

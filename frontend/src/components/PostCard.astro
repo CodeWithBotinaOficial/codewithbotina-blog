@@ -1,8 +1,9 @@
 ---
-import { ArrowRight, Calendar, Clock } from "lucide-astro";
+import { ArrowRight, Calendar, Clock, Star } from "lucide-astro";
 import { formatDate, calculateReadTime, truncateText, stripMarkdown } from "../lib/utils";
 import type { Post } from "../types/post";
 import { t, type SupportedLanguage } from "../lib/i18n";
+import PinnedBadge from "./PinnedBadge";
 
 interface Props {
   post: Post;
@@ -14,9 +15,18 @@ const readTime = calculateReadTime(post.body);
 const plainExcerpt = stripMarkdown(post.excerpt || post.body);
 const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
 const readTimeLabel = t(language, "time.readTime", "common", { minutes: readTime });
+const isPinned = Boolean(post.is_pinned);
 ---
 
 <article class="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex flex-col h-full group relative z-1 isolate">
+  <div class="absolute right-3 top-3 z-10">
+    <Star
+      size={18}
+      class={isPinned ? "post-card-pin-icon pinned" : "post-card-pin-icon"}
+      fill={isPinned ? "currentColor" : "none"}
+    />
+  </div>
+
   <a href={`/${language}/posts/${post.slug}`} class="flex flex-col h-full text-inherit no-underline">
     {post.imagen_url && (
       <div class="aspect-video overflow-hidden bg-[var(--color-bg-subtle)]">
@@ -30,6 +40,12 @@ const readTimeLabel = t(language, "time.readTime", "common", { minutes: readTime
     )}
 
     <div class="p-6 flex flex-col flex-1">
+      {isPinned ? (
+        <div class="mb-3">
+          <PinnedBadge language={language} />
+        </div>
+      ) : null}
+
       <div class="flex items-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-3">
         <span class="flex items-center gap-1">
           <Calendar size={14} />

@@ -1,6 +1,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { supabase } from "../../../../lib/supabase.ts";
 import { corsHeaders } from "../../../../middleware/cors.ts";
+import { requireAdmin } from "../../../../middleware/auth.ts";
 import { AppError, ValidationError } from "../../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../../utils/responses.ts";
 
@@ -21,82 +22,50 @@ export const handler: Handlers = {
     return new Response(null, { status: 204, headers: corsHeaders(origin) });
   },
 
-  async GET(req, ctx) {
+  async POST(req, ctx) {
     const origin = req.headers.get("Origin");
     const headers = corsHeaders(origin);
     const { slug } = ctx.params;
-    const url = new URL(req.url);
-    const language = url.searchParams.get("language") ?? "";
 
     try {
-      if (!slug) {
-        throw new ValidationError("Missing slug");
-      }
+      await requireAdmin(req);
+      if (!slug) throw new ValidationError("Missing slug");
 
+      const url = new URL(req.url);
+      const language = url.searchParams.get("language") ?? "";
       if (language && !SUPPORTED_LANGUAGES.has(language)) {
         throw new ValidationError("Unsupported language");
       }
 
-      let query = supabase
+      let fetchQ = supabase
         .from("posts")
-        .select(`
-          id,
-          titulo,
-          slug,
-          body,
-          imagen_url,
-          fecha,
-          language,
-          is_pinned,
-          post_tags (
-            tag:tags (
-              id,
-              name,
-              slug,
-              usage_count
-            )
-          )
-        `)
+        .select("id, is_pinned")
         .eq("slug", slug);
+      if (language) fetchQ = fetchQ.eq("language", language);
 
-      if (language) {
-        query = query.eq("language", language);
-      }
-
-      const { data, error } = await query.maybeSingle();
-
-      if (error) {
-        console.error("Supabase error:", error);
+      const { data: existing, error: fetchError } = await fetchQ.maybeSingle();
+      if (fetchError) {
+        console.error("Supabase error:", fetchError);
         throw new AppError("Failed to fetch post", 500);
       }
+      if (!existing) throw new AppError("Post not found", 404);
 
-      if (!data) {
-        throw new AppError("Post not found", 404);
+      const nextPinned = !existing.is_pinned;
+      const { data: updated, error } = await supabase
+        .from("posts")
+        .update({ is_pinned: nextPinned })
+        .eq("id", existing.id)
+        .select("id, slug, language, is_pinned")
+        .single();
+
+      if (error || !updated) {
+        console.error("Supabase error:", error);
+        throw new AppError("Failed to update pin status", 500);
       }
 
-      const tags = Array.isArray(data.post_tags)
-        ? data.post_tags
-          .map((item) => item.tag)
-          .filter(Boolean)
-        : [];
-
-      const payload = {
-        id: data.id,
-        titulo: data.titulo,
-        slug: data.slug,
-        body: data.body,
-        imagen_url: data.imagen_url,
-        fecha: data.fecha,
-        updated_at: (data as { updated_at?: string | null }).updated_at ??
-          data.fecha ?? null,
-        language: data.language,
-        is_pinned: (data as { is_pinned?: boolean }).is_pinned ?? false,
-        tags,
-      };
-
       const response = successResponse(
-        payload,
-        "Post fetched successfully",
+        { is_pinned: Boolean(updated.is_pinned), post: updated },
+        "Pin status updated",
         200,
       );
       headers.forEach((value, key) => response.headers.set(key, value));

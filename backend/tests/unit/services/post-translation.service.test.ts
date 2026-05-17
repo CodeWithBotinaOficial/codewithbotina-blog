@@ -45,7 +45,7 @@ Deno.test("PostTranslationService.linkTranslations accepts pt-br", async () => {
   const linkedId = "11111111-1111-4111-8111-111111111111";
 
   const supabaseAny = supabase as unknown as {
-    from: (table: string) => any;
+    from: (table: string) => unknown;
   };
   const _fromStub = stub(supabaseAny, "from", (table: string) => {
     if (table === "posts") {
@@ -72,7 +72,12 @@ Deno.test("PostTranslationService.linkTranslations accepts pt-br", async () => {
             }),
           eq: () => ({
             maybeSingle: () =>
-              Promise.resolve({ data: { translation_group_id: "839af606-1fe1-4ab2-aee0-f4416baeee70" }, error: null }),
+              Promise.resolve({
+                data: {
+                  translation_group_id: "839af606-1fe1-4ab2-aee0-f4416baeee70",
+                },
+                error: null,
+              }),
           }),
         }),
         upsert: () => Promise.resolve({ error: null }),

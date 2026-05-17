@@ -35,6 +35,8 @@
     "updatedOn": "Updated on",
     "readTime": "{{minutes}} min read"
   },
+  "pinned": "Pinned",
+  "pinnedPost": "Pinned Post",
   "language": {
     "switchTo": "Switch to {{language}}",
     "current": "Language",

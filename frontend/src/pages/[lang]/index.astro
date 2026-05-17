@@ -99,8 +99,9 @@ if (hasOtherParams) {
   const offset = offsetFor(requestedPage, perPage);
   const { data: posts, error: postsErr } = await supabase
     .from("posts")
-    .select("id, titulo, slug, body, imagen_url, fecha, language")
+    .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned")
     .eq("language", language)
+    .order("is_pinned", { ascending: false })
     .order("fecha", { ascending: false })
     .range(offset, offset + perPage - 1);
 

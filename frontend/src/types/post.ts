@@ -10,6 +10,7 @@ export interface Post {
   tags?: string[];
   excerpt?: string;
   language?: Language;
+  is_pinned?: boolean;
 }
 
 export interface PostTranslations {

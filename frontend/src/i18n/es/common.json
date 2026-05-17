@@ -35,6 +35,8 @@
     "updatedOn": "Actualizado el",
     "readTime": "{{minutes}} min de lectura"
   },
+  "pinned": "Fijado",
+  "pinnedPost": "Post Fijado",
   "language": {
     "switchTo": "Cambiar a {{language}}",
     "current": "Idioma",

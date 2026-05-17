@@ -29,6 +29,7 @@
 - ⚡ Lighthouse score > 95 in all categories
 - 📷 Drag-and-drop image uploads with preview (upload on submit only)
 - ✅ Form validation with disabled submit until valid
+- ⭐ Pinned/featured posts (admin-controlled, multi-language aware)
 
 ---
 

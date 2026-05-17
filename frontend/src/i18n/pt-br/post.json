@@ -1,4 +1,5 @@
 {
+  "featuredPost": "Post em Destaque",
   "noPosts": "Nenhum post encontrado",
   "loading": "Carregando posts...",
   "tags": "Tags",
@@ -73,4 +74,3 @@
     "scrollToSee": "Role para ver mais"
   }
 }
-
