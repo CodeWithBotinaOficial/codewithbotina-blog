@@ -4,7 +4,7 @@ export const prerender = false;
 import BaseLayout from "../../../components/BaseLayout.astro";
 import { supabase } from "../../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
-import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../../lib/i18n";
 import TagsBrowser from "../../../components/tags/TagsBrowser";
 import {
   buildTagsPageHref,
@@ -101,6 +101,12 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+const alternateUrls = {
+  es: alternateLinks.find((l) => l.lang === "es")?.href,
+  en: alternateLinks.find((l) => l.lang === "en")?.href,
+  "pt-BR": alternateLinks.find((l) => l.lang === "pt-br")?.href,
+};
+const locale = toHreflang(language) as "es" | "en" | "pt-BR";
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -136,14 +142,12 @@ const paginationLabels = {
   title={pageTitle}
   description={metaDescription}
   canonical={canonicalUrl}
+  keywords={locale === "es" ? "tags, blog, programacion" : locale === "en" ? "tags, blog, programming" : "tags, blog, programacao"}
+  alternateUrls={alternateUrls}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
 >
   <Fragment slot="head">
-    {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={link.lang} href={link.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/tags`} />
     <script type="application/ld+json">
       {JSON.stringify(structuredData)}
     </script>

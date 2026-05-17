@@ -15,10 +15,11 @@ This document describes how SEO is implemented and how indexing artifacts (RSS, 
 
 ## 2. Canonical URLs
 
-All post pages and tag pages set canonical URLs to prevent duplicates.
+All indexable pages set canonical URLs to prevent duplicates and parameter variants.
 
-- Posts: `https://blog.codewithbotina.com/posts/{slug}`
-- Tags: `https://blog.codewithbotina.com/tags/{slug}`
+- Posts: `https://blog.codewithbotina.com/{lang}/posts/{slug}`
+- Tags: `https://blog.codewithbotina.com/{lang}/tags/{slug}`
+- Home: `https://blog.codewithbotina.com/{lang}/`
 
 ## 2.1 Pagination SEO (Home and Tag Pages)
 
@@ -35,18 +36,27 @@ SEO behavior:
 
 ## 3. Meta Tags
 
-**Post pages** (`/posts/[slug]`):
+**All indexable pages**:
+- Title, description, canonical
+- `meta robots` set to `index, follow`
+- Open Graph + Twitter cards
+- `hreflang` alternates for `en`, `es`, `pt-BR`
+
+**Post pages** (`/{lang}/posts/[slug]`):
 - Title, description, canonical
 - Open Graph for social sharing (article)
 - Twitter cards
-- `article:published_time`, `article:modified_time`, `article:author`
+- `article:*` metadata (published/modified/author)
 - `meta keywords` from tags (when tags exist)
 
-**Tag pages** (`/tags/[slug]`):
+**Tag pages** (`/{lang}/tags/[slug]`):
 - Title, description, canonical
 - Open Graph for sharing
 
 ## 4. Structured Data (JSON-LD)
+
+Global:
+- `Organization` + `WebSite` schema on the language home pages.
 
 **Posts:** `BlogPosting` schema including:
 - `headline`, `image`, `datePublished`, `dateModified`
@@ -63,9 +73,15 @@ SEO behavior:
 **URL:** `/sitemap.xml`
 
 **Included:**
-- Homepage
-- All posts
-- All tag pages
+- A sitemap index that points to the language sitemaps:
+  - `/en/sitemap.xml`
+  - `/es/sitemap.xml`
+  - `/pt-br/sitemap.xml`
+
+Each language sitemap includes:
+- Home + static pages for that language
+- All posts in that language (with `hreflang` alternates)
+- Tag pages for that language (with `hreflang` alternates)
 
 **Caching:**
 - Server sends `Cache-Control: public, max-age=3600`
@@ -100,7 +116,9 @@ SEO behavior:
 
 **URL:** `/robots.txt`
 
-Current configuration allows crawling and points to `/sitemap.xml`.
+Configuration allows crawling, disallows non-public routes (`/admin`, `/auth`, `/api`, `/_astro`), and lists:
+- `/sitemap.xml` (index)
+- `/en/sitemap.xml`, `/es/sitemap.xml`, `/pt-br/sitemap.xml`
 
 ## 8. Tag SEO
 
@@ -129,6 +147,9 @@ Recommended checks:
 
 - RSS: `frontend/src/pages/rss.xml.ts`
 - Sitemap: `frontend/src/pages/sitemap.xml.ts`
-- Posts: `frontend/src/pages/posts/[slug].astro`
-- Tag pages: `frontend/src/pages/tags/[slug].astro`
+- Language sitemap: `frontend/src/pages/[lang]/sitemap.xml.ts`
+- Posts: `frontend/src/pages/[lang]/posts/[slug].astro`
+- Tag pages: `frontend/src/pages/[lang]/tags/[slug].astro`
 - Robots: `frontend/public/robots.txt`
+- SEO component: `frontend/src/components/SEO.astro`
+- Structured data component: `frontend/src/components/StructuredData.astro`

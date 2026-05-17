@@ -6,10 +6,11 @@ import PostCard from "../../components/PostCard.astro";
 import AdminCreatePostButton from "../../components/admin/AdminCreatePostButton";
 import PaginationControls from "../../components/pagination/PaginationControls";
 import SearchFiltersController from "../../components/search/SearchFiltersController";
+import StructuredData from "../../components/StructuredData.astro";
 import { supabase } from "../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../lib/env";
 import type { Post } from "../../types/post";
-import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../lib/i18n";
 import {
   DEFAULT_PER_PAGE,
   buildPageHref,
@@ -131,6 +132,18 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${buildPageHref(`/${lang}/`, currentPage, perPage)}`,
 }));
+const alternateUrls = {
+  es: alternateLinks.find((l) => l.lang === "es")?.href,
+  en: alternateLinks.find((l) => l.lang === "en")?.href,
+  "pt-BR": alternateLinks.find((l) => l.lang === "pt-br")?.href,
+};
+
+const locale = toHreflang(language) as "es" | "en" | "pt-BR";
+const keywordsByLanguage: Record<SupportedLanguage, string> = {
+  es: "programacion, desarrollo web, JavaScript, TypeScript, React, blog tecnologia, tutoriales programacion",
+  en: "programming, web development, JavaScript, TypeScript, React, tech blog, programming tutorials",
+  "pt-br": "programacao, desenvolvimento web, JavaScript, TypeScript, React, blog tecnologia, tutoriais programacao",
+};
 
 const accountDeleted = Astro.url.searchParams.get("accountDeleted") === "1";
 const paginationLabels = {
@@ -148,17 +161,17 @@ const paginationLabels = {
 <BaseLayout
   title={t(language, "site.title")}
   description={t(language, "site.description")}
+  keywords={keywordsByLanguage[language]}
   canonical={canonicalUrl}
+  alternateUrls={alternateUrls}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
 >
   <Fragment slot="head">
-    {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={link.lang} href={link.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/`} />
     {prevPath ? <link rel="prev" href={`${siteUrl}${prevPath}`} /> : null}
     {nextPath ? <link rel="next" href={`${siteUrl}${nextPath}`} /> : null}
+    <StructuredData type="organization" locale={locale} />
+    <StructuredData type="website" locale={locale} />
   </Fragment>
   <section class="bg-[var(--color-bg-subtle)] py-20 border-b border-[var(--color-border)]">
     <div class="container-responsive text-center">

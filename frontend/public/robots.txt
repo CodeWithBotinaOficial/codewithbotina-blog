@@ -1,4 +1,31 @@
+# Robots.txt for blog.codewithbotina.com
 User-agent: *
 Allow: /
 
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /*/admin/
+Disallow: /_astro/
+
+# Disallow auth pages
+Disallow: /auth/
+Disallow: /*/auth/
+
+# Allow static assets (explicitly)
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.webp$
+Allow: /*.svg$
+
+# Sitemaps (critical for indexing)
 Sitemap: https://blog.codewithbotina.com/sitemap.xml
+Sitemap: https://blog.codewithbotina.com/en/sitemap.xml
+Sitemap: https://blog.codewithbotina.com/es/sitemap.xml
+Sitemap: https://blog.codewithbotina.com/pt-br/sitemap.xml
+
+# Crawl-delay (optional)
+Crawl-delay: 1

@@ -30,6 +30,19 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ Fully responsive design
 - ✅ **Search & Discovery: advanced search filters, global search modal, tag browsing with pagination**
 
+## SEO
+
+SEO implementation details and indexing artifacts:
+
+- Meta tags + Open Graph + Twitter cards: `frontend/src/components/SEO.astro`
+- Structured data (JSON-LD): `frontend/src/components/StructuredData.astro`
+- Sitemaps: `frontend/src/pages/sitemap.xml.ts` and `frontend/src/pages/[lang]/sitemap.xml.ts`
+- Robots: `frontend/public/robots.txt`
+
+Docs:
+- [docs/SEO.md](docs/SEO.md)
+- [docs/google-search-console-setup.md](docs/google-search-console-setup.md)
+
 ## Multi-Language Post Management
 
 The blog supports creating and editing posts in multiple languages simultaneously.

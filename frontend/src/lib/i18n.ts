@@ -140,6 +140,11 @@ export function isSupportedLanguage(lang: string): lang is SupportedLanguage {
   return SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage);
 }
 
+// Google expects BCP 47 language tags in hreflang (e.g. pt-BR, not pt-br).
+export function toHreflang(language: SupportedLanguage): string {
+  return language === "pt-br" ? "pt-BR" : language;
+}
+
 export function setLanguagePreference(cookies: AstroCookies, language: SupportedLanguage) {
   cookies.set("preferred_language", language, {
     path: "/",
