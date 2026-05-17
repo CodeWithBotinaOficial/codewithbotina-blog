@@ -1,0 +1,100 @@
+---
+interface Props {
+  type: "organization" | "website" | "article";
+  // Article payload (post) when type="article"
+  data?: any;
+  locale: "es" | "en" | "pt-BR";
+}
+
+const { type, data, locale } = Astro.props;
+
+const siteUrl = "https://blog.codewithbotina.com";
+
+function getOrganizationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "CodeWithBotina",
+    alternateName: "Diego Botina",
+    url: siteUrl,
+    logo: `${siteUrl}/favicon.svg`,
+    sameAs: [
+      "https://github.com/CodeWithBotinaOficial",
+    ],
+  };
+}
+
+function getWebSiteSchema() {
+  const description =
+    locale === "es"
+      ? "Blog de programación y desarrollo web"
+      : locale === "en"
+        ? "Programming and web development blog"
+        : "Blog de programacao e desenvolvimento web";
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "CodeWithBotina Blog",
+    url: siteUrl,
+    description,
+    inLanguage: locale,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/${locale === "pt-BR" ? "pt-br" : locale}/?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+function toIsoDate(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString();
+}
+
+function getArticleSchema(post: any) {
+  const language = typeof post?.language === "string" ? post.language : (locale === "pt-BR" ? "pt-br" : locale);
+  const slug = typeof post?.slug === "string" ? post.slug : "";
+  const canonical = slug ? `${siteUrl}/${language}/posts/${slug}` : `${siteUrl}/${language}/`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post?.titulo ?? post?.title ?? "",
+    description: post?.excerpt ?? post?.description ?? "",
+    image: post?.imagen_url || `${siteUrl}/og-image.png`,
+    datePublished: toIsoDate(post?.fecha) ?? undefined,
+    dateModified: toIsoDate(post?.updated_at || post?.fecha) ?? undefined,
+    author: {
+      "@type": "Person",
+      name: "Diego Botina",
+      url: siteUrl,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "CodeWithBotina",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/favicon.svg`,
+      },
+    },
+    inLanguage: language,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonical,
+    },
+  };
+}
+
+let schema: any = null;
+if (type === "organization") schema = getOrganizationSchema();
+if (type === "website") schema = getWebSiteSchema();
+if (type === "article" && data) schema = getArticleSchema(data);
+---
+
+{schema ? (
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+) : null}
+

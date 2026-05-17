@@ -7,13 +7,14 @@ import ReactionButtons from "../../../components/reactions/ReactionButtons";
 import ReactionCounts from "../../../components/reactions/ReactionCounts.astro";
 import AdminPostMenu from "../../../components/admin/AdminPostMenu";
 import FeaturedPostBanner from "../../../components/FeaturedPostBanner";
+import StructuredData from "../../../components/StructuredData.astro";
 import { supabase } from "../../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { formatDate, calculateReadTime, stripMarkdown, truncateText } from "../../../lib/utils";
 import { Calendar, Clock, ArrowLeft, Share2 } from "lucide-astro";
 import { renderMarkdownHtml } from "../../../lib/markdown";
 import type { Post } from "../../../types/post";
-import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../../lib/i18n";
 import MarkdownEnhancer from "../../../components/markdown/MarkdownEnhancer";
 import { getMarkdownFeatureLabels } from "../../../lib/markdown-labels";
 
@@ -85,11 +86,6 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
-const hreflangByLanguage: Record<SupportedLanguage, string> = {
-  en: "en",
-  es: "es",
-  "pt-br": "pt-BR",
-};
 type TagInfo = { id?: string; name: string; slug: string };
 
 function slugifyTag(value: string): string {
@@ -172,34 +168,11 @@ const metaDescription = buildDescription(
   160,
   currentPost.titulo,
 );
-
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  headline: currentPost.titulo,
-  image: imageUrl,
-  datePublished: publishedAt,
-  dateModified: updatedAt,
-  author: {
-    "@type": "Person",
-    name: "CodeWithBotina",
-    url: siteUrl,
-  },
-  publisher: {
-    "@type": "Organization",
-    name: "CodeWithBotina",
-    logo: {
-      "@type": "ImageObject",
-      url: `${siteUrl}/logo.png`,
-    },
-  },
-  description: metaDescription,
-  keywords: tagNames,
-  inLanguage: language,
-  mainEntityOfPage: {
-    "@type": "WebPage",
-    "@id": canonicalUrl,
-  },
+const localeBcp = toHreflang(language) as "es" | "en" | "pt-BR";
+const alternateUrls = {
+  es: alternateLinks.find((l) => l.lang === "es")?.href,
+  en: alternateLinks.find((l) => l.lang === "en")?.href,
+  "pt-BR": alternateLinks.find((l) => l.lang === "pt-br")?.href,
 };
 
 const reactionLabels = {
@@ -263,28 +236,23 @@ const markdownLabels = getMarkdownFeatureLabels(language);
 <BaseLayout
   title={currentPost.titulo}
   description={metaDescription}
+  keywords={tagKeywords || undefined}
   image={imageUrl}
   type="article"
   canonical={canonicalUrl}
+  author="CodeWithBotina"
+  publishedTime={publishedAt}
+  modifiedTime={updatedAt}
+  alternateUrls={alternateUrls}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
   currentPostId={currentPost.id}
 >
   <Fragment slot="head">
-    <meta property="article:published_time" content={publishedAt} />
-    <meta property="article:modified_time" content={updatedAt} />
-    <meta property="article:author" content="CodeWithBotina" />
-    {tagKeywords ? <meta name="keywords" content={tagKeywords} /> : null}
     {tagList.map((tag) => (
       <meta property="article:tag" content={tag.name} />
     ))}
-    {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={hreflangByLanguage[link.lang]} href={link.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/posts/${currentPost.slug}`} />
-    <script type="application/ld+json">
-      {JSON.stringify(structuredData)}
-    </script>
+    <StructuredData type="article" data={{ ...currentPost, excerpt: metaDescription }} locale={localeBcp} />
   </Fragment>
 
   <article class="max-w-3xl mx-auto px-4 py-12 relative">
@@ -326,6 +294,9 @@ const markdownLabels = getMarkdownFeatureLabels(language);
             src={currentPost.imagen_url}
             alt={currentPost.titulo}
             class="w-full h-full object-cover"
+            loading="lazy"
+            width="1200"
+            height="630"
           />
         </div>
       )}

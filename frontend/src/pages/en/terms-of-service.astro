@@ -18,6 +18,11 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+const alternateUrls = {
+  en: alternateLinks.find((l) => l.lang === "en")?.href,
+  es: alternateLinks.find((l) => l.lang === "es")?.href,
+  "pt-BR": alternateLinks.find((l) => l.lang === "pt-br")?.href,
+};
 const markdownLabels = getMarkdownFeatureLabels(language);
 ---
 
@@ -25,15 +30,11 @@ const markdownLabels = getMarkdownFeatureLabels(language);
   title="Terms of Service"
   description="CodeWithBotina terms of service."
   canonical={canonicalUrl}
+  keywords="terms of service, terms, codewithbotina"
+  alternateUrls={alternateUrls}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
 >
-  <Fragment slot="head">
-    {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={link.lang} href={link.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/terms-of-service`} />
-  </Fragment>
   <section class="container-responsive py-12">
     <article id="terms-of-service-markdown" class="prose prose-lg max-w-none">
       <Fragment set:html={html} />

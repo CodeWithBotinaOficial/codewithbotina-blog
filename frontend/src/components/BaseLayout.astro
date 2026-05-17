@@ -4,13 +4,22 @@ import Footer from "./Footer.astro";
 import SEO from "./SEO.astro";
 import CookieConsent from "./CookieConsent.tsx";
 import "../styles/global.css";
-import { DEFAULT_LANGUAGE } from "../lib/i18n";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, toHreflang } from "../lib/i18n";
 interface Props {
   title: string;
   description?: string;
+  keywords?: string;
   image?: string;
   type?: 'website' | 'article';
   canonical?: string;
+  author?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  alternateUrls?: {
+    es?: string;
+    en?: string;
+    "pt-BR"?: string;
+  };
   currentLanguage?: string;
   currentPath?: string;
   currentPostId?: string;
@@ -20,9 +29,14 @@ interface Props {
 const {
   title,
   description = "Technical insights on software development, web technologies, and programming best practices.",
+  keywords,
   image,
   type,
   canonical,
+  author,
+  publishedTime,
+  modifiedTime,
+  alternateUrls,
   currentLanguage = DEFAULT_LANGUAGE,
   currentPath = Astro.url.pathname,
   currentPostId,
@@ -38,9 +52,15 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
     <SEO
       title={title}
       description={description}
+      keywords={keywords}
       image={image}
       type={type}
       canonical={canonical}
+      author={author}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      locale={toHreflang(isSupportedLanguage(currentLanguage) ? currentLanguage : DEFAULT_LANGUAGE) as "es" | "en" | "pt-BR"}
+      alternateUrls={alternateUrls}
     />
     {googleSiteVerification && (
       <meta

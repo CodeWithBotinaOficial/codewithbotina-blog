@@ -12,6 +12,11 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+const alternateUrls = {
+  en: alternateLinks.find((l) => l.lang === "en")?.href,
+  es: alternateLinks.find((l) => l.lang === "es")?.href,
+  "pt-BR": alternateLinks.find((l) => l.lang === "pt-br")?.href,
+};
 const labels = {
   nameLabel: "Nombre",
   namePlaceholder: "Tu nombre",
@@ -32,15 +37,11 @@ const labels = {
   title="Contacto"
   description="Ponte en contacto con Diego Botina. Envía un mensaje o conecta por correo y redes sociales."
   canonical={canonicalUrl}
+  keywords="contacto, codewithbotina, correo, desarrollador"
+  alternateUrls={alternateUrls}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
 >
-  <Fragment slot="head">
-    {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={link.lang} href={link.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/contact`} />
-  </Fragment>
   <div class="bg-[var(--color-bg-subtle)] py-16 border-b border-[var(--color-border)]">
     <div class="container-responsive text-center">
       <h1 class="text-4xl font-bold mb-4">Contáctame</h1>

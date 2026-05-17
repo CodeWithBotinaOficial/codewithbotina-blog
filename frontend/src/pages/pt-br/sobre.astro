@@ -19,6 +19,11 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${getLocalizedPath(Astro.url.pathname, lang)}`,
 }));
+const alternateUrls = {
+  en: alternateLinks.find((l) => l.lang === "en")?.href,
+  es: alternateLinks.find((l) => l.lang === "es")?.href,
+  "pt-BR": alternateLinks.find((l) => l.lang === "pt-br")?.href,
+};
 const markdownLabels = getMarkdownFeatureLabels(language);
 ---
 
@@ -26,15 +31,11 @@ const markdownLabels = getMarkdownFeatureLabels(language);
   title="Sobre o CodeWithBotina"
   description="Conheca Diego Alejandro Botina e a comunidade CodeWithBotina."
   canonical={canonicalUrl}
+  keywords="sobre, codewithbotina, comunidade, programacao"
+  alternateUrls={alternateUrls}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
 >
-  <Fragment slot="head">
-    {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={link.lang} href={link.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/about`} />
-  </Fragment>
   <section class="bg-[var(--color-bg-subtle)] py-20 border-b border-[var(--color-border)]">
     <div class="container-responsive text-center">
       <div class="w-32 h-32 mx-auto bg-white rounded-full shadow-lg mb-6 overflow-hidden border-4 border-white">
@@ -77,4 +78,3 @@ const markdownLabels = getMarkdownFeatureLabels(language);
     </div>
   </section>
 </BaseLayout>
-

@@ -7,7 +7,7 @@ import PaginationControls from "../../../components/pagination/PaginationControl
 import SearchFiltersController from "../../../components/search/SearchFiltersController";
 import { supabase } from "../../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
-import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../../lib/i18n";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../../lib/i18n";
 import { filtersFromUrl } from "../../../lib/search-filters";
 import {
   DEFAULT_PER_PAGE,
@@ -188,6 +188,12 @@ const alternateLinks = SUPPORTED_LANGUAGES.map((lang) => ({
   lang,
   href: `${siteUrl}${buildPageHref(`/${lang}/tags/${tag.slug}`, currentPage, perPage)}`,
 }));
+const alternateUrls = {
+  es: alternateLinks.find((l) => l.lang === "es")?.href,
+  en: alternateLinks.find((l) => l.lang === "en")?.href,
+  "pt-BR": alternateLinks.find((l) => l.lang === "pt-br")?.href,
+};
+const locale = toHreflang(language) as "es" | "en" | "pt-BR";
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -231,14 +237,12 @@ const paginationLabels = {
   title={pageTitle}
   description={metaDescription}
   canonical={canonicalUrl}
+  keywords={`${tag.name}, ${locale === "es" ? "programacion, blog" : locale === "en" ? "programming, blog" : "programacao, blog"}`}
+  alternateUrls={alternateUrls}
   currentLanguage={language}
   currentPath={Astro.url.pathname}
 >
   <Fragment slot="head">
-    {alternateLinks.map((link) => (
-      <link rel="alternate" hreflang={link.lang} href={link.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={`${siteUrl}/en/tags/${tag.slug}`} />
     {prevPath ? <link rel="prev" href={`${siteUrl}${prevPath}`} /> : null}
     {nextPath ? <link rel="next" href={`${siteUrl}${nextPath}`} /> : null}
     <script type="application/ld+json">
