@@ -18,6 +18,7 @@
 - 📧 Email notifications via Resend
 - 📝 Post creation, update, delete, and slug validation
 - 📃 Post listing and single-post fetch with language filters
+- ⭐ Pinned/featured posts (pinned first on homepage queries)
 - 🏷️ Tag system (suggest, autocomplete, create, tag → posts)
 - 💬 Comments with admin pinning and moderation
 - 👍👎 Reactions (like/dislike) with user tracking

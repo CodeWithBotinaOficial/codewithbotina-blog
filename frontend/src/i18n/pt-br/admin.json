@@ -2,6 +2,16 @@
   "createPost": "Criar post",
   "editPost": "Editar post",
   "deletePost": "Excluir post",
+  "pinPost": "Fixar Post",
+  "unpinPost": "Desfixar Post",
+  "postPinned": "Post fixado com sucesso",
+  "postUnpinned": "Post desfixado com sucesso",
+  "pinError": "Erro ao atualizar status de fixação",
+  "pinnedPostSettings": "Configurações de Post Fixado",
+  "pinAllTranslations": "Fixar este post e todas as traduções",
+  "pinSelectedPosts": "Fixar apenas posts selecionados",
+  "pinAllCheckbox": "Fixar todos os posts",
+  "pinThisPost": "Fixar este post",
   "title": "Titulo",
   "slug": "Slug",
   "content": "Conteudo",
@@ -166,4 +176,3 @@
     "removeLabel": "Remover {{tag}}"
   }
 }
-

@@ -26,6 +26,7 @@ type SanitizedPost = {
   body: string;
   imagen_url: string | null;
   language: PostLanguage;
+  is_pinned: boolean;
 };
 
 export class PostService {
@@ -82,8 +83,11 @@ export class PostService {
           imagen_url: sanitized.imagen_url ?? null,
           fecha: new Date().toISOString(),
           language: sanitized.language,
+          is_pinned: sanitized.is_pinned,
         }])
-        .select("id, titulo, slug, body, imagen_url, fecha, language")
+        .select(
+          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+        )
         .single();
 
       if (error || !created) {
@@ -183,12 +187,15 @@ export class PostService {
         imagen_url: post.imagen_url ?? null,
         fecha: now,
         language: post.language,
+        is_pinned: post.is_pinned,
       }));
 
       const { data: createdRows, error } = await supabase
         .from("posts")
         .insert(insertRows as unknown as Record<string, unknown>[])
-        .select("id, titulo, slug, body, imagen_url, fecha, language");
+        .select(
+          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+        );
 
       if (error || !createdRows || createdRows.length !== insertRows.length) {
         console.error("Supabase error:", error);
@@ -456,9 +463,12 @@ export class PostService {
             body: sanitized.body,
             imagen_url: sanitized.imagen_url ?? null,
             language: sanitized.language,
+            is_pinned: sanitized.is_pinned,
           })
           .eq("id", postId)
-          .select("id, titulo, slug, body, imagen_url, fecha, language")
+          .select(
+            "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+          )
           .single();
 
         if (error || !updated) {
@@ -558,12 +568,15 @@ export class PostService {
           imagen_url: post.imagen_url ?? null,
           fecha: now,
           language: post.language,
+          is_pinned: post.is_pinned,
         }));
 
         const { data: createdRows, error } = await supabase
           .from("posts")
           .insert(insertRows as unknown as Record<string, unknown>[])
-          .select("id, titulo, slug, body, imagen_url, fecha, language");
+          .select(
+            "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+          );
 
         if (error || !createdRows || createdRows.length !== insertRows.length) {
           console.error("Supabase error:", error);
@@ -648,6 +661,9 @@ export class PostService {
               body: snapshot.body,
               imagen_url: snapshot.imagen_url ?? null,
               language: snapshot.language,
+              is_pinned: Boolean(
+                (snapshot as { is_pinned?: boolean }).is_pinned ?? false,
+              ),
             })
             .eq("id", postId);
 
@@ -725,7 +741,18 @@ export class PostService {
         return { success: false, error: new AppError("Post not found", 404) };
       }
 
-      const sanitized = this.validateAndSanitize(data, existing.language);
+      const effectiveUpdate = {
+        ...data,
+        is_pinned: typeof (data as { is_pinned?: unknown }).is_pinned ===
+            "boolean"
+          ? Boolean((data as { is_pinned?: boolean }).is_pinned)
+          : Boolean((existing as { is_pinned?: boolean }).is_pinned ?? false),
+      } as PostUpdate;
+
+      const sanitized = this.validateAndSanitize(
+        effectiveUpdate,
+        existing.language,
+      );
       if (sanitized.slug !== existing.slug) {
         const unique = await this.isSlugUnique(
           sanitized.slug,
@@ -748,9 +775,12 @@ export class PostService {
           body: sanitized.body,
           imagen_url: sanitized.imagen_url ?? null,
           language: sanitized.language,
+          is_pinned: sanitized.is_pinned,
         })
         .eq("id", existing.id)
-        .select("id, titulo, slug, body, imagen_url, fecha, language")
+        .select(
+          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+        )
         .single();
 
       if (error || !updated) {
@@ -1024,6 +1054,10 @@ export class PostService {
       body,
       imagen_url,
       language,
+      is_pinned:
+        typeof (data as { is_pinned?: unknown }).is_pinned === "boolean"
+          ? Boolean((data as { is_pinned?: boolean }).is_pinned)
+          : false,
     };
   }
 
@@ -1100,7 +1134,7 @@ export class PostService {
   ): Promise<PostRecord | null> {
     let query = supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, language")
+      .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned")
       .eq("slug", slug);
 
     const normalizedLanguage = this.normalizeLanguage(language);
@@ -1132,7 +1166,7 @@ export class PostService {
     if (!postId || !this.isValidUuid(postId)) return null;
     const { data, error } = await supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, language")
+      .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned")
       .eq("id", postId)
       .maybeSingle();
     if (error) {

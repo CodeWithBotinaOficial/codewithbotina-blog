@@ -6,6 +6,7 @@ import CommentSection from "../../../components/comments/CommentSection.astro";
 import ReactionButtons from "../../../components/reactions/ReactionButtons";
 import ReactionCounts from "../../../components/reactions/ReactionCounts.astro";
 import AdminPostMenu from "../../../components/admin/AdminPostMenu";
+import FeaturedPostBanner from "../../../components/FeaturedPostBanner";
 import { supabase } from "../../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { formatDate, calculateReadTime, stripMarkdown, truncateText } from "../../../lib/utils";
@@ -73,6 +74,7 @@ try {
 }
 
 const currentPost = post as Post;
+const isPinned = Boolean((currentPost as any)?.is_pinned);
 const content = renderMarkdownHtml(currentPost.body);
 const readTime = calculateReadTime(currentPost.body);
 const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
@@ -248,6 +250,11 @@ const adminLabels = {
   deleteConfirmMessage: t(language, "deleteConfirmMessage", "admin"),
   confirmText: t(language, "deletePost", "admin"),
   cancelText: t(language, "cancel", "admin"),
+  pinPost: t(language, "pinPost", "admin"),
+  unpinPost: t(language, "unpinPost", "admin"),
+  postPinned: t(language, "postPinned", "admin"),
+  postUnpinned: t(language, "postUnpinned", "admin"),
+  pinError: t(language, "pinError", "admin"),
 };
 
 const markdownLabels = getMarkdownFeatureLabels(language);
@@ -285,12 +292,19 @@ const markdownLabels = getMarkdownFeatureLabels(language);
       <AdminPostMenu
         slug={currentPost.slug}
         titulo={currentPost.titulo}
+        isPinned={isPinned}
         language={language}
         labels={adminLabels}
         client:load
       />
     </div>
     <header class="mb-12 text-center">
+      {isPinned ? (
+        <div class="mb-6 flex justify-center">
+          <FeaturedPostBanner language={language} />
+        </div>
+      ) : null}
+
       <div class="flex items-center justify-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-6">
         <span class="flex items-center gap-1">
           <Calendar size={16} />

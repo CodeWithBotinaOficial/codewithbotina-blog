@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { MoreVertical, Pencil, Trash2 } from "lucide-preact";
+import { MoreVertical, Pencil, Star, Trash2 } from "lucide-preact";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 import { useSession } from "../../hooks/useSession";
 import ConfirmDialog from "../ui/ConfirmDialog";
@@ -10,6 +10,7 @@ interface Props {
   slug: string;
   titulo: string;
   language?: string;
+  isPinned?: boolean;
   labels?: {
     edit: string;
     delete: string;
@@ -21,15 +22,23 @@ interface Props {
     deleteConfirmMessage: string;
     confirmText: string;
     cancelText: string;
+    pinPost?: string;
+    unpinPost?: string;
+    postPinned?: string;
+    postUnpinned?: string;
+    pinError?: string;
   };
 }
 
 const ADMIN_API = getAdminRoute("");
 
-export default function AdminPostMenu({ slug, titulo, language, labels }: Props) {
+export default function AdminPostMenu(
+  { slug, titulo, language, isPinned: initialPinned, labels }: Props,
+) {
   const { isAdmin, loading } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPinned, setIsPinned] = useState(Boolean(initialPinned));
   const [showDialog, setShowDialog] = useState(false);
   const [deleteInfo, setDeleteInfo] = useState<{
     comments_count: number;
@@ -51,6 +60,10 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
     return () => document.removeEventListener("click", handleClick);
   }, [isOpen]);
 
+  useEffect(() => {
+    setIsPinned(Boolean(initialPinned));
+  }, [initialPinned]);
+
   if (loading || !isAdmin) return null;
 
   const defaultLabels = {
@@ -65,9 +78,37 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
       "This will permanently remove \"{{title}}\" and delete {{comments}} comments, {{likes}} likes, and {{dislikes}} dislikes.",
     confirmText: "Delete",
     cancelText: "Cancel",
+    pinPost: "Pin Post",
+    unpinPost: "Unpin Post",
+    postPinned: "Post pinned successfully.",
+    postUnpinned: "Post unpinned successfully.",
+    pinError: "Failed to update pin status. Please try again.",
   };
 
   const mergedLabels = { ...defaultLabels, ...(labels ?? {}) };
+
+  const handleTogglePin = async () => {
+    setIsOpen(false);
+    try {
+      const query = language ? `?language=${encodeURIComponent(language)}` : "";
+      const response = await fetch(
+        `${ADMIN_API}/posts/${encodeURIComponent(slug)}/pin${query}`,
+        { method: "POST", credentials: "include" },
+      );
+      if (!response.ok) throw new Error("Failed to toggle pin");
+      const payload = await response.json();
+      const data = payload?.data ?? payload;
+      const nextPinned = Boolean(data?.is_pinned);
+      setIsPinned(nextPinned);
+      showToast(
+        nextPinned ? mergedLabels.postPinned : mergedLabels.postUnpinned,
+        "success",
+      );
+    } catch (error) {
+      console.error(error);
+      showToast(mergedLabels.pinError, "error");
+    }
+  };
 
   const formatTemplate = (template: string, data: Record<string, string | number>) => {
     return Object.entries(data).reduce((acc, [key, value]) => {
@@ -165,6 +206,16 @@ export default function AdminPostMenu({ slug, titulo, language, labels }: Props)
             <Pencil className="h-4 w-4" />
             {mergedLabels.edit}
           </a>
+          <button
+            type="button"
+            class={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-[var(--color-bg-subtle)] admin-menu-item--pin ${
+              isPinned ? "pinned" : ""
+            }`}
+            onClick={handleTogglePin}
+          >
+            <Star className="h-4 w-4" fill={isPinned ? "currentColor" : "none"} />
+            {isPinned ? mergedLabels.unpinPost : mergedLabels.pinPost}
+          </button>
           <button
             type="button"
             class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-[var(--color-error)] hover:bg-[var(--color-bg-subtle)]"
