@@ -93,6 +93,42 @@ Implementation:
 - Library: Mermaid.js `11.14.0`
 - Components: `src/components/markdown/DiagramRenderer.tsx`, `src/components/markdown/MarkdownEnhancer.tsx`
 
+### LaTeX Math Rendering (KaTeX)
+
+Inline math:
+
+```markdown
+Einstein: $E = mc^2$
+```
+
+Display math:
+
+```markdown
+\[
+\int_{a}^{b} f(x) \, dx
+\]
+```
+
+Optional display math:
+
+```markdown
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+```
+
+Interactive features:
+
+- Right-click (desktop) / long-press (mobile) on a rendered formula
+- Download as PNG (transparent background)
+- Copy as LaTeX
+- Copy as Formula (PNG clipboard when supported; otherwise text fallback)
+
+Implementation:
+
+- Library: KaTeX
+- Components: `src/components/markdown/LatexRenderer.tsx`, `src/components/markdown/MarkdownEnhancer.tsx`
+
 ### Enhanced Tables
 
 Markdown tables are rendered with:

@@ -72,5 +72,13 @@
     "copyAsTSV": "Copy as TSV",
     "copyAsCSV": "Copy as CSV",
     "scrollToSee": "Scroll to see more"
+  },
+  "latex": {
+    "downloadPNG": "Download as PNG",
+    "copyLatex": "Copy as LaTeX",
+    "copyRendered": "Copy as Formula",
+    "copied": "Copied to clipboard!",
+    "downloadSuccess": "Formula downloaded",
+    "error": "Error processing formula"
   }
 }

@@ -24,9 +24,19 @@ export interface TableLabels {
   scrollToSee: string;
 }
 
+export interface LatexLabels {
+  downloadPNG: string;
+  copyLatex: string;
+  copyRendered: string;
+  copied: string;
+  downloadSuccess: string;
+  error: string;
+}
+
 export interface MarkdownFeatureLabels {
   diagram: DiagramLabels;
   table: TableLabels;
+  latex: LatexLabels;
 }
 
 export function getMarkdownFeatureLabels(language: SupportedLanguage): MarkdownFeatureLabels {
@@ -53,6 +63,13 @@ export function getMarkdownFeatureLabels(language: SupportedLanguage): MarkdownF
       copyAsCSV: t(language, "table.copyAsCSV", "post"),
       scrollToSee: t(language, "table.scrollToSee", "post"),
     },
+    latex: {
+      downloadPNG: t(language, "latex.downloadPNG", "post"),
+      copyLatex: t(language, "latex.copyLatex", "post"),
+      copyRendered: t(language, "latex.copyRendered", "post"),
+      copied: t(language, "latex.copied", "post"),
+      downloadSuccess: t(language, "latex.downloadSuccess", "post"),
+      error: t(language, "latex.error", "post"),
+    },
   };
 }
-

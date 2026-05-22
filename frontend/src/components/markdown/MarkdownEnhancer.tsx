@@ -2,6 +2,7 @@ import { useEffect } from "preact/hooks";
 import { render } from "preact";
 import DiagramRenderer from "./DiagramRenderer";
 import TableWrapper from "./TableWrapper";
+import LatexRenderer from "./LatexRenderer";
 import type { MarkdownFeatureLabels } from "../../lib/markdown-labels";
 import type { SupportedLanguage } from "../../lib/i18n";
 
@@ -47,6 +48,28 @@ export default function MarkdownEnhancer({ containerId, language, labels, title,
   useEffect(() => {
     const root = document.getElementById(containerId);
     if (!root) return;
+
+    const latexNodes = Array.from(root.querySelectorAll<HTMLElement>(".md-latex"));
+    for (const node of latexNodes) {
+      if (node.dataset.enhanced) continue;
+      const b64 = String(node.getAttribute("data-latex-b64") ?? node.dataset.latexB64 ?? "");
+      if (!b64) continue;
+      const displayRaw = String(node.getAttribute("data-display") ?? node.dataset.display ?? "0");
+      const displayMode = displayRaw === "1" || displayRaw.toLowerCase() === "true";
+      let formula = "";
+      try {
+        formula = decodeBase64Utf8(b64);
+      } catch (_err) {
+        formula = "";
+      }
+      if (!formula.trim()) continue;
+      node.dataset.enhanced = "1";
+      node.innerHTML = "";
+      render(
+        <LatexRenderer formula={formula} displayMode={displayMode} labels={labels.latex} language={language} />,
+        node,
+      );
+    }
 
     const diagramNodes = Array.from(root.querySelectorAll<HTMLElement>(".md-diagram"));
     for (const node of diagramNodes) {
