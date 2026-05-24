@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { Plus, Trash2, X } from "lucide-preact";
 import { useToast } from "../../../hooks/useToast";
-import { getApiUrl } from "../../../lib/env";
+import { pollsApi } from "../../../lib/api";
 
 interface Props {
   isOpen: boolean;
@@ -11,7 +11,6 @@ interface Props {
 }
 
 export default function PollCreator({ isOpen, onClose, language, onPollCreated }: Props) {
-  const API_URL = useMemo(() => getApiUrl().replace(/\/$/, ""), []);
   const [type, setType] = useState("single_choice");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -86,36 +85,22 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/polls/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          slug,
-          title,
-          description,
-          type,
-          language,
-          closes_at: closesAt ? new Date(closesAt).toISOString() : null,
-          options: type === "free_text"
-            ? []
-            : options
-              .map((o) => ({ text: String(o.text ?? "").trim() }))
-              .filter((o) => o.text),
-        }),
+      const poll = await pollsApi.create({
+        slug,
+        title,
+        description,
+        type,
+        language,
+        closes_at: closesAt ? new Date(closesAt).toISOString() : null,
+        options: type === "free_text"
+          ? []
+          : options
+            .map((o) => ({ text: String(o.text ?? "").trim() }))
+            .filter((o) => o.text),
       });
-
-      if (res.ok) {
-        const poll = await res.json();
-        showToast("Poll created!", "success");
-        onPollCreated?.(poll.data ?? poll);
-        onClose();
-      } else {
-        const err = await res.json();
-        const message = err?.message || err?.error || `HTTP ${res.status}`;
-        setError(String(message));
-        showToast(String(message), "error");
-      }
+      showToast("Poll created!", "success");
+      onPollCreated?.(((poll as any).data ?? poll));
+      onClose();
     } catch (_err) {
       setError("Failed to create poll");
       showToast("Failed to create poll", "error");

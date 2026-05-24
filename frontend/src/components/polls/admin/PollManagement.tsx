@@ -3,6 +3,7 @@ import { Edit3, Lock, Plus, Trash2, Unlock } from "lucide-preact";
 import { useSession } from "../../../hooks/useSession";
 import { useToast } from "../../../hooks/useToast";
 import type { SupportedLanguage } from "../../../lib/i18n";
+import { pollsApi } from "../../../lib/api";
 import PollCreator from "./PollCreator";
 
 interface Props {
@@ -30,13 +31,8 @@ export default function PollManagement({ language }: Props) {
   async function loadPolls() {
     setLoading(true);
     try {
-      const url = new URL("/api/polls", window.location.origin);
-      if (langFilter !== "all") url.searchParams.set("language", langFilter);
-      url.searchParams.set("limit", "50");
-      const res = await fetch(url.toString(), { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load polls");
-      const body = await res.json();
-      setPolls(body.data ?? body);
+      const body = await pollsApi.list({ language: langFilter === "all" ? undefined : langFilter, limit: 50 });
+      setPolls((body as any).data ?? body);
     } catch (_err) {
       showToast("Failed to load polls", "error");
     } finally {
@@ -47,13 +43,7 @@ export default function PollManagement({ language }: Props) {
   async function toggleStatus(poll: any) {
     const newStatus = poll.status === "open" ? "closed" : "open";
     try {
-      const res = await fetch(`/api/polls/${encodeURIComponent(poll.slug)}/update?lang=${encodeURIComponent(poll.language ?? language)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (!res.ok) throw new Error("Failed to update poll");
+      await pollsApi.update(poll.slug, poll.language ?? language, { status: newStatus });
       showToast(`Poll ${newStatus}`, "success");
       await loadPolls();
     } catch (_err) {
@@ -65,11 +55,7 @@ export default function PollManagement({ language }: Props) {
     const confirmSlug = prompt(`Type "${poll.slug}" to confirm deletion:`);
     if (confirmSlug !== poll.slug) return;
     try {
-      const res = await fetch(`/api/polls/${encodeURIComponent(poll.slug)}/delete?lang=${encodeURIComponent(poll.language ?? language)}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to delete poll");
+      await pollsApi.delete(poll.slug, poll.language ?? language);
       showToast("Poll deleted", "success");
       await loadPolls();
     } catch (_err) {

@@ -4,6 +4,7 @@ import { useSession } from "../../../hooks/useSession";
 import { useToast } from "../../../hooks/useToast";
 import type { SupportedLanguage } from "../../../lib/i18n";
 import PollAnalytics from "./PollAnalytics";
+import { pollsApi } from "../../../lib/api";
 
 interface Props {
   slug: string;
@@ -36,12 +37,8 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/polls/${encodeURIComponent(slug)}?lang=${encodeURIComponent(pollLanguage)}`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Poll not found");
-      const body = await res.json();
-      const p = body.data ?? body;
+      const body = await pollsApi.get(slug, pollLanguage);
+      const p = (body as any).data ?? body;
       setPoll(p);
       setTitle(String(p.title ?? ""));
       setDescription(String(p.description ?? ""));
@@ -64,13 +61,7 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
         status,
         closes_at: closesAt ? new Date(closesAt).toISOString() : null,
       };
-      const res = await fetch(`/api/polls/${encodeURIComponent(slug)}/update?lang=${encodeURIComponent(pollLanguage)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("Failed to save");
+      await pollsApi.update(slug, pollLanguage, payload);
       showToast("Saved", "success");
       await load();
     } catch (_err) {
@@ -86,16 +77,7 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
     if (!text) return;
     setAddingOption(true);
     try {
-      const res = await fetch(`/api/polls/${encodeURIComponent(slug)}/options/create?lang=${encodeURIComponent(pollLanguage)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ option_text: text }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || body.message || "Failed to add option");
-      }
+      await pollsApi.addOption(slug, pollLanguage, { option_text: text });
       setNewOptionText("");
       showToast("Option added", "success");
       await load();
@@ -109,11 +91,7 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
   async function deleteOption(optionId: string) {
     if (!confirm("Delete this option?")) return;
     try {
-      const res = await fetch(
-        `/api/polls/${encodeURIComponent(slug)}/options/${encodeURIComponent(optionId)}/delete?lang=${encodeURIComponent(pollLanguage)}`,
-        { method: "DELETE", credentials: "include" },
-      );
-      if (!res.ok) throw new Error("Failed to delete option");
+      await pollsApi.deleteOption(slug, pollLanguage, optionId);
       showToast("Option deleted", "success");
       await load();
     } catch (_err) {

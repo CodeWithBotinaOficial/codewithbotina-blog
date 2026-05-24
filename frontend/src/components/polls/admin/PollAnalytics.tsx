@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { ChevronDown, ChevronUp } from "lucide-preact";
 import { t, type SupportedLanguage } from "../../../lib/i18n";
+import { pollsApi } from "../../../lib/api";
 
 interface Props {
   slug: string;
@@ -22,10 +23,8 @@ export default function PollAnalytics({ slug, language }: Props) {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/polls/${slug}/analytics?lang=${language}`, { credentials: "include" });
-      if (!res.ok) return;
-      const body = await res.json();
-      setRows(body.data ?? body);
+      const body = await pollsApi.analytics(slug, language);
+      setRows((body as any).data ?? body);
     } catch (_err) {
       // ignore
     } finally {
@@ -88,4 +87,3 @@ export default function PollAnalytics({ slug, language }: Props) {
     </div>
   );
 }
-

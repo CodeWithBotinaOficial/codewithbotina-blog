@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { Clock, Lock, Users } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
 import { t, type SupportedLanguage } from "../../lib/i18n";
+import { pollsApi } from "../../lib/api";
 import PollVoteSection from "./PollVoteSection";
 import PollResults from "./PollResults";
 import PollAnalytics from "./admin/PollAnalytics";
@@ -25,23 +26,21 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
   async function loadPoll() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/polls/${slug}?lang=${language}`);
-      if (!res.ok) {
+      const body = await pollsApi.get(slug, language);
+      const pollData = (body as any).data ?? body;
+      if (!pollData) {
         setPoll(null);
         return;
       }
-      const body = await res.json();
-      setPoll(body.data ?? body);
+      setPoll(pollData);
 
       if (user) {
-        const voteRes = await fetch(`/api/polls/${slug}/my-vote?lang=${language}`, { credentials: 'include' });
-        if (voteRes.ok) {
-          const voteBody = await voteRes.json();
-          setUserVote(voteBody.data ?? voteBody);
-        }
+        const voteBody = await pollsApi.myVote(slug, language).catch(() => null);
+        if (voteBody) setUserVote((voteBody as any).data ?? voteBody);
       }
     } catch (err) {
       console.error('Failed to load poll', err);
+      setPoll(null);
     } finally {
       setLoading(false);
     }
