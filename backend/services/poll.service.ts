@@ -1,94 +1,127 @@
-import { pollRepository } from '../repositories/poll.repository.ts';
-import { pollValidation } from '../lib/validation.ts';
+import { pollRepository } from "../repositories/poll.repository.ts";
+import { pollValidation } from "../lib/validation.ts";
 
 export const pollService = {
-  async createPoll(pollData: any, userId: string) {
+  async createPoll(pollData: unknown, userId: string) {
+    const data = pollData as Record<string, unknown>;
+    const type = String(data.type ?? "");
+    const slug = String(data.slug ?? "");
+    const title = String(data.title ?? "");
+    const description = typeof data.description === "string"
+      ? data.description
+      : undefined;
+    const language = typeof data.language === "string" ? data.language : "en";
+    const status = typeof data.status === "string" ? data.status : "open";
+    const closes_at = typeof data.closes_at === "string"
+      ? data.closes_at
+      : undefined;
+    const translation_group_id = typeof data.translation_group_id === "string"
+      ? data.translation_group_id
+      : undefined;
+    const options = Array.isArray(data.options)
+      ? (data.options as Array<Record<string, unknown>>)
+      : [];
+    const displaySettings =
+      typeof data.displaySettings === "object" && data.displaySettings !== null
+        ? data.displaySettings as Record<string, unknown>
+        : null;
+
     // Validate poll type
-    if (!pollValidation.validatePollType(pollData.type)) {
-      throw new Error('Invalid poll type');
+    if (!pollValidation.validatePollType(type)) {
+      throw new Error("Invalid poll type");
     }
 
     // Validate slug
-    if (!pollValidation.validateSlug(pollData.slug)) {
-      throw new Error('Invalid poll slug format');
+    if (!pollValidation.validateSlug(slug)) {
+      throw new Error("Invalid poll slug format");
     }
 
     // Validate options count for choice-based polls
-    if (pollData.type !== 'free_text') {
-      const optionCount = pollData.options?.length || 0;
-      if (!pollValidation.validateOptionCount(pollData.type, optionCount)) {
-        const limits = (pollValidation as any).optionLimits[pollData.type];
-        throw new Error(
-          `${pollData.type} requires ${limits.min}-${limits.max} options`
-        );
+    if (type !== "free_text") {
+      const optionCount = options.length;
+      if (!pollValidation.validateOptionCount(type, optionCount)) {
+        const limits = (pollValidation.optionLimits as Record<
+          string,
+          { min: number; max: number } | undefined
+        >)[type];
+        if (!limits) throw new Error("Invalid poll type");
+        throw new Error(`${type} requires ${limits.min}-${limits.max} options`);
       }
     }
 
     // Create poll
     const poll = await pollRepository.createPoll({
-      slug: pollData.slug,
-      title: pollData.title,
-      description: pollData.description,
-      type: pollData.type,
-      language: pollData.language || 'en',
-      status: pollData.status || 'open',
-      closes_at: pollData.closes_at,
+      slug,
+      title,
+      description,
+      type,
+      language,
+      status,
+      closes_at,
       created_by: userId,
-      translation_group_id: pollData.translation_group_id
+      translation_group_id,
     });
 
     // Create options for choice-based polls
-    if (pollData.type !== 'free_text' && pollData.options) {
-      for (let i = 0; i < pollData.options.length; i++) {
+    if (type !== "free_text" && options.length) {
+      for (let i = 0; i < options.length; i++) {
+        const text = String(options[i]?.text ?? "");
+        const color = typeof options[i]?.color === "string"
+          ? String(options[i].color)
+          : undefined;
         await pollRepository.addOption({
           poll_id: poll.id,
-          option_text: pollData.options[i].text,
+          option_text: text,
           display_order: i + 1,
-          color: pollData.options[i].color || this.generateColor(i)
+          color: color || this.generateColor(i),
         });
       }
     }
 
     // Create display settings
-    if (pollData.displaySettings) {
-      await pollRepository.updateDisplaySettings(poll.id, pollData.displaySettings);
+    if (displaySettings) {
+      await pollRepository.updateDisplaySettings(
+        poll.id,
+        displaySettings,
+      );
     }
 
     return poll;
   },
 
-  async votePoll(pollId: string, userId: string, voteData: any) {
+  async votePoll(pollId: string, userId: string, voteData: unknown) {
+    const data = voteData as Record<string, unknown>;
     // Get poll details
     const poll = await pollRepository.getPollWithResults(pollId);
 
     // Check if poll is open
-    if (poll.status !== 'open') {
-      throw new Error('Poll is closed');
+    if (poll.status !== "open") {
+      throw new Error("Poll is closed");
     }
 
     // Check if poll has expired
     if (poll.closes_at && new Date(poll.closes_at) < new Date()) {
-      throw new Error('Poll has expired');
+      throw new Error("Poll has expired");
     }
 
     // Get existing votes
     const existingVotes = await pollRepository.getUserVote(pollId, userId);
 
     // Handle free text
-    if (poll.type === 'free_text') {
+    if (poll.type === "free_text") {
       if (existingVotes.length > 0) {
-        throw new Error('You have already submitted a response');
+        throw new Error("You have already submitted a response");
       }
 
       return await pollRepository.castVote({
         poll_id: pollId,
         user_id: userId,
-        free_text_response: voteData.text
+        free_text_response: String(data.text ?? ""),
       });
     }
 
     // Handle single choice
-    if (poll.type === 'single_choice') {
+    if (poll.type === "single_choice") {
       // Delete existing vote if any
       if (existingVotes.length > 0) {
         await pollRepository.deleteVotes(pollId, userId);
@@ -98,12 +131,12 @@ export const pollService = {
       return await pollRepository.castVote({
         poll_id: pollId,
         user_id: userId,
-        poll_option_id: voteData.optionId
+        poll_option_id: String(data.optionId ?? ""),
       });
     }
 
     // Handle multiple choice
-    if (poll.type === 'multiple_choice') {
+    if (poll.type === "multiple_choice") {
       // Delete all existing votes
       if (existingVotes.length > 0) {
         await pollRepository.deleteVotes(pollId, userId);
@@ -111,11 +144,14 @@ export const pollService = {
 
       // Cast multiple votes
       const votes = [];
-      for (const optionId of voteData.optionIds) {
+      const optionIds = Array.isArray(data.optionIds)
+        ? data.optionIds.map((v) => String(v))
+        : [];
+      for (const optionId of optionIds) {
         const vote = await pollRepository.castVote({
           poll_id: pollId,
           user_id: userId,
-          poll_option_id: optionId
+          poll_option_id: optionId,
         });
         votes.push(vote);
       }
@@ -127,12 +163,12 @@ export const pollService = {
   async removeVote(pollId: string, userId: string) {
     const poll = await pollRepository.getPollWithResults(pollId);
 
-    if (poll.status !== 'open') {
-      throw new Error('Poll is closed');
+    if (poll.status !== "open") {
+      throw new Error("Poll is closed");
     }
 
-    if (poll.type === 'free_text') {
-      throw new Error('Cannot remove free text response');
+    if (poll.type === "free_text") {
+      throw new Error("Cannot remove free text response");
     }
 
     return await pollRepository.deleteVotes(pollId, userId);
@@ -140,10 +176,17 @@ export const pollService = {
 
   generateColor(index: number): string {
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-      '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52C9B2'
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#FFA07A",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E2",
+      "#F8B739",
+      "#52C9B2",
     ];
     return colors[index % colors.length];
-  }
+  },
 };
-

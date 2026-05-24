@@ -3,7 +3,10 @@ import { requireAdmin } from "../../../../../middleware/auth.ts";
 import { pollRepository } from "../../../../../repositories/poll.repository.ts";
 import { corsHeaders } from "../../../../../middleware/cors.ts";
 import { AppError } from "../../../../../utils/errors.ts";
-import { errorResponse, successResponse } from "../../../../../utils/responses.ts";
+import {
+  errorResponse,
+  successResponse,
+} from "../../../../../utils/responses.ts";
 
 export const handler: Handlers = {
   OPTIONS(req) {
@@ -37,14 +40,18 @@ export const handler: Handlers = {
         return response;
       }
 
-      const optionText = typeof body?.option_text === "string" ? body.option_text : "";
+      const optionText = typeof body?.option_text === "string"
+        ? body.option_text
+        : "";
       if (!optionText.trim()) {
         const response = errorResponse("Option text required", 400);
         headers.forEach((value, key) => response.headers.set(key, value));
         return response;
       }
 
-      const displayOrder = Number.isInteger(body?.display_order) ? body.display_order : (poll.poll_options?.length ?? 0) + 1;
+      const displayOrder = Number.isInteger(body?.display_order)
+        ? body.display_order
+        : (poll.poll_options?.length ?? 0) + 1;
 
       const option = await pollRepository.addOption({
         poll_id: poll.id,
@@ -67,5 +74,3 @@ export const handler: Handlers = {
     }
   },
 };
-
-

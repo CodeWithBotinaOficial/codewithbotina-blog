@@ -29,7 +29,11 @@ export const handler: Handlers = {
       }
 
       const result = await pollService.removeVote(poll.id, user.id);
-      const response = successResponse({ removed: result }, "Vote removed", 200);
+      const response = successResponse(
+        { removed: result },
+        "Vote removed",
+        200,
+      );
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {
@@ -43,4 +47,3 @@ export const handler: Handlers = {
     }
   },
 };
-

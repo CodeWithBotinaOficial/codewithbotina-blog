@@ -16,6 +16,14 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
   const [description, setDescription] = useState("");
   const [closesAt, setClosesAt] = useState<string>("");
   const [options, setOptions] = useState<Array<{ text: string }>>([{ text: "" }, { text: "" }]);
+  const [displaySettings, setDisplaySettings] = useState({
+    show_top: false,
+    top_count: 3,
+    top_order: "desc" as "asc" | "desc",
+    show_bar_chart: true,
+    bar_chart_orientation: "vertical" as "horizontal" | "vertical",
+    bar_chart_options_count: 5,
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
@@ -34,6 +42,14 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
     setDescription("");
     setClosesAt("");
     setOptions([{ text: "" }, { text: "" }]);
+    setDisplaySettings({
+      show_top: false,
+      top_count: 3,
+      top_order: "desc",
+      show_bar_chart: true,
+      bar_chart_orientation: "vertical",
+      bar_chart_options_count: 5,
+    });
 
     // Focus the first input for faster authoring.
     window.setTimeout(() => {
@@ -80,6 +96,11 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
       }
     }
 
+    const validOptionCount = type === "free_text"
+      ? 0
+      : options.map((o) => String(o.text ?? "").trim()).filter(Boolean).length;
+    const maxTop = Math.max(1, Math.floor(validOptionCount * 0.6));
+
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
     setSubmitting(true);
@@ -97,6 +118,13 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
           : options
             .map((o) => ({ text: String(o.text ?? "").trim() }))
             .filter((o) => o.text),
+        displaySettings: type === "free_text"
+          ? null
+          : {
+            ...displaySettings,
+            top_count: Math.max(1, Math.min(displaySettings.top_count, maxTop)),
+            bar_chart_options_count: Math.max(1, Math.min(displaySettings.bar_chart_options_count, validOptionCount || 1)),
+          },
       });
       showToast("Poll created!", "success");
       onPollCreated?.(((poll as any).data ?? poll));
@@ -213,6 +241,95 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
                 <Plus className="h-4 w-4" />
                 Add Option
               </button>
+            </div>
+          ) : null}
+
+          {type === "single_choice" || type === "multiple_choice" ? (
+            <div className="poll-display-settings mt-6">
+              <div className="form-section-title">Display Settings</div>
+
+              <div className="display-setting-row">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={displaySettings.show_top}
+                    onChange={(e: any) => setDisplaySettings((prev) => ({ ...prev, show_top: Boolean(e.currentTarget.checked) }))}
+                    disabled={submitting}
+                  />
+                  <span>Show Top List</span>
+                </label>
+
+                {displaySettings.show_top ? (
+                  <div className="sub-settings">
+                    <div className="form-row">
+                      <label>Top Count</label>
+                      <input
+                        className="form-input-sm"
+                        type="number"
+                        min={1}
+                        value={displaySettings.top_count}
+                        onInput={(e: any) => setDisplaySettings((prev) => ({ ...prev, top_count: Number(e.currentTarget.value || 1) }))}
+                        disabled={submitting}
+                      />
+                      <span className="hint">Max 60% of options</span>
+                    </div>
+                    <div className="form-row">
+                      <label>Order</label>
+                      <select
+                        className="form-select-sm"
+                        value={displaySettings.top_order}
+                        onChange={(e: any) => setDisplaySettings((prev) => ({ ...prev, top_order: String(e.currentTarget.value) as any }))}
+                        disabled={submitting}
+                      >
+                        <option value="desc">Highest to Lowest</option>
+                        <option value="asc">Lowest to Highest</option>
+                      </select>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="display-setting-row">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={displaySettings.show_bar_chart}
+                    onChange={(e: any) => setDisplaySettings((prev) => ({ ...prev, show_bar_chart: Boolean(e.currentTarget.checked) }))}
+                    disabled={submitting}
+                  />
+                  <span>Show Bar Chart</span>
+                </label>
+
+                {displaySettings.show_bar_chart ? (
+                  <div className="sub-settings">
+                    <div className="form-row">
+                      <label>Orientation</label>
+                      <select
+                        className="form-select-sm"
+                        value={displaySettings.bar_chart_orientation}
+                        onChange={(e: any) =>
+                          setDisplaySettings((prev) => ({ ...prev, bar_chart_orientation: String(e.currentTarget.value) as any }))}
+                        disabled={submitting}
+                      >
+                        <option value="vertical">Vertical</option>
+                        <option value="horizontal">Horizontal</option>
+                      </select>
+                    </div>
+                    <div className="form-row">
+                      <label>Options to Show</label>
+                      <input
+                        className="form-input-sm"
+                        type="number"
+                        min={1}
+                        value={displaySettings.bar_chart_options_count}
+                        onInput={(e: any) =>
+                          setDisplaySettings((prev) => ({ ...prev, bar_chart_options_count: Number(e.currentTarget.value || 1) }))}
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>

@@ -41,7 +41,9 @@ export default function PollResults({ poll, userVote: _userVote, language }: any
 
   if (!results) return <div className="poll-results-loading">Loading results...</div>;
 
-  const settings = poll.poll_display_settings ?? {};
+  const settings = Array.isArray(poll?.poll_display_settings)
+    ? (poll.poll_display_settings[0] ?? {})
+    : (poll?.poll_display_settings ?? {});
 
   if (poll.type === "free_text") {
     const responses = results.freeTextResponses?.map((r: any) => r.free_text_response) ?? [];
@@ -53,7 +55,7 @@ export default function PollResults({ poll, userVote: _userVote, language }: any
     );
   }
 
-  const showChart = Boolean(settings.show_bar_chart);
+  const showChart = settings.show_bar_chart !== undefined ? Boolean(settings.show_bar_chart) : true;
   const showTop = Boolean(settings.show_top);
   const topCount = settings.top_count || Math.min(3, options.length);
 
