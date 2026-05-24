@@ -509,6 +509,28 @@
     @apply mt-2 text-xs text-[var(--color-text-tertiary)];
   }
 
+  .poll-free-text-submitted {
+    @apply flex items-start gap-3;
+    background-color: color-mix(in oklab, var(--color-success) 12%, white);
+    border-color: color-mix(in oklab, var(--color-success) 30%, white);
+    color: color-mix(in oklab, var(--color-success) 55%, black);
+  }
+
+  .poll-voted-title {
+    @apply font-semibold;
+    color: inherit;
+  }
+
+  .poll-voted-response {
+    @apply mt-2 rounded-lg bg-white px-3 py-2 text-sm italic;
+    color: color-mix(in oklab, var(--color-text-primary) 90%, black);
+  }
+
+  .poll-voted-note {
+    @apply mt-2 text-xs;
+    opacity: 0.85;
+  }
+
   .poll-textarea {
     @apply w-full rounded-lg border border-[var(--color-border)] bg-white px-4 py-3 text-sm text-[var(--color-text-primary)];
     resize: vertical;
@@ -536,6 +558,81 @@
 
   .poll-option input {
     @apply h-5 w-5;
+  }
+
+  /* Top list UX */
+  .top-list-header {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .top-list-items {
+    @apply mt-3 flex flex-col gap-3;
+  }
+
+  .top-list-item {
+    @apply flex items-center gap-4 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm;
+    transition: box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease;
+  }
+
+  .top-list-item:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    border-color: color-mix(in oklab, var(--color-accent-primary) 35%, white);
+  }
+
+  .top-list-rank {
+    @apply flex items-center justify-center;
+    min-width: 36px;
+  }
+
+  .rank-gold {
+    color: #f59e0b;
+  }
+
+  .rank-silver {
+    color: #94a3b8;
+  }
+
+  .rank-bronze {
+    color: #c08457;
+  }
+
+  .rank-number {
+    @apply text-sm font-semibold text-[var(--color-text-tertiary)];
+  }
+
+  .top-list-content {
+    @apply flex-1;
+    min-width: 0;
+  }
+
+  .top-list-text {
+    @apply truncate font-semibold text-[var(--color-text-primary)];
+  }
+
+  .top-list-bar {
+    @apply mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--color-bg-subtle)];
+  }
+
+  .top-list-bar-fill {
+    @apply h-full rounded-full;
+    transition: width 250ms ease;
+  }
+
+  .top-list-stats {
+    @apply flex flex-col items-end gap-1;
+    min-width: 64px;
+  }
+
+  .vote-count {
+    @apply text-base font-bold text-[var(--color-text-primary)];
+  }
+
+  .vote-percent {
+    @apply text-xs text-[var(--color-text-tertiary)];
+  }
+
+  .validation-warning {
+    @apply mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800;
   }
 
   .poll-actions {

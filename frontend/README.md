@@ -129,6 +129,32 @@ Implementation:
 - Library: KaTeX
 - Components: `src/components/markdown/LatexRenderer.tsx`, `src/components/markdown/MarkdownEnhancer.tsx`
 
+## Poll System
+
+Polls can be embedded in posts via Markdown links:
+
+```md
+[Vote Now](poll:favorite-language-2024)
+```
+
+Key components:
+
+- `src/components/polls/PollEmbed.tsx` (loads poll + user vote, refreshes results after voting)
+- `src/components/polls/PollVoteSection.tsx` (vote UI with persisted selection and one-time free-text submission UX)
+- `src/components/polls/PollResults.tsx` (results visualizations)
+- `src/components/polls/visualizations/WordCloud.tsx`
+- `src/components/polls/visualizations/TopList.tsx`
+- `src/components/polls/visualizations/BarChart.tsx`
+- `src/components/polls/visualizations/DownloadButton.tsx` (PNG export; hides download button during capture)
+
+Admin:
+
+- `src/pages/[lang]/admin/polls.astro` (poll management)
+- `src/pages/[lang]/admin/polls/[slug]/edit.astro` (poll edit)
+- `src/components/polls/admin/PollCreator.tsx` (includes display settings with live validation)
+- `src/components/polls/admin/PollEditor.tsx`
+- `src/components/polls/admin/PollAnalytics.tsx`
+
 ### Enhanced Tables
 
 Markdown tables are rendered with:

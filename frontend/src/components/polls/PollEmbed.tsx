@@ -17,6 +17,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
   const [poll, setPoll] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<any>(null);
+  const [resultsKey, setResultsKey] = useState(0);
   const { user, isAdmin } = useSession();
   const { showToast } = useToast();
   const lang = (language ?? "en") as SupportedLanguage;
@@ -28,6 +29,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
   async function loadPoll() {
     setLoading(true);
     try {
+      setUserVote(null);
       const body = await pollsApi.get(slug, language);
       const pollData = (body as any).data ?? body;
       if (!pollData) {
@@ -165,10 +167,18 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
       </div>
 
       {!isClosed && (
-        <PollVoteSection poll={poll} userVote={userVote} onVote={loadPoll} language={language} />
+        <PollVoteSection
+          poll={poll}
+          userVote={userVote}
+          onVote={async () => {
+            await loadPoll();
+            setResultsKey((v) => v + 1);
+          }}
+          language={language}
+        />
       )}
 
-      <PollResults poll={poll} userVote={userVote} language={language} />
+      <PollResults key={resultsKey} poll={poll} userVote={userVote} language={language} />
 
       {isAdmin ? (
         <PollAnalytics slug={poll.slug} language={language} />

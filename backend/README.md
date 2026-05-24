@@ -25,6 +25,7 @@
 - 🔐 Auth endpoints (Google OAuth, session refresh, sign-out)
 - 🍪 Cookie consent tracking endpoint
 - 🖼️ Image upload endpoint for Supabase Storage
+- 📊 Polls system (create/vote/results/admin analytics)
 - 💾 PostgreSQL data persistence via Supabase
 - 🔒 CORS protection and origin validation
 - ⏱️ Rate limiting to prevent abuse

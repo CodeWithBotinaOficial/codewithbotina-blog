@@ -31,6 +31,8 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
 
   const maxOptions = type === "single_choice" ? 5 : 9;
   const minOptions = 2;
+  const validOptionCount = options.map((o) => String(o.text ?? "").trim()).filter(Boolean).length;
+  const maxTopCount = Math.max(1, Math.floor(validOptionCount * 0.6));
 
   useEffect(() => {
     if (!isOpen) return;
@@ -67,6 +69,22 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    // Keep display settings valid as options change.
+    setDisplaySettings((prev) => {
+      const next = { ...prev };
+      if (next.top_count > maxTopCount) next.top_count = maxTopCount;
+      if (validOptionCount > 0 && next.bar_chart_options_count > validOptionCount) {
+        next.bar_chart_options_count = validOptionCount;
+      }
+      if (validOptionCount === 0) {
+        next.top_count = 1;
+        next.bar_chart_options_count = 1;
+      }
+      return next;
+    });
+  }, [validOptionCount, maxTopCount]);
+
   const addOption = () => {
     setOptions((prev) => (prev.length >= maxOptions ? prev : [...prev, { text: "" }]));
   };
@@ -96,10 +114,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
       }
     }
 
-    const validOptionCount = type === "free_text"
-      ? 0
-      : options.map((o) => String(o.text ?? "").trim()).filter(Boolean).length;
-    const maxTop = Math.max(1, Math.floor(validOptionCount * 0.6));
+    const maxTop = maxTopCount;
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -267,11 +282,16 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
                         className="form-input-sm"
                         type="number"
                         min={1}
+                        max={maxTopCount}
                         value={displaySettings.top_count}
-                        onInput={(e: any) => setDisplaySettings((prev) => ({ ...prev, top_count: Number(e.currentTarget.value || 1) }))}
+                        onInput={(e: any) => {
+                          const raw = Number(e.currentTarget.value || 1);
+                          const clamped = Math.max(1, Math.min(raw, maxTopCount));
+                          setDisplaySettings((prev) => ({ ...prev, top_count: clamped }));
+                        }}
                         disabled={submitting}
                       />
-                      <span className="hint">Max 60% of options</span>
+                      <span className="hint">Max: {maxTopCount} (60% of {validOptionCount} options)</span>
                     </div>
                     <div className="form-row">
                       <label>Order</label>
@@ -285,6 +305,11 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
                         <option value="asc">Lowest to Highest</option>
                       </select>
                     </div>
+                    {validOptionCount === 2 && maxTopCount === 1 ? (
+                      <div className="validation-warning">
+                        With 2 options, Top can only show 1 item.
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

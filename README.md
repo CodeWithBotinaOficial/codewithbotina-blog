@@ -18,6 +18,7 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 - ✅ **Interactive Mermaid diagrams in Markdown (view/code toggle, pan/zoom, download, fullscreen)**
 - ✅ **LaTeX math rendering in Markdown (inline `$...$`, display `\\[...\\]` / `$$...$$`, copy/download context menu)**
 - ✅ **Enhanced Markdown tables (borders, zebra striping, responsive scroll, copy-to-clipboard)**
+- ✅ **Interactive Polls embedded in posts (`[Vote](poll:slug)`) with admin management + results visualizations**
 - ✅ **Drag-and-drop image uploads with improved preview (aspect-safe, file info, hover actions)**
 - ✅ **Image library: reuse existing Supabase Storage images (no duplicate uploads)**
 - ✅ **Tag persistence in edit flows (no accidental unlinking)**

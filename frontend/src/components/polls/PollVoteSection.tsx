@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { LogIn, Send, Trash2 } from "lucide-preact";
+import { CheckCircle2, LogIn, Send, Trash2 } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../lib/i18n";
@@ -117,13 +117,13 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
   if (poll.type === "free_text" && Array.isArray(userVote) && userVote.length > 0) {
     const response = String(userVote[0]?.free_text_response ?? "");
     return (
-      <div className="poll-already-voted">
-        <div className="font-semibold">{t(lang, "polls.freeText.submitted", "post")}</div>
-        {response ? (
-          <div className="poll-note">
-            {response}
-          </div>
-        ) : null}
+      <div className="poll-already-voted poll-free-text-submitted">
+        <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+        <div>
+          <div className="poll-voted-title">{t(lang, "polls.freeText.submitted", "post")}</div>
+          {response ? <div className="poll-voted-response">"{response}"</div> : null}
+          <div className="poll-voted-note">You cannot edit free-text poll responses.</div>
+        </div>
       </div>
     );
   }
@@ -155,12 +155,12 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
         <div className="poll-single-choice">
           <fieldset disabled={submitting}>
             {pollOptions.map((opt: any) => (
-              <label key={opt.id} className={`poll-option ${selectedOptions.includes(opt.id) ? "selected" : ""}`}>
+              <label key={opt.id} className={`poll-option ${selectedOptions.includes(String(opt.id)) ? "selected" : ""}`}>
                 <input
                   type="radio"
                   name={`poll-${poll.slug}`}
-                  value={opt.id}
-                  checked={selectedOptions.includes(opt.id)}
+                  value={String(opt.id)}
+                  checked={selectedOptions.includes(String(opt.id))}
                   onChange={() => setSelectedOptions([String(opt.id)])}
                 />
                 <span className="option-text">{opt.option_text}</span>
@@ -187,11 +187,11 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
         <div className="poll-multiple-choice">
           <fieldset disabled={submitting}>
             {pollOptions.map((opt: any) => (
-              <label key={opt.id} className={`poll-option ${selectedOptions.includes(opt.id) ? "selected" : ""}`}>
+              <label key={opt.id} className={`poll-option ${selectedOptions.includes(String(opt.id)) ? "selected" : ""}`}>
                 <input
                   type="checkbox"
-                  value={opt.id}
-                  checked={selectedOptions.includes(opt.id)}
+                  value={String(opt.id)}
+                  checked={selectedOptions.includes(String(opt.id))}
                   onChange={(e: any) => {
                     const checked = Boolean(e.currentTarget.checked);
                     const id = String(opt.id);
