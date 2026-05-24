@@ -87,7 +87,9 @@
     "vote": "Votar",
     "removeVote": "Eliminar respuesta",
     "submit": "Enviar",
+    "open": "Abierta",
     "closed": "Cerrada",
+    "closes": "Cierra {{date}}",
     "signInToVote": "Inicia sesión para votar",
     "alreadyVoted": "Ya has votado",
     "freeText": {
@@ -95,6 +97,7 @@
       "submitted": "Respuesta enviada"
     },
     "results": {
+      "title": "Resultados",
       "wordCloud": "Nube de respuestas",
       "topList": "Top {count} resultados",
       "barChart": "Distribución de votos",

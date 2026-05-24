@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+import { DEFAULT_LANGUAGE, detectLanguage, isSupportedLanguage, type SupportedLanguage } from "../../lib/i18n";
+
+const langParam = Astro.url.searchParams.get("lang");
+const language = isSupportedLanguage(langParam ?? "")
+  ? (langParam as SupportedLanguage)
+  : detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language"));
+const resolvedLanguage = isSupportedLanguage(language ?? "")
+  ? language
+  : DEFAULT_LANGUAGE;
+
+return Astro.redirect(`/${resolvedLanguage}/admin/polls`);
+---
+

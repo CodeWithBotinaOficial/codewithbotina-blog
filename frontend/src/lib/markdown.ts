@@ -82,7 +82,8 @@ function findClosingDollar(src: string, startIndex: number): number {
  */
 export function renderMarkdownHtml(markdown: string): string {
   const marked = new Marked({ gfm: true, breaks: false });
-  const normalized = maskLatexInQuotedStrings(markdown ?? "");
+  const withPollEmbeds = processMarkdownWithPolls(markdown ?? "");
+  const normalized = maskLatexInQuotedStrings(withPollEmbeds);
 
   marked.use({
     extensions: [
@@ -186,13 +187,49 @@ export function renderMarkdownHtml(markdown: string): string {
   return String(marked.parse(normalized));
 }
 
-// Add poll link parsing
+/**
+ * Parse poll embeds from markdown.
+ * Syntax: [Poll Title](poll:slug)
+ * Example: [Vote Now](poll:favorite-language-2024)
+ */
 export function parsePollLinks(content: string): string {
-  // Pattern: [Text](poll:slug)
   const pollLinkRegex = /\[([^\]]+)\]\(poll:([a-z0-9-]+)\)/g;
 
   return content.replace(pollLinkRegex, (match, text, slug) => {
-    return `<div data-poll-embed="${slug}" data-poll-text="${escapeHtml(text)}"></div>`;
+    const safeSlug = String(slug ?? "").trim();
+    const safeText = escapeHtml(String(text ?? ""));
+    // Keep a small no-JS fallback to indicate the embed exists.
+    return `<div class="md-poll" data-poll-slug="${safeSlug}" data-poll-text="${safeText}"><span class="md-poll__fallback">${safeText}</span></div>`;
   });
 }
 
+/**
+ * Process markdown with poll embeds.
+ * Poll embeds must not render inside fenced code blocks or inline code spans.
+ */
+export function processMarkdownWithPolls(content: string): string {
+  let working = content ?? "";
+
+  const fenced = new Map<string, string>();
+  let fencedIdx = 0;
+  working = working.replace(/```[^\n]*\n[\s\S]*?```/g, (match) => {
+    const key = `__MD_POLL_FENCED_${fencedIdx++}__`;
+    fenced.set(key, match);
+    return key;
+  });
+
+  const inline = new Map<string, string>();
+  let inlineIdx = 0;
+  working = working.replace(/`[^`]*`/g, (match) => {
+    const key = `__MD_POLL_INLINE_${inlineIdx++}__`;
+    inline.set(key, match);
+    return key;
+  });
+
+  working = parsePollLinks(working);
+
+  for (const [key, value] of inline) working = working.replaceAll(key, () => value);
+  for (const [key, value] of fenced) working = working.replaceAll(key, () => value);
+
+  return working;
+}

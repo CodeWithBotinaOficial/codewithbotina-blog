@@ -1,0 +1,20 @@
+---
+export const prerender = false;
+
+import { DEFAULT_LANGUAGE, detectLanguage, isSupportedLanguage, type SupportedLanguage } from "../../../../lib/i18n";
+
+const { slug } = Astro.params;
+const langParam = Astro.url.searchParams.get("lang");
+const uiParam = Astro.url.searchParams.get("ui");
+
+const uiLanguage = isSupportedLanguage(uiParam ?? "")
+  ? (uiParam as SupportedLanguage)
+  : detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language"));
+const resolvedUi = isSupportedLanguage(uiLanguage ?? "") ? uiLanguage : DEFAULT_LANGUAGE;
+
+// Keep `lang` query for poll language selection.
+const qp = new URLSearchParams();
+if (langParam) qp.set("lang", langParam);
+
+return Astro.redirect(`/${resolvedUi}/admin/polls/${encodeURIComponent(slug)}/edit${qp.toString() ? `?${qp}` : ""}`);
+---
