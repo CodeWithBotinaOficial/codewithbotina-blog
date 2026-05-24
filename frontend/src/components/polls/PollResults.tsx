@@ -15,8 +15,9 @@ export default function PollResults({ poll, userVote: _userVote, language }: any
   const options = useMemo(
     () =>
       results?.options?.map((o: any) => ({
+        id: o.id,
         option_text: o.option_text,
-        vote_count: o.vote_count ?? 0,
+        vote_count: Array.isArray(o.vote_count) ? (o.vote_count?.[0]?.count ?? 0) : (o.vote_count ?? 0),
         color: o.color ?? "var(--color-accent-primary)",
       })) ?? [],
     [results],

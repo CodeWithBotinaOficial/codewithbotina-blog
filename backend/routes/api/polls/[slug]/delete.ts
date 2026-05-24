@@ -45,7 +45,8 @@ export const handler: Handlers = {
         return response;
       }
 
-      await pollRepository.deletePoll(poll.id);
+      // Delete dependent data first so we don't rely on DB-level CASCADE.
+      await pollRepository.deletePollCascade(poll.id);
       const response = successResponse({ deleted: true }, "Poll deleted", 200);
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;

@@ -571,6 +571,7 @@
 
   .top-list-item {
     @apply flex items-center gap-4 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm;
+    min-width: 0;
     transition: box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease;
   }
 

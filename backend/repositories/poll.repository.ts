@@ -67,6 +67,15 @@ export const pollRepository = {
       .order("display_order");
 
     if (optionsError) throw optionsError;
+    const normalizedOptions = (options ?? []).map((opt) => {
+      const raw = (opt as Record<string, unknown>).vote_count;
+      const count = Array.isArray(raw) && raw.length
+        ? Number((raw[0] as Record<string, unknown>)?.count ?? 0)
+        : typeof raw === "number"
+        ? raw
+        : 0;
+      return { ...opt, vote_count: Number.isFinite(count) ? count : 0 };
+    });
 
     // Get free text responses if applicable
     let freeTextResponses: Array<
@@ -85,9 +94,44 @@ export const pollRepository = {
 
     return {
       ...poll,
-      options,
+      options: normalizedOptions,
       freeTextResponses,
     };
+  },
+
+  // Delete poll and all dependent rows (votes, options, settings, post links).
+  async deletePollCascade(pollId: string) {
+    const { error: votesError } = await supabase
+      .from("poll_votes")
+      .delete()
+      .eq("poll_id", pollId);
+    if (votesError) throw votesError;
+
+    const { error: settingsError } = await supabase
+      .from("poll_display_settings")
+      .delete()
+      .eq("poll_id", pollId);
+    if (settingsError) throw settingsError;
+
+    const { error: postsError } = await supabase
+      .from("poll_posts")
+      .delete()
+      .eq("poll_id", pollId);
+    if (postsError) throw postsError;
+
+    const { error: optionsError } = await supabase
+      .from("poll_options")
+      .delete()
+      .eq("poll_id", pollId);
+    if (optionsError) throw optionsError;
+
+    const { error: pollError } = await supabase
+      .from("polls")
+      .delete()
+      .eq("id", pollId);
+    if (pollError) throw pollError;
+
+    return true;
   },
 
   // Update poll

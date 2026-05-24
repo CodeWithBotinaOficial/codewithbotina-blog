@@ -45,10 +45,10 @@ export default function TopList({ options, topCount, order }: Props) {
           const pctLabel = totalVotes > 0 ? `${pct.toFixed(1)}%` : "0%";
 
           return (
-            <div key={`${opt.option_text}-${index}`} className="top-list-item">
+            <div key={opt.id ?? `${opt.option_text}-${index}`} className="top-list-item">
               <div className="top-list-rank">{rankIcon(index)}</div>
               <div className="top-list-content">
-                <div className="top-list-text">{opt.option_text}</div>
+                <div className="top-list-text" title={opt.option_text}>{opt.option_text}</div>
                 <div className="top-list-bar" aria-hidden="true">
                   <div
                     className="top-list-bar-fill"
