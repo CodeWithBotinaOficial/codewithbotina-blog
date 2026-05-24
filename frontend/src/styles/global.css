@@ -514,6 +514,119 @@
     @apply list-decimal pl-5 text-sm text-[var(--color-text-secondary)];
   }
 
+  /* Poll Creator Modal */
+  .poll-creator-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .poll-creator-container {
+    width: 100%;
+    max-width: 640px;
+    max-height: min(90vh, 920px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: white;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+  }
+
+  .poll-creator-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+    background: color-mix(in oklab, var(--color-bg-subtle) 55%, white);
+  }
+
+  .poll-creator-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+  }
+
+  .poll-creator-body {
+    padding: 1.25rem;
+    overflow: auto;
+  }
+
+  .poll-creator-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-top: 1px solid var(--color-border);
+    background: white;
+  }
+
+  .poll-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .poll-option-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .poll-option-row .input-field {
+    flex: 1;
+  }
+
+  .btn-icon-danger {
+    padding: 0.55rem;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-error);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .btn-icon-danger:hover {
+    background: color-mix(in oklab, var(--color-error) 10%, white);
+    border-color: color-mix(in oklab, var(--color-error) 30%, white);
+  }
+
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: 640px) {
+    .poll-creator-modal {
+      padding: 0;
+    }
+    .poll-creator-container {
+      max-width: 100%;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+    .poll-creator-footer {
+      flex-direction: column-reverse;
+    }
+    .poll-creator-footer button {
+      width: 100%;
+    }
+  }
+
   /* If enhanced, the SSR fallback code block should never be visible. */
   .prose .md-diagram[data-enhanced="1"] > pre {
     display: none;
