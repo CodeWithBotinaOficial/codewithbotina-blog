@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { BarChart3, List as ListIcon } from "lucide-preact";
 import { t, type SupportedLanguage } from "../../lib/i18n";
+import { pollsApi } from "../../lib/api";
 import WordCloud from "./visualizations/WordCloud";
 import TopList from "./visualizations/TopList";
 import PollBarChart from "./visualizations/BarChart";
@@ -31,10 +32,8 @@ export default function PollResults({ poll, userVote: _userVote, language }: any
 
   async function loadResults() {
     try {
-      const res = await fetch(`/api/polls/${poll.slug}/results?lang=${language}`);
-      if (!res.ok) return;
-      const body = await res.json();
-      setResults(body.data ?? body);
+      const body = await pollsApi.results(poll.slug, language);
+      setResults((body as any).data ?? body);
     } catch (err) {
       console.error("Failed to load results", err);
     }

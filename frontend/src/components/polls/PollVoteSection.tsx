@@ -3,6 +3,7 @@ import { LogIn, Send, Trash2 } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../lib/i18n";
+import { pollsApi } from "../../lib/api";
 
 export default function PollVoteSection({ poll, userVote, onVote, language }: any) {
   const { user } = useSession();
@@ -70,19 +71,10 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
         payload = { optionIds: selectedOptions };
       }
 
-      const res = await fetch(`/api/polls/${poll.slug}/vote?lang=${language}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
+      await pollsApi.vote(poll.slug, language, payload);
+      {
         showToast("✅ " + t(lang, "polls.submit", "post"), "success");
         onVote();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || err.message || "Failed to submit vote", "error");
       }
     } catch (_err) {
       showToast("Failed to submit vote", "error");
@@ -95,18 +87,12 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
     if (!confirm(t(lang, "polls.removeVote", "post") + "?")) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/polls/${poll.slug}/remove-vote?lang=${language}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
+      await pollsApi.removeVote(poll.slug, language);
+      {
         showToast(t(lang, "polls.removeVote", "post"), "success");
         setSelectedOptions([]);
         setFreeText("");
         onVote();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || err.message || "Failed to remove vote", "error");
       }
     } catch (_err) {
       showToast("Failed to remove vote", "error");
