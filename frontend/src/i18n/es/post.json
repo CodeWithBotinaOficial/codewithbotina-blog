@@ -81,4 +81,30 @@
     "downloadSuccess": "Fórmula descargada",
     "error": "Error al procesar fórmula"
   }
+  ,
+  "polls": {
+    "title": "Encuesta",
+    "vote": "Votar",
+    "removeVote": "Eliminar respuesta",
+    "submit": "Enviar",
+    "closed": "Cerrada",
+    "signInToVote": "Inicia sesión para votar",
+    "alreadyVoted": "Ya has votado",
+    "freeText": {
+      "placeholder": "Escribe tu respuesta...",
+      "submitted": "Respuesta enviada"
+    },
+    "results": {
+      "wordCloud": "Nube de respuestas",
+      "topList": "Top {count} resultados",
+      "barChart": "Distribución de votos",
+      "download": "Descargar como PNG"
+    },
+    "analytics": {
+      "title": "Análisis de votos",
+      "user": "Usuario",
+      "vote": "Voto",
+      "date": "Fecha"
+    }
+  }
 }
