@@ -3,6 +3,7 @@ import { render } from "preact";
 import DiagramRenderer from "./DiagramRenderer";
 import TableWrapper from "./TableWrapper";
 import LatexRenderer from "./LatexRenderer";
+import PollEmbed from "../polls/PollEmbed";
 import type { MarkdownFeatureLabels } from "../../lib/markdown-labels";
 import type { SupportedLanguage } from "../../lib/i18n";
 
@@ -48,6 +49,16 @@ export default function MarkdownEnhancer({ containerId, language, labels, title,
   useEffect(() => {
     const root = document.getElementById(containerId);
     if (!root) return;
+
+    const pollNodes = Array.from(root.querySelectorAll<HTMLElement>(".md-poll"));
+    for (const node of pollNodes) {
+      if (node.dataset.enhanced) continue;
+      const slug = String(node.getAttribute("data-poll-slug") ?? node.dataset.pollSlug ?? "").trim();
+      if (!slug) continue;
+      node.dataset.enhanced = "1";
+      node.innerHTML = "";
+      render(<PollEmbed slug={slug} language={language} />, node);
+    }
 
     const latexNodes = Array.from(root.querySelectorAll<HTMLElement>(".md-latex"));
     for (const node of latexNodes) {

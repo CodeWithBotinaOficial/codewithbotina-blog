@@ -16,7 +16,10 @@ export default function TopList({ options, topCount, order }: Props) {
 
   return (
     <div ref={containerRef} className="poll-top-list">
-      <h4>Top {topCount} Results</h4>
+      <div className="poll-viz-toolbar">
+        <DownloadButton elementRef={containerRef} filename="top-list" />
+      </div>
+      <div className="poll-viz-title">Top {topCount} Results</div>
       <ol className="top-list">
         {sorted.map((opt, i) => (
           <li key={opt.option_text}>
@@ -24,8 +27,6 @@ export default function TopList({ options, topCount, order }: Props) {
           </li>
         ))}
       </ol>
-      <DownloadButton elementRef={containerRef} filename="top-list" />
     </div>
   );
 }
-

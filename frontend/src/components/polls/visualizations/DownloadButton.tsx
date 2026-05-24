@@ -13,7 +13,7 @@ export default function DownloadButton({ elementRef, filename }: Props) {
     if (!elementRef.current) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(elementRef.current, { backgroundColor: '#ffffff', scale: 2 });
+      const canvas = await html2canvas(elementRef.current, { backgroundColor: null, scale: 2, logging: false });
       const link = document.createElement('a');
       link.download = `${filename}-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
@@ -25,6 +25,9 @@ export default function DownloadButton({ elementRef, filename }: Props) {
     }
   }
 
-  return <button onClick={handleDownload} disabled={downloading}>⬇ Download PNG</button>;
+  return (
+    <button type="button" className="btn-secondary" onClick={handleDownload} disabled={downloading}>
+      {downloading ? "Downloading..." : "Download PNG"}
+    </button>
+  );
 }
-

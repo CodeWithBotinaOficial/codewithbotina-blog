@@ -1,0 +1,24 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../../../components/BaseLayout.astro";
+import PollEditor from "../../../../../components/polls/admin/PollEditor";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from "../../../../../lib/i18n";
+
+const { lang, slug } = Astro.params;
+const uiLanguage = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+const pollLangParam = Astro.url.searchParams.get("lang");
+const pollLanguage = isSupportedLanguage(pollLangParam ?? "") ? (pollLangParam as SupportedLanguage) : uiLanguage;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const pageTitle = "Edit Poll";
+---
+
+<BaseLayout title={pageTitle} currentLanguage={uiLanguage} currentPath={Astro.url.pathname}>
+  <section class="container-responsive py-12">
+    <PollEditor slug={slug} pollLanguage={pollLanguage} client:load />
+  </section>
+</BaseLayout>

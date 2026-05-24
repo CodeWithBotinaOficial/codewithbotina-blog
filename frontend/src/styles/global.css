@@ -315,6 +315,205 @@
     }
   }
 
+  /* Poll Embeds */
+  .prose .md-poll {
+    @apply my-8;
+  }
+
+  .md-poll__fallback {
+    @apply inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--color-text-secondary)];
+  }
+
+  .prose .poll-embed {
+    @apply my-8 rounded-xl border border-[var(--color-border)] bg-white p-6 shadow-sm;
+  }
+
+  .poll-header {
+    @apply mb-5 border-b border-[var(--color-border)] pb-4;
+  }
+
+  .poll-title-row {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .poll-title {
+    @apply m-0 text-xl font-bold text-[var(--color-text-primary)];
+  }
+
+  .poll-description {
+    @apply mt-2 text-[var(--color-text-secondary)];
+  }
+
+  .poll-status-badge {
+    @apply inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold;
+  }
+
+  .poll-status-badge.open {
+    background-color: color-mix(in oklab, var(--color-success) 18%, white);
+    color: color-mix(in oklab, var(--color-success) 70%, black);
+    border: 1px solid color-mix(in oklab, var(--color-success) 35%, white);
+  }
+
+  .poll-status-badge.closed {
+    background-color: color-mix(in oklab, var(--color-error) 14%, white);
+    color: color-mix(in oklab, var(--color-error) 70%, black);
+    border: 1px solid color-mix(in oklab, var(--color-error) 30%, white);
+  }
+
+  .poll-meta {
+    @apply mt-3 flex flex-wrap items-center gap-4 text-sm text-[var(--color-text-tertiary)];
+  }
+
+  .poll-metaitem {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .poll-loading,
+  .poll-error {
+    @apply rounded-xl border border-[var(--color-border)] bg-white p-6 text-sm text-[var(--color-text-secondary)];
+  }
+
+  .poll-error {
+    @apply text-[var(--color-error)];
+  }
+
+  .poll-vote-section {
+    @apply mb-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5;
+  }
+
+  .poll-auth-required {
+    @apply flex flex-col items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-6 text-center text-sm text-[var(--color-text-secondary)];
+  }
+
+  .poll-already-voted {
+    @apply rounded-xl border border-[var(--color-border)] bg-white p-4 text-sm text-[var(--color-text-secondary)];
+  }
+
+  .poll-note {
+    @apply mt-2 text-xs text-[var(--color-text-tertiary)];
+  }
+
+  .poll-textarea {
+    @apply w-full rounded-lg border border-[var(--color-border)] bg-white px-4 py-3 text-sm text-[var(--color-text-primary)];
+    resize: vertical;
+  }
+
+  .poll-char-count {
+    @apply mt-1 text-right text-xs text-[var(--color-text-tertiary)];
+  }
+
+  .poll-option {
+    @apply flex cursor-pointer items-center gap-3 rounded-xl border-2 border-[var(--color-border)] bg-white px-4 py-3 text-sm text-[var(--color-text-secondary)];
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .poll-option:hover {
+    border-color: color-mix(in oklab, var(--color-accent-primary) 45%, white);
+    background-color: color-mix(in oklab, var(--color-accent-light) 60%, white);
+  }
+
+  .poll-option.selected {
+    border-color: var(--color-accent-primary);
+    background-color: var(--color-accent-light);
+    color: var(--color-text-primary);
+  }
+
+  .poll-option input {
+    @apply h-5 w-5;
+  }
+
+  .poll-actions {
+    @apply mt-4 flex flex-col gap-2 sm:flex-row;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)];
+  }
+
+  .poll-results {
+    @apply mt-6;
+  }
+
+  .poll-results-title {
+    @apply mb-3 text-lg font-bold text-[var(--color-text-primary)];
+  }
+
+  .poll-tabs {
+    @apply mb-4 flex flex-wrap items-center gap-2 border-b border-[var(--color-border)] pb-2;
+  }
+
+  .poll-tab {
+    @apply inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)];
+  }
+
+  .poll-tab.active {
+    @apply border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)];
+  }
+
+  .poll-wordcloud,
+  .poll-top-list,
+  .poll-bar-chart {
+    @apply rounded-xl border border-[var(--color-border)] bg-white p-4;
+  }
+
+  .poll-wordcloud .poll-viz-title,
+  .poll-top-list .poll-viz-title,
+  .poll-bar-chart .poll-viz-title {
+    @apply mb-3 text-sm font-bold text-[var(--color-text-primary)];
+  }
+
+  .poll-viz-toolbar {
+    @apply mb-3 flex items-center justify-end gap-2;
+  }
+
+  .bar-chart-horizontal {
+    @apply flex flex-col gap-2;
+  }
+
+  .bar-row {
+    @apply grid items-center gap-3;
+    grid-template-columns: minmax(140px, 1fr) 2fr auto;
+  }
+
+  .bar-row .bar-label {
+    @apply truncate;
+  }
+
+  .bar-row .bar {
+    @apply h-3 rounded-full;
+  }
+
+  .bar-row .bar-value {
+    @apply tabular-nums text-xs text-[var(--color-text-tertiary)];
+  }
+
+  .bar-chart-vertical {
+    @apply grid items-end gap-3;
+    grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+    min-height: 220px;
+  }
+
+  .bar-col {
+    @apply flex flex-col items-center gap-2;
+  }
+
+  .bar-col .bar {
+    @apply w-10 rounded-lg;
+    min-height: 6px;
+  }
+
+  .bar-col .bar-label {
+    @apply line-clamp-2 text-center text-xs text-[var(--color-text-secondary)];
+  }
+
+  .bar-col .bar-value {
+    @apply tabular-nums text-xs text-[var(--color-text-tertiary)];
+  }
+
+  .top-list {
+    @apply list-decimal pl-5 text-sm text-[var(--color-text-secondary)];
+  }
+
   /* If enhanced, the SSR fallback code block should never be visible. */
   .prose .md-diagram[data-enhanced="1"] > pre {
     display: none;

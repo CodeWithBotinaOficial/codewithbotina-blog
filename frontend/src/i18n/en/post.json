@@ -87,7 +87,9 @@
     "vote": "Vote",
     "removeVote": "Remove response",
     "submit": "Submit",
+    "open": "Open",
     "closed": "Closed",
+    "closes": "Closes {{date}}",
     "signInToVote": "Sign in to vote",
     "alreadyVoted": "You have already voted",
     "freeText": {
@@ -95,6 +97,7 @@
       "submitted": "Response submitted"
     },
     "results": {
+      "title": "Results",
       "wordCloud": "Response Cloud",
       "topList": "Top {count} results",
       "barChart": "Vote Distribution",

@@ -1,23 +1,23 @@
-import { useState } from 'preact/hooks';
-import { useToast } from '@/hooks/useToast';
+import { useState } from "preact/hooks";
+import { useToast } from "../../../hooks/useToast";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   language: string;
-  onPollCreated?: (poll: any) => void;
+  onPollCreated?: (_poll: any) => void;
 }
 
 export default function PollCreator({ isOpen, onClose, language, onPollCreated }: Props) {
-  if (!isOpen) return null;
-
-  const [type, setType] = useState('single_choice');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [options, setOptions] = useState(['', '']);
+  const [type, setType] = useState("single_choice");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [options, setOptions] = useState(["", ""]);
   const { showToast } = useToast();
 
-  const maxOptions = type === 'single_choice' ? 5 : 9;
+  if (!isOpen) return null;
+
+  const maxOptions = type === "single_choice" ? 5 : 9;
   const minOptions = 2;
 
   async function handleCreate() {
@@ -26,42 +26,42 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
       return;
     }
 
-    if (type !== 'free_text') {
-      const validOptions = options.filter(o => o.trim());
+    if (type !== "free_text") {
+      const validOptions = options.filter((o) => o.trim());
       if (validOptions.length < minOptions) {
         showToast(`At least ${minOptions} options required`, 'error');
         return;
       }
     }
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
     try {
-      const res = await fetch('/api/polls/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const res = await fetch("/api/polls/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           slug,
           title,
           description,
           type,
           language,
-          options: type === 'free_text' ? [] : options.map(t => ({ text: t })),
+          options: type === "free_text" ? [] : options.map((t) => ({ text: t })),
         }),
       });
 
       if (res.ok) {
         const poll = await res.json();
-        showToast('Poll created!', 'success');
+        showToast("Poll created!", "success");
         onPollCreated?.(poll.data ?? poll);
         onClose();
       } else {
         const err = await res.json();
-        showToast(err.error || 'Failed to create poll', 'error');
+        showToast(err.error || "Failed to create poll", "error");
       }
-    } catch (err) {
-      showToast('Failed to create poll', 'error');
+    } catch (_err) {
+      showToast("Failed to create poll", "error");
     }
   }
 
@@ -85,7 +85,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
           <label>Description</label>
           <textarea value={description} onInput={(e: any) => setDescription(e.target.value)} rows={3} />
         </div>
-        {type !== 'free_text' && (
+        {type !== "free_text" && (
           <div className="form-group">
             <label>Options ({minOptions}-{maxOptions})</label>
             {options.map((opt, i) => (
@@ -96,16 +96,15 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
               }} />
             ))}
             {options.length < maxOptions && (
-              <button onClick={() => setOptions([...options, ''])}>+ Add</button>
+              <button type="button" onClick={() => setOptions([...options, ""])}>+ Add</button>
             )}
           </div>
         )}
         <div className="modal-actions">
-          <button onClick={onClose}>Cancel</button>
-          <button onClick={handleCreate} className="primary">Create</button>
+          <button type="button" onClick={onClose}>Cancel</button>
+          <button type="button" onClick={handleCreate} className="primary">Create</button>
         </div>
       </div>
     </div>
   );
 }
-

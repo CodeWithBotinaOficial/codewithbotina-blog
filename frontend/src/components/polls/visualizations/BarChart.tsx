@@ -16,7 +16,10 @@ export default function PollBarChart({ options, orientation, optionsCount }: Pro
 
   return (
     <div ref={containerRef} className="poll-bar-chart">
-      <h4>Vote Distribution</h4>
+      <div className="poll-viz-toolbar">
+        <DownloadButton elementRef={containerRef} filename="bar-chart" />
+      </div>
+      <div className="poll-viz-title">Vote Distribution</div>
       <div className="bar-chart-container">
         {orientation === 'horizontal' ? (
           <div className="bar-chart-horizontal">
@@ -40,8 +43,6 @@ export default function PollBarChart({ options, orientation, optionsCount }: Pro
           </div>
         )}
       </div>
-      <DownloadButton elementRef={containerRef} filename="bar-chart" />
     </div>
   );
 }
-

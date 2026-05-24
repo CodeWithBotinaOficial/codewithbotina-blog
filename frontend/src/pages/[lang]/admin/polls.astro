@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../components/BaseLayout.astro";
+import PollManagement from "../../../components/polls/admin/PollManagement";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, type SupportedLanguage } from "../../../lib/i18n";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const pageTitle = "Poll Management";
+---
+
+<BaseLayout title={pageTitle} currentLanguage={language} currentPath={Astro.url.pathname}>
+  <section class="container-responsive py-12">
+    <h1 class="text-3xl font-bold mb-6">{pageTitle}</h1>
+    <PollManagement language={language} client:load />
+  </section>
+</BaseLayout>

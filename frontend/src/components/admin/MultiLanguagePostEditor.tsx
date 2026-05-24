@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { Lock, ShieldX, Star, X } from "lucide-preact";
+import { BarChart3, Lock, ShieldX, Star, X } from "lucide-preact";
 import TranslationLinker, { type TranslationPost } from "./TranslationLinker";
 import { getApiUrl } from "../../lib/env";
 import { getAdminRoute } from "../../lib/admin-endpoints";
@@ -16,6 +16,7 @@ import TagSelector, { type TagOption } from "./TagSelector";
 import ImageUploadPreview from "./ImageUploadPreview";
 import StorageImageGallery, { type StorageImageItem } from "./StorageImageGallery";
 import type { TagSelectorLabels } from "../../lib/admin-editor";
+import PollCreator from "../polls/admin/PollCreator";
 
 type LanguageCode = string;
 
@@ -159,6 +160,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const [slugChecking, setSlugChecking] = useState<Record<LanguageCode, boolean>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  const bodyRefs = useRef<Record<LanguageCode, HTMLTextAreaElement | null>>({});
+  const [pollCreatorLang, setPollCreatorLang] = useState<LanguageCode | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const initialSlugsByPostIdRef = useRef<Record<string, string>>({});
@@ -186,6 +190,28 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     const normalized = String(lang ?? "").trim().toLowerCase();
     if (isUiLanguage(normalized)) return LANGUAGE_NAMES[normalized];
     return normalized.toUpperCase();
+  };
+
+  const insertPollEmbedIntoBody = (targetLang: LanguageCode, poll: any) => {
+    const title = String(poll?.title ?? "Poll").trim() || "Poll";
+    const slug = String(poll?.slug ?? "").trim();
+    if (!slug) return;
+    const embed = `[${title}](poll:${slug})`;
+
+    setSections((prev) => {
+      const current = prev[targetLang];
+      if (!current) return prev;
+      const body = String(current.body ?? "");
+      const el = bodyRefs.current[targetLang];
+      const start = el?.selectionStart ?? body.length;
+      const end = el?.selectionEnd ?? body.length;
+
+      const before = body.slice(0, start);
+      const after = body.slice(end);
+      const insertion = `${before.endsWith("\n") ? "\n" : "\n\n"}${embed}${after.startsWith("\n") ? "\n" : "\n\n"}`;
+
+      return { ...prev, [targetLang]: { ...current, body: insertion } };
+    });
   };
 
   const ensureSection = (lang: LanguageCode) => {
@@ -1176,6 +1202,15 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     >
                       {t(interfaceLanguage, "editor.previewTab", "admin")}
                     </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-subtle)]"
+                      onClick={() => setPollCreatorLang(lang)}
+                      title="Insert Poll"
+                    >
+                      <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                      <span class="hidden sm:inline">Add Poll</span>
+                    </button>
                   </div>
                 </div>
 
@@ -1186,6 +1221,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     rows={16}
                     value={section.body}
                     disabled={isSubmitting}
+                    ref={(el) => {
+                      bodyRefs.current[lang] = el;
+                    }}
                     onInput={(e) => {
                       const v = (e.currentTarget as HTMLTextAreaElement).value;
                       setSections((prev) => ({ ...prev, [lang]: { ...prev[lang], body: v } }));
@@ -1251,6 +1289,17 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           {t(interfaceLanguage, "editor.cancel", "admin")}
         </a>
       </div>
+
+      <PollCreator
+        isOpen={Boolean(pollCreatorLang)}
+        onClose={() => setPollCreatorLang(null)}
+        language={String(pollCreatorLang ?? interfaceLanguage)}
+        onPollCreated={(poll) => {
+          if (!pollCreatorLang) return;
+          insertPollEmbedIntoBody(pollCreatorLang, poll);
+          showToast("Poll inserted", "success");
+        }}
+      />
 
       <ConfirmDialog
         isOpen={showConfirm}
