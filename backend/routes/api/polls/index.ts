@@ -19,7 +19,9 @@ export const handler: Handlers = {
     const limit = Math.min(Number(url.searchParams.get("limit") ?? "20"), 50);
 
     try {
-      let query = supabase.from("polls").select("*").order("created_at", { ascending: false });
+      let query = supabase.from("polls").select("*").order("created_at", {
+        ascending: false,
+      });
       if (language) query = query.eq("language", language);
       if (status) query = query.eq("status", status);
       const { data, error } = await query.range(0, Math.max(limit - 1, 0));
@@ -39,4 +41,3 @@ export const handler: Handlers = {
     }
   },
 };
-

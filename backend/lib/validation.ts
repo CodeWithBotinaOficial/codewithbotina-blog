@@ -95,28 +95,31 @@ export function validateCommentContent(content: string): ValidationResult {
 // ---------------------------------------------------------------------------
 export const pollValidation = {
   // Poll types
-  pollTypes: ['free_text', 'single_choice', 'multiple_choice'] as const,
+  pollTypes: ["free_text", "single_choice", "multiple_choice"] as const,
 
   // Poll status
-  pollStatuses: ['open', 'closed'] as const,
+  pollStatuses: ["open", "closed"] as const,
 
   // Languages
-  languages: ['es', 'en', 'pt-br'] as const,
+  languages: ["es", "en", "pt-br"] as const,
 
   // Option limits
   optionLimits: {
     single_choice: { min: 2, max: 5 },
     multiple_choice: { min: 2, max: 9 },
-    free_text: { min: 0, max: 0 } // No options for free text
+    free_text: { min: 0, max: 0 }, // No options for free text
   },
 
   // Validation functions
   validatePollType(type: string): boolean {
-    return this.pollTypes.includes(type as any);
+    return (this.pollTypes as readonly string[]).includes(type);
   },
 
   validateOptionCount(type: string, count: number): boolean {
-    const limits = (this as any).optionLimits[type];
+    const limits = (this.optionLimits as Record<
+      string,
+      { min: number; max: number } | undefined
+    >)[type];
     if (!limits) return false;
     return count >= limits.min && count <= limits.max;
   },
@@ -128,5 +131,5 @@ export const pollValidation = {
 
   validateSlug(slug: string): boolean {
     return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
-  }
+  },
 };

@@ -315,6 +315,115 @@
     }
   }
 
+  /* Poll Creator Display Settings */
+  .poll-display-settings {
+    border-top: 1px solid var(--color-border);
+    padding-top: 1.25rem;
+  }
+
+  .form-section-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 0.75rem;
+  }
+
+  .display-setting-row {
+    margin-bottom: 1rem;
+  }
+
+  .checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+  }
+
+  .sub-settings {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--color-bg-subtle) 60%, white);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .form-row label {
+    min-width: 120px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+  }
+
+  .form-input-sm,
+  .form-select-sm {
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    background: white;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+  }
+
+  /* Poll Embed Admin Controls */
+  .poll-admin-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--color-bg-subtle) 60%, white);
+  }
+
+  .btn-admin-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .btn-admin-sm:hover {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent-primary);
+    color: var(--color-text-primary);
+  }
+
+  .btn-admin-sm.danger {
+    color: var(--color-error);
+    border-color: color-mix(in oklab, var(--color-error) 35%, white);
+  }
+
+  .btn-admin-sm.danger:hover {
+    background: color-mix(in oklab, var(--color-error) 10%, white);
+    border-color: var(--color-error);
+  }
+
   /* Poll Embeds */
   .prose .md-poll {
     @apply my-8;
@@ -383,6 +492,13 @@
 
   .poll-auth-required {
     @apply flex flex-col items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-6 text-center text-sm text-[var(--color-text-secondary)];
+  }
+
+  /* .prose a is more specific than .btn-primary, so force white text here */
+  .prose .poll-auth-required .btn-primary,
+  .poll-auth-required .btn-primary {
+    color: #ffffff !important;
+    text-decoration: none;
   }
 
   .poll-already-voted {

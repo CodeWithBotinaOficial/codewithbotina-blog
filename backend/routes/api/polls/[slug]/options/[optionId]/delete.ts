@@ -3,7 +3,10 @@ import { requireAdmin } from "../../../../../../middleware/auth.ts";
 import { pollRepository } from "../../../../../../repositories/poll.repository.ts";
 import { corsHeaders } from "../../../../../../middleware/cors.ts";
 import { AppError } from "../../../../../../utils/errors.ts";
-import { errorResponse, successResponse } from "../../../../../../utils/responses.ts";
+import {
+  errorResponse,
+  successResponse,
+} from "../../../../../../utils/responses.ts";
 
 export const handler: Handlers = {
   OPTIONS(req) {
@@ -28,7 +31,11 @@ export const handler: Handlers = {
       }
 
       await pollRepository.deleteOption(optionId);
-      const response = successResponse({ deleted: true }, "Option deleted", 200);
+      const response = successResponse(
+        { deleted: true },
+        "Option deleted",
+        200,
+      );
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {
@@ -42,4 +49,3 @@ export const handler: Handlers = {
     }
   },
 };
-

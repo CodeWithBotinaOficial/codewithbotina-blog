@@ -1,5 +1,5 @@
 import { Handlers } from "$fresh/server.ts";
-import { requireAuth, optionalAuth } from "../../../../middleware/auth.ts";
+import { optionalAuth } from "../../../../middleware/auth.ts";
 import { pollRepository } from "../../../../repositories/poll.repository.ts";
 import { corsHeaders } from "../../../../middleware/cors.ts";
 import { AppError } from "../../../../utils/errors.ts";
@@ -48,4 +48,3 @@ export const handler: Handlers = {
     }
   },
 };
-

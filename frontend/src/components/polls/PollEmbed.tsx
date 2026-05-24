@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { Clock, Lock, Users } from "lucide-preact";
+import { BarChart3, Clock, Edit3, Lock, Trash2, Unlock, Users } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
+import { useToast } from "../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../lib/i18n";
 import { pollsApi } from "../../lib/api";
 import PollVoteSection from "./PollVoteSection";
@@ -17,6 +18,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<any>(null);
   const { user, isAdmin } = useSession();
+  const { showToast } = useToast();
   const lang = (language ?? "en") as SupportedLanguage;
 
   useEffect(() => {
@@ -31,6 +33,10 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
       if (!pollData) {
         setPoll(null);
         return;
+      }
+      // Supabase can return related tables as arrays.
+      if (Array.isArray(pollData.poll_display_settings)) {
+        pollData.poll_display_settings = pollData.poll_display_settings[0] ?? null;
       }
       setPoll(pollData);
 
@@ -70,6 +76,29 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
     ? poll.poll_votes[0].count
     : undefined;
 
+  const toggleStatus = async () => {
+    const next = poll.status === "open" ? "closed" : "open";
+    try {
+      await pollsApi.update(poll.slug, language, { status: next });
+      showToast(`Poll ${next}`, "success");
+      await loadPoll();
+    } catch (_err) {
+      showToast("Failed to update poll", "error");
+    }
+  };
+
+  const deletePoll = async () => {
+    const confirmSlug = prompt(`Type "${poll.slug}" to confirm deletion:`);
+    if (confirmSlug !== poll.slug) return;
+    try {
+      await pollsApi.delete(poll.slug, language);
+      showToast("Poll deleted", "success");
+      setPoll(null);
+    } catch (_err) {
+      showToast("Failed to delete poll", "error");
+    }
+  };
+
   return (
     <div className="poll-embed">
       <div className="poll-header">
@@ -92,6 +121,35 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
         </div>
 
         {poll.description ? <p className="poll-description">{poll.description}</p> : null}
+
+        {isAdmin ? (
+          <div className="poll-admin-controls">
+            <button type="button" className="btn-admin-sm" onClick={toggleStatus} title={poll.status === "open" ? "Close poll" : "Open poll"}>
+              {poll.status === "open" ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+              {poll.status === "open" ? "Close" : "Open"}
+            </button>
+            <a
+              className="btn-admin-sm"
+              href={`/${language}/admin/polls/${encodeURIComponent(poll.slug)}/edit?lang=${encodeURIComponent(poll.language ?? language)}`}
+              title="Edit poll"
+            >
+              <Edit3 className="h-4 w-4" />
+              Edit
+            </a>
+            <a
+              className="btn-admin-sm"
+              href={`/${language}/admin/polls?lang=${encodeURIComponent(poll.language ?? language)}`}
+              title="Manage polls"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Manage
+            </a>
+            <button type="button" className="btn-admin-sm danger" onClick={deletePoll} title="Delete poll">
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </button>
+          </div>
+        ) : null}
 
         <div className="poll-meta">
           <span className="poll-metaitem">

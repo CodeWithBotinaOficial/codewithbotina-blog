@@ -29,14 +29,17 @@ export const handler: Handlers = {
       }
 
       // Optional confirmation slug in body
-      let body = {};
+      let body: Record<string, unknown> = {};
       try {
         body = await req.json();
       } catch (_e) {
         /* ignore */
       }
 
-      if (body?.confirm_slug && body.confirm_slug !== slug) {
+      const confirmSlug = typeof body.confirm_slug === "string"
+        ? body.confirm_slug
+        : "";
+      if (confirmSlug && confirmSlug !== slug) {
         const response = errorResponse("Slug confirmation mismatch", 400);
         headers.forEach((value, key) => response.headers.set(key, value));
         return response;
@@ -57,4 +60,3 @@ export const handler: Handlers = {
     }
   },
 };
-
