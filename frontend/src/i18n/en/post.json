@@ -81,4 +81,30 @@
     "downloadSuccess": "Formula downloaded",
     "error": "Error processing formula"
   }
+  ,
+  "polls": {
+    "title": "Poll",
+    "vote": "Vote",
+    "removeVote": "Remove response",
+    "submit": "Submit",
+    "closed": "Closed",
+    "signInToVote": "Sign in to vote",
+    "alreadyVoted": "You have already voted",
+    "freeText": {
+      "placeholder": "Enter your response...",
+      "submitted": "Response submitted"
+    },
+    "results": {
+      "wordCloud": "Response Cloud",
+      "topList": "Top {count} results",
+      "barChart": "Vote Distribution",
+      "download": "Download as PNG"
+    },
+    "analytics": {
+      "title": "Vote Analytics",
+      "user": "User",
+      "vote": "Vote",
+      "date": "Date"
+    }
+  }
 }

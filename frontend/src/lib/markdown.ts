@@ -185,3 +185,14 @@ export function renderMarkdownHtml(markdown: string): string {
 
   return String(marked.parse(normalized));
 }
+
+// Add poll link parsing
+export function parsePollLinks(content: string): string {
+  // Pattern: [Text](poll:slug)
+  const pollLinkRegex = /\[([^\]]+)\]\(poll:([a-z0-9-]+)\)/g;
+
+  return content.replace(pollLinkRegex, (match, text, slug) => {
+    return `<div data-poll-embed="${slug}" data-poll-text="${escapeHtml(text)}"></div>`;
+  });
+}
+
