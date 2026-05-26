@@ -3,6 +3,7 @@ import Toast from "../ui/Toast";
 import LatexContextMenu from "./LatexContextMenu";
 import type { LatexLabels } from "../../lib/markdown-labels";
 import type { SupportedLanguage } from "../../lib/i18n";
+import { downloadElementAsPng, elementToPngBlob } from "../../lib/download-utils";
 
 type KaTeXModule = typeof import("katex");
 
@@ -34,9 +35,11 @@ async function writeToClipboardText(text: string) {
 }
 
 async function renderElementToPngBlob(element: HTMLElement): Promise<Blob | null> {
-  const html2canvas = (await import("html2canvas")).default;
-  const canvas = await html2canvas(element, { backgroundColor: null, scale: 2, logging: false });
-  return await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+  try {
+    return await elementToPngBlob(element, { padding: 40, scale: 3, backgroundColor: "#ffffff" });
+  } catch (_err) {
+    return null;
+  }
 }
 
 interface Props {
@@ -140,15 +143,10 @@ export default function LatexRenderer({ formula, displayMode, labels }: Props) {
     try {
       const host = hostRef.current as HTMLElement | null;
       if (!host) return;
-      const target = (host.querySelector(".katex") as HTMLElement | null) ?? host;
-      const blob = await renderElementToPngBlob(target);
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `formula-${Date.now()}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const target = (host.querySelector(".katex") as HTMLElement | null) ??
+        (host.querySelector(".katex-display") as HTMLElement | null) ??
+        host;
+      await downloadElementAsPng(target, `formula-${Date.now()}.png`, { padding: 40, scale: 3, backgroundColor: "#ffffff" });
       showToast();
     } catch (_err) {
       // ignore
@@ -172,7 +170,9 @@ export default function LatexRenderer({ formula, displayMode, labels }: Props) {
     try {
       const host = hostRef.current as HTMLElement | null;
       if (!host) return;
-      const target = (host.querySelector(".katex") as HTMLElement | null) ?? host;
+      const target = (host.querySelector(".katex") as HTMLElement | null) ??
+        (host.querySelector(".katex-display") as HTMLElement | null) ??
+        host;
       const blob = await renderElementToPngBlob(target);
       if (blob && (navigator.clipboard as any)?.write && (globalThis as any).ClipboardItem) {
         const item = new (globalThis as any).ClipboardItem({ "image/png": blob });

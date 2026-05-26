@@ -11,6 +11,7 @@ import {
 import Modal from "../ui/Modal";
 import type { DiagramLabels } from "../../lib/markdown-labels";
 import type { SupportedLanguage } from "../../lib/i18n";
+import { downloadSvgElementAsPng, downloadSvgElementAsSvg } from "../../lib/download-utils";
 
 type ViewMode = "diagram" | "code";
 
@@ -65,69 +66,17 @@ function decodeSvgSize(svg: string): { width: number; height: number } {
   return { width: 800, height: 600 };
 }
 
-function ensureSvgNamespace(svg: string): string {
-  if (/xmlns=/.test(svg)) return svg;
-  return svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+async function downloadViewerPng(viewport: HTMLElement | null, filename: string) {
+  const svgEl = viewport?.querySelector("svg") as SVGSVGElement | null;
+  if (!svgEl) throw new Error("No diagram SVG found");
+  // Export at a stable, high-quality resolution independent of the current zoom.
+  await downloadSvgElementAsPng(svgEl, filename, { padding: 24, scale: 2.5, backgroundColor: "#ffffff" });
 }
 
-async function downloadSvg(svg: string, filename: string) {
-  const blob = new Blob([ensureSvgNamespace(svg)], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename.endsWith(".svg") ? filename : `${filename}.svg`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-async function downloadPng(svg: string, filename: string, zoom: number) {
-  const { width, height } = decodeSvgSize(svg);
-  const dpr = window.devicePixelRatio || 1;
-  const scale = clamp(zoom, MIN_ZOOM, MAX_ZOOM);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(width * scale * dpr));
-  canvas.height = Math.max(1, Math.round(height * scale * dpr));
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas context not available");
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.scale(scale * dpr, scale * dpr);
-
-  const svgBlob = new Blob([ensureSvgNamespace(svg)], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(svgBlob);
-
-  try {
-    const img = new Image();
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error("Failed to load SVG image"));
-      img.src = url;
-    });
-    ctx.drawImage(img, 0, 0, width, height);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-
-  const pngBlob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) reject(new Error("Failed to export PNG"));
-      else resolve(blob);
-    }, "image/png");
-  });
-
-  const pngUrl = URL.createObjectURL(pngBlob);
-  const a = document.createElement("a");
-  a.href = pngUrl;
-  a.download = filename.endsWith(".png") ? filename : `${filename}.png`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(pngUrl);
+async function downloadViewerSvg(viewport: HTMLElement | null, filename: string) {
+  const svgEl = viewport?.querySelector("svg") as SVGSVGElement | null;
+  if (!svgEl) throw new Error("No diagram SVG found");
+  await downloadSvgElementAsSvg(svgEl, filename, { padding: 24 });
 }
 
 async function loadMermaid() {
@@ -391,7 +340,7 @@ function DiagramViewer({
                   role="menuitem"
                   onClick={async () => {
                     setDownloadOpen(false);
-                    await downloadPng(svg, downloadName, scale);
+                    await downloadViewerPng(viewportRef.current, downloadName);
                   }}
                 >
                   {labels.downloadPNG}
@@ -402,7 +351,7 @@ function DiagramViewer({
                   role="menuitem"
                   onClick={async () => {
                     setDownloadOpen(false);
-                    await downloadSvg(svg, downloadName);
+                    await downloadViewerSvg(viewportRef.current, downloadName);
                   }}
                 >
                   {labels.downloadSVG}

@@ -73,13 +73,13 @@ Markdown content is enhanced automatically in published posts and in the admin p
 
 Use Mermaid fenced code blocks:
 
-````markdown
+```markdown
 ```mermaid
 graph TD
   A[Start] --> B[End]
 ```
-````
 
+```
 Features:
 
 - Toggle between diagram view and code view
@@ -174,6 +174,7 @@ Implementation:
 Administrators can create, edit, and delete posts directly from the frontend.
 
 **Creating Posts:**
+
 1. Navigate to homepage (must be logged in as admin)
 2. Click "Create New Post" button
 3. Select a primary language and optionally add translations (create multiple languages in one interface)
@@ -183,6 +184,7 @@ Administrators can create, edit, and delete posts directly from the frontend.
 7. Click "Create Post" and confirm
 
 **Editing Posts:**
+
 1. Navigate to post detail page (must be admin)
 2. Click three-dot menu → "Edit Post"
 3. If the post has linked translations, all versions load into a multi-language editor
@@ -191,6 +193,7 @@ Administrators can create, edit, and delete posts directly from the frontend.
 6. Click "Update Post" and confirm
 
 **Deleting Posts:**
+
 1. Navigate to post detail page (must be admin)
 2. Click three-dot menu → "Delete Post"
 3. Confirm deletion (WARNING: Deletes all comments and reactions)
@@ -198,6 +201,7 @@ Administrators can create, edit, and delete posts directly from the frontend.
 ### Image Uploads
 
 When creating/editing posts, you can:
+
 - Provide external image URL
 - Upload image from device (drag-and-drop or click to browse)
 
@@ -224,11 +228,13 @@ Admin editor supports English, Spanish, and Portuguese routes:
 ## Internationalization
 
 Translation files located in:
+
 - `src/i18n/en/` - English
 - `src/i18n/es/` - Spanish
 - `src/i18n/pt-br/` - Brazilian Portuguese
 
 Legal documents:
+
 - `legal-docs/en/` - English
 - `legal-docs/es/` - Spanish
 - `legal-docs/pt-br/` - Brazilian Portuguese
@@ -263,14 +269,14 @@ Legal documents:
 
 ### Tech Stack
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| Framework | Astro | 5.17.1 |
-| Styling | Tailwind CSS | 4.1.18 |
-| Database | Supabase (PostgreSQL) | Latest |
-| Backend API | Deno Deploy | Fresh 1.7.3 |
-| Deployment | Cloudflare Pages | Edge Runtime |
-| Icons | Lucide Icons | Latest |
+| Component   | Technology            | Version      |
+| ----------- | --------------------- | ------------ |
+| Framework   | Astro                 | 5.17.1       |
+| Styling     | Tailwind CSS          | 4.1.18       |
+| Database    | Supabase (PostgreSQL) | Latest       |
+| Backend API | Deno Deploy           | Fresh 1.7.3  |
+| Deployment  | Cloudflare Pages      | Edge Runtime |
+| Icons       | Lucide Icons          | Latest       |
 
 ### Page Structure
 
@@ -320,29 +326,33 @@ frontend/
 ### Installation
 
 1. **Clone the repository:**
-```bash
-git clone https://github.com/yourusername/codewithbotina-blog.git
-cd codewithbotina-blog/frontend
-```
+   
+   ```bash
+   git clone https://github.com/yourusername/codewithbotina-blog.git
+   cd codewithbotina-blog/frontend
+   ```
 
 2. **Install dependencies:**
-```bash
-npm install
-```
+   
+   ```bash
+   npm install
+   ```
 
 3. **Configure environment variables:**
-```bash
-cp .env.example .env
-nano .env  # Edit with your Supabase credentials
-```
+   
+   ```bash
+   cp .env.example .env
+   nano .env  # Edit with your Supabase credentials
+   ```
 
 4. **Run development server:**
-```bash
-npm run dev
-```
+   
+   ```bash
+   npm run dev
+   ```
 
 5. **Access locally:**
-Open [http://localhost:4321](http://localhost:4321)
+   Open [http://localhost:4321](http://localhost:4321)
 
 ---
 
@@ -371,6 +381,7 @@ npm run test:coverage
 See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions for Cloudflare Pages (2026).
 
 **Quick Deploy:**
+
 1. Push to GitHub
 2. Connect repository to Cloudflare Pages
 3. Configure environment variables in the Cloudflare dashboard
@@ -385,6 +396,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions for Clou
 See `.env.example` for a complete list and descriptions.
 
 **Required for Production:**
+
 - `PUBLIC_SUPABASE_URL`
 - `PUBLIC_SUPABASE_ANON_KEY`
 - `PUBLIC_API_URL`
@@ -418,6 +430,7 @@ MIT License - see [LICENSE](../LICENSE) file for details.
 ## 👤 Author
 
 **Diego Alejandro Botina**
+
 - Website: [blog.codewithbotina.com](https://blog.codewithbotina.com)
 - Portfolio: [portfolio.codewithbotina.com](https://portfolio.codewithbotina.com)
 - GitHub: [@CodeWithBotinaOficial](https://github.com/CodeWithBotinaOficial)
