@@ -17,6 +17,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
   const [poll, setPoll] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<any>(null);
+  const [voteLoading, setVoteLoading] = useState(false);
   const [resultsKey, setResultsKey] = useState(0);
   const { user, isAdmin } = useSession();
   const { showToast } = useToast();
@@ -24,7 +25,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
 
   useEffect(() => {
     loadPoll();
-  }, [slug, language]);
+  }, [slug, language, user?.id]);
 
   async function loadPoll() {
     setLoading(true);
@@ -43,8 +44,12 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
       setPoll(pollData);
 
       if (user) {
+        setVoteLoading(true);
         const voteBody = await pollsApi.myVote(slug, language).catch(() => null);
         if (voteBody) setUserVote((voteBody as any).data ?? voteBody);
+        setVoteLoading(false);
+      } else {
+        setVoteLoading(false);
       }
     } catch (err) {
       console.error('Failed to load poll', err);
@@ -166,7 +171,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
         </div>
       </div>
 
-      {!isClosed && (
+      {!isClosed && !voteLoading && (
         <PollVoteSection
           poll={poll}
           userVote={userVote}
