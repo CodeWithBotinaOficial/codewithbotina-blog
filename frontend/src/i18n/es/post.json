@@ -109,5 +109,14 @@
       "vote": "Voto",
       "date": "Fecha"
     }
+  },
+  "pollsBrowser": {
+    "title": "Insertar Encuesta",
+    "search": "Buscar encuestas por título o slug...",
+    "copyCode": "Copiar Código",
+    "copied": "¡Copiado!",
+    "noPolls": "No se encontraron encuestas",
+    "loading": "Cargando encuestas...",
+    "close": "Cerrar"
   }
 }

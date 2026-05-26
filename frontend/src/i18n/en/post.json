@@ -109,5 +109,14 @@
       "vote": "Vote",
       "date": "Date"
     }
+  },
+  "pollsBrowser": {
+    "title": "Insert Poll",
+    "search": "Search polls by title or slug...",
+    "copyCode": "Copy Code",
+    "copied": "Copied!",
+    "noPolls": "No polls found",
+    "loading": "Loading polls...",
+    "close": "Close"
   }
 }

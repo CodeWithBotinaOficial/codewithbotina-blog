@@ -8,7 +8,7 @@ import PollBarChart from "./visualizations/BarChart";
 
 type ResultsTab = "chart" | "top";
 
-export default function PollResults({ poll, userVote: _userVote, language }: any) {
+export default function PollResults({ poll, userVote, language }: any) {
   const [results, setResults] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<ResultsTab>("chart");
   const lang = (language ?? "en") as SupportedLanguage;
@@ -17,7 +17,13 @@ export default function PollResults({ poll, userVote: _userVote, language }: any
       results?.options?.map((o: any) => ({
         id: o.id,
         option_text: o.option_text,
-        vote_count: Array.isArray(o.vote_count) ? (o.vote_count?.[0]?.count ?? 0) : (o.vote_count ?? 0),
+        vote_count: (() => {
+          const raw = o.vote_count;
+          const n = Array.isArray(raw)
+            ? Number(raw?.[0]?.count ?? 0)
+            : Number(raw ?? 0);
+          return Number.isFinite(n) ? n : 0;
+        })(),
         color: o.color ?? "var(--color-accent-primary)",
       })) ?? [],
     [results],
@@ -25,6 +31,9 @@ export default function PollResults({ poll, userVote: _userVote, language }: any
 
   useEffect(() => {
     loadResults();
+  }, [poll?.id, userVote]);
+
+  useEffect(() => {
     // default tab preference based on settings
     const showChart = Boolean(poll?.poll_display_settings?.show_bar_chart);
     const showTop = Boolean(poll?.poll_display_settings?.show_top);

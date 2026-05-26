@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { Plus, Trash2, X } from "lucide-preact";
 import { useToast } from "../../../hooks/useToast";
 import { pollsApi } from "../../../lib/api";
+import { t, type SupportedLanguage } from "../../../lib/i18n";
 
 interface Props {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function PollCreator({ isOpen, onClose, language, onPollCreated }: Props) {
+  const lang = (language ?? "en") as SupportedLanguage;
   const [type, setType] = useState("single_choice");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -164,7 +166,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
     >
       <div className="poll-creator-container" ref={containerRef} onClick={(e) => e.stopPropagation()}>
         <div className="poll-creator-header">
-          <h3>Create Poll</h3>
+          <h3>{t(lang, "polls.createModal.title", "admin")}</h3>
           <button type="button" className="btn-secondary" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </button>
@@ -178,21 +180,21 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
           ) : null}
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold">Type</label>
+            <label className="text-sm font-semibold">{t(lang, "polls.createModal.type", "admin")}</label>
             <select
               className="input-field"
               value={type}
               onChange={(e: any) => setType(String(e.currentTarget.value))}
               disabled={submitting}
             >
-              <option value="free_text">Free Text</option>
-              <option value="single_choice">Single Choice</option>
-              <option value="multiple_choice">Multiple Choice</option>
+              <option value="free_text">{t(lang, "polls.createModal.freeText", "admin")}</option>
+              <option value="single_choice">{t(lang, "polls.createModal.singleChoice", "admin")}</option>
+              <option value="multiple_choice">{t(lang, "polls.createModal.multipleChoice", "admin")}</option>
             </select>
           </div>
 
           <div className="mt-4 space-y-2">
-            <label className="text-sm font-semibold">Title</label>
+            <label className="text-sm font-semibold">{t(lang, "polls.createModal.pollTitle", "admin")}</label>
             <input
               name="poll-title"
               className="input-field"
@@ -203,7 +205,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
           </div>
 
           <div className="mt-4 space-y-2">
-            <label className="text-sm font-semibold">Description</label>
+            <label className="text-sm font-semibold">{t(lang, "polls.createModal.description", "admin")}</label>
             <textarea
               className="input-field"
               value={description}
@@ -226,7 +228,9 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
 
           {type !== "free_text" ? (
             <div className="mt-5 space-y-2">
-              <label className="text-sm font-semibold">Options ({minOptions}-{maxOptions})</label>
+              <label className="text-sm font-semibold">
+                {t(lang, "polls.createModal.options", "admin")} ({minOptions}-{maxOptions})
+              </label>
               <div className="poll-options-list">
                 {options.map((opt, i) => (
                   <div key={i} className="poll-option-row">
@@ -254,14 +258,14 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
 
               <button type="button" className="btn-secondary btn-sm inline-flex items-center gap-2" onClick={addOption} disabled={submitting || options.length >= maxOptions}>
                 <Plus className="h-4 w-4" />
-                Add Option
+                {t(lang, "polls.createModal.addOption", "admin")}
               </button>
             </div>
           ) : null}
 
           {type === "single_choice" || type === "multiple_choice" ? (
             <div className="poll-display-settings mt-6">
-              <div className="form-section-title">Display Settings</div>
+              <div className="form-section-title">{t(lang, "polls.createModal.displaySettings", "admin")}</div>
 
               <div className="display-setting-row">
                 <label className="checkbox-label">
@@ -271,13 +275,13 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
                     onChange={(e: any) => setDisplaySettings((prev) => ({ ...prev, show_top: Boolean(e.currentTarget.checked) }))}
                     disabled={submitting}
                   />
-                  <span>Show Top List</span>
+                  <span>{t(lang, "polls.createModal.showTopList", "admin")}</span>
                 </label>
 
                 {displaySettings.show_top ? (
                   <div className="sub-settings">
                     <div className="form-row">
-                      <label>Top Count</label>
+                      <label>{t(lang, "polls.createModal.topCount", "admin")}</label>
                       <input
                         className="form-input-sm"
                         type="number"
@@ -294,15 +298,15 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
                       <span className="hint">Max: {maxTopCount} (60% of {validOptionCount} options)</span>
                     </div>
                     <div className="form-row">
-                      <label>Order</label>
+                      <label>{t(lang, "polls.createModal.topOrder", "admin")}</label>
                       <select
                         className="form-select-sm"
                         value={displaySettings.top_order}
                         onChange={(e: any) => setDisplaySettings((prev) => ({ ...prev, top_order: String(e.currentTarget.value) as any }))}
                         disabled={submitting}
                       >
-                        <option value="desc">Highest to Lowest</option>
-                        <option value="asc">Lowest to Highest</option>
+                        <option value="desc">{t(lang, "polls.createModal.descending", "admin")}</option>
+                        <option value="asc">{t(lang, "polls.createModal.ascending", "admin")}</option>
                       </select>
                     </div>
                     {validOptionCount === 2 && maxTopCount === 1 ? (
@@ -322,13 +326,13 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
                     onChange={(e: any) => setDisplaySettings((prev) => ({ ...prev, show_bar_chart: Boolean(e.currentTarget.checked) }))}
                     disabled={submitting}
                   />
-                  <span>Show Bar Chart</span>
+                  <span>{t(lang, "polls.createModal.showBarChart", "admin")}</span>
                 </label>
 
                 {displaySettings.show_bar_chart ? (
                   <div className="sub-settings">
                     <div className="form-row">
-                      <label>Orientation</label>
+                      <label>{t(lang, "polls.createModal.chartOrientation", "admin")}</label>
                       <select
                         className="form-select-sm"
                         value={displaySettings.bar_chart_orientation}
@@ -336,12 +340,12 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
                           setDisplaySettings((prev) => ({ ...prev, bar_chart_orientation: String(e.currentTarget.value) as any }))}
                         disabled={submitting}
                       >
-                        <option value="vertical">Vertical</option>
-                        <option value="horizontal">Horizontal</option>
+                        <option value="vertical">{t(lang, "polls.createModal.vertical", "admin")}</option>
+                        <option value="horizontal">{t(lang, "polls.createModal.horizontal", "admin")}</option>
                       </select>
                     </div>
                     <div className="form-row">
-                      <label>Options to Show</label>
+                      <label>{t(lang, "polls.createModal.chartOptions", "admin")}</label>
                       <input
                         className="form-input-sm"
                         type="number"
@@ -361,10 +365,10 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
 
         <div className="poll-creator-footer">
           <button type="button" className="btn-secondary" onClick={onClose} disabled={submitting}>
-            Cancel
+            {t(lang, "polls.createModal.cancel", "admin")}
           </button>
           <button type="button" className="btn-primary" onClick={(e) => handleCreatePoll(e as any)} disabled={submitting || !title.trim()}>
-            {submitting ? "Creating..." : "Create Poll"}
+            {submitting ? "Creating..." : t(lang, "polls.createModal.create", "admin")}
           </button>
         </div>
       </div>

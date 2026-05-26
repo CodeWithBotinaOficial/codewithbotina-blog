@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { Edit3, Lock, Plus, Trash2, Unlock } from "lucide-preact";
 import { useSession } from "../../../hooks/useSession";
 import { useToast } from "../../../hooks/useToast";
-import type { SupportedLanguage } from "../../../lib/i18n";
+import { t, type SupportedLanguage } from "../../../lib/i18n";
 import { pollsApi } from "../../../lib/api";
 import PollCreator from "./PollCreator";
 
@@ -15,6 +15,7 @@ type LangFilter = SupportedLanguage | "all";
 export default function PollManagement({ language }: Props) {
   const { isAdmin, loading: sessionLoading } = useSession();
   const { showToast } = useToast();
+  const lang = (language ?? "en") as SupportedLanguage;
   const [polls, setPolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreator, setShowCreator] = useState(false);
@@ -76,8 +77,8 @@ export default function PollManagement({ language }: Props) {
     <div class="space-y-4">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 class="text-xl font-bold">Polls</h2>
-          <p class="text-sm text-[var(--color-text-secondary)]">Manage polls across languages.</p>
+          <h2 class="text-xl font-bold">{t(lang, "polls.title", "admin")}</h2>
+          <p class="text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.description", "admin")}</p>
         </div>
 
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -95,7 +96,7 @@ export default function PollManagement({ language }: Props) {
 
           <button type="button" class="btn-primary inline-flex items-center gap-2" onClick={() => setShowCreator(true)}>
             <Plus className="h-4 w-4" />
-            Create Poll
+            {t(lang, "polls.create", "admin")}
           </button>
         </div>
       </div>
@@ -120,7 +121,7 @@ export default function PollManagement({ language }: Props) {
               </tr>
             ) : polls.length === 0 ? (
               <tr>
-                <td class="px-3 py-3 text-[var(--color-text-secondary)]" colSpan={7}>No polls.</td>
+                <td class="px-3 py-3 text-[var(--color-text-secondary)]" colSpan={7}>{t(lang, "polls.noPolls", "admin")}</td>
               </tr>
             ) : polls.map((poll) => (
               <tr key={poll.id}>

@@ -35,7 +35,7 @@ export default function TopList({ options, topCount, order }: Props) {
     <div ref={containerRef} className="poll-top-list">
       <div className="poll-viz-toolbar top-list-header">
         <div className="poll-viz-title">Top {topCount}</div>
-        <DownloadButton elementRef={containerRef} filename="top-list" />
+        <DownloadButton elementRef={containerRef} filename="top-list" type="list" />
       </div>
 
       <div className="top-list-items">

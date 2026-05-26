@@ -17,7 +17,7 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
 
   useEffect(() => {
     // Initialize from existing vote (when the embed refreshes).
-    if (!Array.isArray(userVote) || userVote.length === 0) {
+    if (!userVote || !Array.isArray(userVote) || userVote.length === 0) {
       setSelectedOptions([]);
       setFreeText("");
       return;
@@ -31,13 +31,9 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
 
     const ids = userVote
       .map((v: any) => String(v.poll_option_id ?? v.optionId ?? v.option_id ?? ""))
-      .filter(Boolean);
+      .filter((id) => id !== "");
 
-    if (poll.type === "single_choice") {
-      setSelectedOptions(ids.length ? [ids[0]] : []);
-    } else if (poll.type === "multiple_choice") {
-      setSelectedOptions(Array.from(new Set(ids)));
-    }
+    setSelectedOptions(Array.from(new Set(ids)));
   }, [poll?.type, userVote]);
 
   async function handleVote() {

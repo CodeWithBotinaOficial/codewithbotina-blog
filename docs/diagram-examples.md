@@ -100,4 +100,3 @@ gitGraph
 - Prefer short labels on mobile; long labels can overflow and require more panning.
 - Keep diagrams focused: one concept per diagram.
 - If a diagram fails to render, switch to "View Code" and validate the Mermaid syntax.
-

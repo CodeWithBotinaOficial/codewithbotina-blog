@@ -17,6 +17,7 @@ import ImageUploadPreview from "./ImageUploadPreview";
 import StorageImageGallery, { type StorageImageItem } from "./StorageImageGallery";
 import type { TagSelectorLabels } from "../../lib/admin-editor";
 import PollCreator from "../polls/admin/PollCreator";
+import PollsBrowser from "../polls/admin/PollsBrowser";
 
 type LanguageCode = string;
 
@@ -162,6 +163,33 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
   const bodyRefs = useRef<Record<LanguageCode, HTMLTextAreaElement | null>>({});
   const [pollCreatorLang, setPollCreatorLang] = useState<LanguageCode | null>(null);
+  const [pollBrowserLang, setPollBrowserLang] = useState<LanguageCode | null>(null);
+
+  const copyPollEmbedToClipboard = async (poll: any) => {
+    const title = String(poll?.title ?? "Poll").trim() || "Poll";
+    const slug = String(poll?.slug ?? "").trim();
+    if (!slug) return;
+    const embed = `[${title}](poll:${slug})`;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(embed);
+      } else {
+        const el = document.createElement("textarea");
+        el.value = embed;
+        el.setAttribute("readonly", "true");
+        el.style.position = "fixed";
+        el.style.left = "-9999px";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+      }
+      showToast(embed, "success");
+    } catch (_err) {
+      showToast("Failed to copy poll embed", "error");
+    }
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -190,28 +218,6 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     const normalized = String(lang ?? "").trim().toLowerCase();
     if (isUiLanguage(normalized)) return LANGUAGE_NAMES[normalized];
     return normalized.toUpperCase();
-  };
-
-  const insertPollEmbedIntoBody = (targetLang: LanguageCode, poll: any) => {
-    const title = String(poll?.title ?? "Poll").trim() || "Poll";
-    const slug = String(poll?.slug ?? "").trim();
-    if (!slug) return;
-    const embed = `[${title}](poll:${slug})`;
-
-    setSections((prev) => {
-      const current = prev[targetLang];
-      if (!current) return prev;
-      const body = String(current.body ?? "");
-      const el = bodyRefs.current[targetLang];
-      const start = el?.selectionStart ?? body.length;
-      const end = el?.selectionEnd ?? body.length;
-
-      const before = body.slice(0, start);
-      const after = body.slice(end);
-      const insertion = `${before.endsWith("\n") ? "\n" : "\n\n"}${embed}${after.startsWith("\n") ? "\n" : "\n\n"}`;
-
-      return { ...prev, [targetLang]: { ...current, body: insertion } };
-    });
   };
 
   const ensureSection = (lang: LanguageCode) => {
@@ -1205,11 +1211,11 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     <button
                       type="button"
                       class="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-subtle)]"
-                      onClick={() => setPollCreatorLang(lang)}
+                      onClick={() => setPollBrowserLang(lang)}
                       title="Insert Poll"
                     >
                       <BarChart3 className="h-4 w-4" aria-hidden="true" />
-                      <span class="hidden sm:inline">Add Poll</span>
+                      <span class="hidden sm:inline">Insert Poll</span>
                     </button>
                   </div>
                 </div>
@@ -1295,9 +1301,18 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         onClose={() => setPollCreatorLang(null)}
         language={String(pollCreatorLang ?? interfaceLanguage)}
         onPollCreated={(poll) => {
-          if (!pollCreatorLang) return;
-          insertPollEmbedIntoBody(pollCreatorLang, poll);
-          showToast("Poll inserted", "success");
+          void copyPollEmbedToClipboard(poll);
+          setPollCreatorLang(null);
+        }}
+      />
+
+      <PollsBrowser
+        isOpen={Boolean(pollBrowserLang)}
+        onClose={() => setPollBrowserLang(null)}
+        currentLanguage={interfaceLanguage}
+        onCreatePoll={() => {
+          if (!pollBrowserLang) return;
+          setPollCreatorLang(pollBrowserLang);
         }}
       />
 
