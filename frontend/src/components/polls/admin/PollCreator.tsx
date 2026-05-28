@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Plus, Trash2, X } from "lucide-preact";
+import { Globe, Plus, Trash2, X } from "lucide-preact";
 import { useToast } from "../../../hooks/useToast";
 import { pollsApi } from "../../../lib/api";
 import { t, type SupportedLanguage } from "../../../lib/i18n";
@@ -16,6 +16,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
   const [type, setType] = useState("single_choice");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
   const [closesAt, setClosesAt] = useState<string>("");
   const [options, setOptions] = useState<Array<{ text: string }>>([{ text: "" }, { text: "" }]);
   const [displaySettings, setDisplaySettings] = useState({
@@ -44,6 +45,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
     setType("single_choice");
     setTitle("");
     setDescription("");
+    setSelectedLanguage(language);
     setClosesAt("");
     setOptions([{ text: "" }, { text: "" }]);
     setDisplaySettings({
@@ -60,7 +62,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
       const el = containerRef.current?.querySelector<HTMLInputElement>('input[name="poll-title"]');
       el?.focus();
     }, 0);
-  }, [isOpen]);
+  }, [isOpen, language]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -128,7 +130,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
         title,
         description,
         type,
-        language,
+        language: selectedLanguage,
         closes_at: closesAt ? new Date(closesAt).toISOString() : null,
         options: type === "free_text"
           ? []
@@ -179,18 +181,38 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
             </div>
           ) : null}
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">{t(lang, "polls.createModal.type", "admin")}</label>
-            <select
-              className="input-field"
-              value={type}
-              onChange={(e: any) => setType(String(e.currentTarget.value))}
-              disabled={submitting}
-            >
-              <option value="free_text">{t(lang, "polls.createModal.freeText", "admin")}</option>
-              <option value="single_choice">{t(lang, "polls.createModal.singleChoice", "admin")}</option>
-              <option value="multiple_choice">{t(lang, "polls.createModal.multipleChoice", "admin")}</option>
-            </select>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">{t(lang, "polls.createModal.type", "admin")}</label>
+              <select
+                className="input-field"
+                value={type}
+                onChange={(e: any) => setType(String(e.currentTarget.value))}
+                disabled={submitting}
+              >
+                <option value="free_text">{t(lang, "polls.createModal.freeText", "admin")}</option>
+                <option value="single_choice">{t(lang, "polls.createModal.singleChoice", "admin")}</option>
+                <option value="multiple_choice">{t(lang, "polls.createModal.multipleChoice", "admin")}</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="poll-language" className="flex items-center gap-1.5 text-sm font-semibold">
+                <Globe className="h-4 w-4" />
+                Language
+              </label>
+              <select
+                id="poll-language"
+                className="input-field"
+                value={selectedLanguage}
+                onChange={(e: any) => setSelectedLanguage(String(e.currentTarget.value))}
+                disabled={submitting}
+              >
+                <option value="en">🇺🇸 English</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="pt-br">🇧🇷 Português</option>
+              </select>
+            </div>
           </div>
 
           <div className="mt-4 space-y-2">
