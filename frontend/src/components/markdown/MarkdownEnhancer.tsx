@@ -54,10 +54,11 @@ export default function MarkdownEnhancer({ containerId, language, labels, title,
     for (const node of pollNodes) {
       if (node.dataset.enhanced) continue;
       const slug = String(node.getAttribute("data-poll-slug") ?? node.dataset.pollSlug ?? "").trim();
+      const pollLang = String(node.getAttribute("data-poll-lang") ?? node.dataset.pollLang ?? "").trim();
       if (!slug) continue;
       node.dataset.enhanced = "1";
       node.innerHTML = "";
-      render(<PollEmbed slug={slug} language={language} />, node);
+      render(<PollEmbed slug={slug} language={language} pollLanguage={pollLang || undefined} />, node);
     }
 
     const latexNodes = Array.from(root.querySelectorAll<HTMLElement>(".md-latex"));

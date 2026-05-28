@@ -8,6 +8,13 @@ describe("markdown poll embeds", () => {
     expect(html).toContain('data-poll-slug="favorite-language-2024"');
   });
 
+  test("renders poll embed placeholder with explicit language [text](poll:slug|lang)", () => {
+    const html = renderMarkdownHtml("Try this: [Vote now](poll:favorite-language-2024|pt-br)");
+    expect(html).toContain('class="md-poll"');
+    expect(html).toContain('data-poll-slug="favorite-language-2024"');
+    expect(html).toContain('data-poll-lang="pt-br"');
+  });
+
   test("does not render poll embed inside fenced code blocks", () => {
     const md = "```md\n[Vote now](poll:favorite-language-2024)\n```";
     const html = renderMarkdownHtml(md);

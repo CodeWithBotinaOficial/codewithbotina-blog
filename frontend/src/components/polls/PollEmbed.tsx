@@ -11,32 +11,62 @@ import PollAnalytics from "./admin/PollAnalytics";
 interface Props {
   slug: string;
   language?: string;
+  pollLanguage?: string;
 }
 
-export default function PollEmbed({ slug, language = 'en' }: Props) {
+export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props) {
   const [poll, setPoll] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<any>(null);
   const [voteLoading, setVoteLoading] = useState(false);
   const [resultsKey, setResultsKey] = useState(0);
+  const [activePollLang, setActivePollLang] = useState(language);
   const { user, isAdmin } = useSession();
   const { showToast } = useToast();
   const lang = (language ?? "en") as SupportedLanguage;
 
   useEffect(() => {
     loadPoll();
-  }, [slug, language, user?.id]);
+  }, [slug, language, pollLanguage, user?.id]);
 
   async function loadPoll() {
     setLoading(true);
     try {
       setUserVote(null);
-      const body = await pollsApi.get(slug, language);
-      const pollData = (body as any).data ?? body;
+
+      const langsToTry = [
+        pollLanguage,
+        language,
+        'en'
+      ].filter(Boolean) as string[];
+
+      // Unique languages only
+      const uniqueLangs = [...new Set(langsToTry)];
+
+      let pollData = null;
+      let foundLang = language;
+
+      for (const l of uniqueLangs) {
+        try {
+          const body = await pollsApi.get(slug, l);
+          const data = (body as any).data ?? body;
+          if (data && data.id) {
+            pollData = data;
+            foundLang = l;
+            break;
+          }
+        } catch (_err) {
+          // Try next language
+        }
+      }
+
       if (!pollData) {
         setPoll(null);
         return;
       }
+
+      setActivePollLang(foundLang);
+
       // Supabase can return related tables as arrays.
       if (Array.isArray(pollData.poll_display_settings)) {
         pollData.poll_display_settings = pollData.poll_display_settings[0] ?? null;
@@ -45,7 +75,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
 
       if (user) {
         setVoteLoading(true);
-        const voteBody = await pollsApi.myVote(slug, language).catch(() => null);
+        const voteBody = await pollsApi.myVote(slug, foundLang).catch(() => null);
         if (voteBody) setUserVote((voteBody as any).data ?? voteBody);
         setVoteLoading(false);
       } else {
@@ -86,7 +116,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
   const toggleStatus = async () => {
     const next = poll.status === "open" ? "closed" : "open";
     try {
-      await pollsApi.update(poll.slug, language, { status: next });
+      await pollsApi.update(poll.slug, activePollLang, { status: next });
       showToast(`Poll ${next}`, "success");
       await loadPoll();
     } catch (_err) {
@@ -98,11 +128,20 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
     const confirmSlug = prompt(`Type "${poll.slug}" to confirm deletion:`);
     if (confirmSlug !== poll.slug) return;
     try {
-      await pollsApi.delete(poll.slug, language);
+      await pollsApi.delete(poll.slug, activePollLang);
       showToast("Poll deleted", "success");
       setPoll(null);
     } catch (_err) {
       showToast("Failed to delete poll", "error");
+    }
+  };
+
+  const getLanguageLabel = (l: string) => {
+    switch (l) {
+      case 'en': return '🇺🇸 English';
+      case 'es': return '🇪🇸 Español';
+      case 'pt-br': return '🇧🇷 Português';
+      default: return l.toUpperCase();
     }
   };
 
@@ -137,7 +176,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
             </button>
             <a
               className="btn-admin-sm"
-              href={`/${language}/admin/polls/${encodeURIComponent(poll.slug)}/edit?lang=${encodeURIComponent(poll.language ?? language)}`}
+              href={`/${language}/admin/polls/${encodeURIComponent(poll.slug)}/edit?lang=${encodeURIComponent(poll.language ?? activePollLang)}`}
               title="Edit poll"
             >
               <Edit3 className="h-4 w-4" />
@@ -145,7 +184,7 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
             </a>
             <a
               className="btn-admin-sm"
-              href={`/${language}/admin/polls?lang=${encodeURIComponent(poll.language ?? language)}`}
+              href={`/${language}/admin/polls?lang=${encodeURIComponent(poll.language ?? activePollLang)}`}
               title="Manage polls"
             >
               <BarChart3 className="h-4 w-4" />
@@ -161,6 +200,10 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
         <div className="poll-meta">
           <span className="poll-metaitem">
             {poll.type === "free_text" ? "✍️ Free Text" : poll.type === "single_choice" ? "🔘 Single Choice" : "☑️ Multiple Choice"}
+          </span>
+          <span className="poll-metaitem">
+            <Globe className="h-4 w-4" aria-hidden="true" />
+            {getLanguageLabel(poll.language ?? activePollLang)}
           </span>
           {typeof voteCount === "number" ? (
             <span className="poll-metaitem">
@@ -179,14 +222,14 @@ export default function PollEmbed({ slug, language = 'en' }: Props) {
             await loadPoll();
             setResultsKey((v) => v + 1);
           }}
-          language={language}
+          language={activePollLang}
         />
       )}
 
-      <PollResults key={resultsKey} poll={poll} userVote={userVote} language={language} />
+      <PollResults key={resultsKey} poll={poll} userVote={userVote} language={activePollLang} />
 
       {isAdmin ? (
-        <PollAnalytics slug={poll.slug} language={language} />
+        <PollAnalytics slug={poll.slug} language={activePollLang} />
       ) : null}
     </div>
   );

@@ -13,10 +13,11 @@ The blog supports 3 types of interactive polls:
 
 1. Click "Add Poll" button
 2. Select poll type
-3. Enter title and description
-4. Add options (for choice-based polls)
-5. Configure visualizations
-6. Click "Create Poll"
+3. Select poll language (English, Español, or Português)
+4. Enter title and description
+5. Add options (for choice-based polls)
+6. Configure visualizations
+7. Click "Create Poll"
 
 ### Poll Types
 
@@ -46,11 +47,24 @@ Use this syntax in post content:
 [Poll Title](poll:poll-slug)
 ```
 
-**Example:**
+By default, the system will try to find the poll in the post's current language.
+
+### Cross-Language Embedding
+
+To embed a poll in a specific language (e.g., an English poll in a Portuguese post), use the explicit language parameter:
+
 ```markdown
-What's your favorite programming language?
-[Vote Now](poll:favorite-language-2024)
+[Poll Title](poll:poll-slug|en)
 ```
+
+**Supported Language Codes:** `en`, `es`, `pt-br`
+
+### Fallback Logic
+
+When a poll is embedded:
+1. It tries the explicit language parameter (if provided).
+2. It tries the post's current language.
+3. It falls back to **English** if the poll is not found in the above.
 
 ## Poll Settings
 
@@ -118,22 +132,17 @@ Admins can view:
 
 ## Multi-language Support
 
-### Creating Translations
+### Independent Creation
 
-1. Create poll in default language (English)
-2. Click "Add Translation"
-3. Select language (ES or PT-BR)
-4. Enter translated content
-5. Poll slug changes (e.g., `favorite-language-es`)
+You can create polls in different languages independently. Each poll has its own slug and language setting.
 
-### Using Translations
+### Cross-Language Usage
 
-Polls use language-specific slugs:
-- English: `[Vote](poll:favorite-language)`
-- Spanish: `[Vota](poll:favorite-language-es)`
-- Portuguese: `[Vote](poll:favorite-language-pt)`
+Polls are no longer restricted to the post's language. A single poll (e.g., in English) can be used across the entire blog by using the explicit language syntax or relying on the English fallback.
 
-Votes are shared across translations (same poll_id).
+### Visual Indicators
+
+Poll embeds and the Polls Browser show the poll's native language with a flag icon (🇺🇸, 🇪🇸, 🇧🇷) to help authors manage cross-language content.
 
 ## Voting Rules
 

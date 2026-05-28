@@ -189,17 +189,23 @@ export function renderMarkdownHtml(markdown: string): string {
 
 /**
  * Parse poll embeds from markdown.
- * Syntax: [Poll Title](poll:slug)
- * Example: [Vote Now](poll:favorite-language-2024)
+ * Syntax: [Poll Title](poll:slug) or [Poll Title](poll:slug|language)
+ * Example: [Vote Now](poll:favorite-language-2024|es)
  */
 export function parsePollLinks(content: string): string {
-  const pollLinkRegex = /\[([^\]]+)\]\(poll:([a-z0-9-]+)\)/g;
+  const pollLinkRegex = /\[([^\]]+)\]\(poll:([a-z0-9-]+)(?:\|([a-z-]+))?\)/g;
 
-  return content.replace(pollLinkRegex, (match, text, slug) => {
+  return content.replace(pollLinkRegex, (match, text, slug, lang) => {
     const safeSlug = String(slug ?? "").trim();
     const safeText = escapeHtml(String(text ?? ""));
-    // Keep a small no-JS fallback to indicate the embed exists.
-    return `<div class="md-poll" data-poll-slug="${safeSlug}" data-poll-text="${safeText}"><span class="md-poll__fallback">${safeText}</span></div>`;
+    const safeLang = lang ? String(lang).trim() : "";
+
+    let html = `<div class="md-poll" data-poll-slug="${safeSlug}" data-poll-text="${safeText}"`;
+    if (safeLang) {
+      html += ` data-poll-lang="${safeLang}"`;
+    }
+    html += `><span class="md-poll__fallback">${safeText}</span></div>`;
+    return html;
   });
 }
 
