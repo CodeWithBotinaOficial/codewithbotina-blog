@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { BarChart3, Clock, Edit3, Lock, Trash2, Unlock, Users } from "lucide-preact";
+import { BarChart3, Clock, Edit3, Globe, Lock, Trash2, Unlock, Users } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../lib/i18n";
