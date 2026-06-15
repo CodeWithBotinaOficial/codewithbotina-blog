@@ -48,7 +48,7 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
       const body = await pollsApi.list({ limit: 200 });
       setPolls((body as any).data ?? body);
     } catch (_err) {
-      showToast("Failed to load polls", "error");
+      showToast(t(lang, "polls.loadFailed", "admin"), "error");
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
   }, [polls, search]);
 
   const copyCode = async (poll: any) => {
-    const title = String(poll?.title ?? "Poll").trim() || "Poll";
+    const title = String(poll?.title ?? t(lang, "polls.title", "admin")).trim() || t(lang, "polls.title", "admin");
     const slug = String(poll?.slug ?? "").trim();
     const pollLang = String(poll?.language ?? "").trim();
     if (!slug) return;
@@ -72,10 +72,10 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
     try {
       await writeToClipboard(code);
       setCopiedId(String(poll.id ?? slug));
-      showToast(code, "success");
+      showToast(t(lang, "polls.pollsBrowser.copied", "post"), "success");
       window.setTimeout(() => setCopiedId(null), 2000);
     } catch (_err) {
-      showToast("Failed to copy", "error");
+      showToast(t(lang, "polls.pollsBrowser.copyFailed", "post"), "error");
     }
   };
 
@@ -101,7 +101,7 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={t(lang, "pollsBrowser.title", "post")}
+      title={t(lang, "polls.pollsBrowser.title", "post")}
       maxWidthClass="max-w-2xl"
       footer={(
         <>
@@ -112,7 +112,7 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
             </button>
           ) : null}
           <button type="button" class="btn-primary" onClick={onClose}>
-            {t(lang, "pollsBrowser.close", "post")}
+            {t(lang, "polls.pollsBrowser.close", "post")}
           </button>
         </>
       )}
@@ -125,15 +125,15 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
             type="text"
             value={search}
             onInput={(e) => setSearch(String((e.currentTarget as HTMLInputElement).value ?? ""))}
-            placeholder={t(lang, "pollsBrowser.search", "post")}
+            placeholder={t(lang, "polls.pollsBrowser.search", "post")}
           />
         </div>
 
         <div class="max-h-[420px] overflow-y-auto space-y-2 pr-1">
           {loading ? (
-            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t(lang, "pollsBrowser.loading", "post")}</div>
+            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.pollsBrowser.loading", "post")}</div>
           ) : filtered.length === 0 ? (
-            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t(lang, "pollsBrowser.noPolls", "post")}</div>
+            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.pollsBrowser.empty", "post")}</div>
           ) : (
             filtered.map((poll) => (
               <div key={poll.id} class="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3">
@@ -155,7 +155,7 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
                   onClick={() => copyCode(poll)}
                 >
                   <Copy className="h-4 w-4" />
-                  {copiedId === String(poll.id ?? "") ? t(lang, "pollsBrowser.copied", "post") : t(lang, "pollsBrowser.copyCode", "post")}
+                  {copiedId === String(poll.id ?? "") ? t(lang, "polls.pollsBrowser.copied", "post") : t(lang, "polls.pollsBrowser.copyCode", "post")}
                 </button>
               </div>
             ))
@@ -163,7 +163,7 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
         </div>
 
         <div class="rounded-lg bg-blue-50 p-4 text-xs text-blue-800">
-          💡 <strong>Tip:</strong> You can embed polls from any language into any post. The poll will always display in its native language.
+          {t(lang, "polls.pollsBrowser.info", "post")}
         </div>
       </div>
     </Modal>

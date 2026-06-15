@@ -38,7 +38,7 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
 
   async function handleVote() {
     if (!user) {
-      showToast(t(lang, "polls.signInToVote", "post"), "error");
+      showToast(t(lang, "polls.form.signInToVote", "post"), "error");
       return;
     }
 
@@ -49,19 +49,19 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
       if (poll.type === "free_text") {
         const text = freeText.trim();
         if (!text) {
-          showToast(t(lang, "polls.freeText.placeholder", "post"), "error");
+          showToast(t(lang, "polls.form.enterResponse", "post"), "error");
           return;
         }
         payload = { text };
       } else if (poll.type === "single_choice") {
         if (!selectedOptions[0]) {
-          showToast(t(lang, "polls.vote", "post"), "error");
+          showToast(t(lang, "polls.form.selectOption", "post"), "error");
           return;
         }
         payload = { optionId: selectedOptions[0] };
       } else if (poll.type === "multiple_choice") {
         if (selectedOptions.length === 0) {
-          showToast(t(lang, "polls.vote", "post"), "error");
+          showToast(t(lang, "polls.form.selectAtLeastOne", "post"), "error");
           return;
         }
         payload = { optionIds: selectedOptions };
@@ -69,29 +69,29 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
 
       await pollsApi.vote(poll.slug, language, payload);
       {
-        showToast("✅ " + t(lang, "polls.submit", "post"), "success");
+        showToast(t(lang, "polls.form.voteSubmitted", "post"), "success");
         onVote();
       }
     } catch (_err) {
-      showToast("Failed to submit vote", "error");
+      showToast(t(lang, "polls.form.voteFailed", "post"), "error");
     } finally {
       setSubmitting(false);
     }
   }
 
   async function handleRemove() {
-    if (!confirm(t(lang, "polls.removeVote", "post") + "?")) return;
+    if (!confirm(t(lang, "polls.form.confirmRemove", "post"))) return;
     setSubmitting(true);
     try {
       await pollsApi.removeVote(poll.slug, language);
       {
-        showToast(t(lang, "polls.removeVote", "post"), "success");
+        showToast(t(lang, "polls.form.removeResponse", "post"), "success");
         setSelectedOptions([]);
         setFreeText("");
         onVote();
       }
     } catch (_err) {
-      showToast("Failed to remove vote", "error");
+      showToast(t(lang, "polls.form.removeFailed", "post"), "error");
     } finally {
       setSubmitting(false);
     }
@@ -102,9 +102,9 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
     return (
       <div className="poll-auth-required">
         <LogIn className="h-5 w-5" aria-hidden="true" />
-        <div>{t(lang, "polls.signInToVote", "post")}</div>
+        <div>{t(lang, "polls.auth.required", "post")}</div>
         <a href={`/auth/signin?next=${next}`} className="btn-primary">
-          {t(lang, "polls.signInToVote", "post")}
+          {t(lang, "actions.signIn", "common")}
         </a>
       </div>
     );
@@ -116,9 +116,9 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
       <div className="poll-already-voted poll-free-text-submitted">
         <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
         <div>
-          <div className="poll-voted-title">{t(lang, "polls.freeText.submitted", "post")}</div>
-          {response ? <div className="poll-voted-response">"{response}"</div> : null}
-          <div className="poll-voted-note">You cannot edit free-text poll responses.</div>
+          <div className="poll-voted-title">{t(lang, "polls.freeText.alreadySubmitted", "post")}</div>
+          {response ? <div className="poll-voted-response">{t(lang, "polls.freeText.responseDisplay", "post", { text: response })}</div> : null}
+          <div className="poll-voted-note">{t(lang, "polls.freeText.cannotEdit", "post")}</div>
         </div>
       </div>
     );
@@ -128,20 +128,21 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
     <div className="poll-vote-section">
       {poll.type === "free_text" ? (
         <div className="poll-free-text">
+          <label className="poll-form-label">{t(lang, "polls.form.yourResponse", "post")}</label>
           <textarea
             className="poll-textarea"
             value={freeText}
             onInput={(e: any) => setFreeText(String(e.currentTarget.value ?? ""))}
             rows={4}
             maxLength={500}
-            placeholder={t(lang, "polls.freeText.placeholder", "post")}
+            placeholder={t(lang, "polls.form.responsePlaceholder", "post")}
             disabled={submitting}
           />
           <div className="poll-char-count">{freeText.length}/500</div>
           <div className="poll-actions">
             <button type="button" className="btn-primary poll-submit" onClick={handleVote} disabled={!freeText.trim() || submitting}>
               <Send className="h-4 w-4" aria-hidden="true" />
-              {submitting ? "Submitting..." : t(lang, "polls.submit", "post")}
+              {submitting ? t(lang, "polls.form.submitting", "post") : t(lang, "polls.form.submitResponse", "post")}
             </button>
           </div>
         </div>
@@ -149,6 +150,7 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
 
       {poll.type === "single_choice" ? (
         <div className="poll-single-choice">
+          <div className="poll-form-label">{t(lang, "polls.form.selectOneOption", "post")}</div>
           <fieldset disabled={submitting}>
             {pollOptions.map((opt: any) => (
               <label key={opt.id} className={`poll-option ${selectedOptions.includes(String(opt.id)) ? "selected" : ""}`}>
@@ -167,12 +169,12 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
           <div className="poll-actions">
             <button type="button" className="btn-primary" onClick={handleVote} disabled={selectedOptions.length === 0 || submitting}>
               <Send className="h-4 w-4" aria-hidden="true" />
-              {submitting ? "Submitting..." : t(lang, "polls.vote", "post")}
+              {submitting ? t(lang, "polls.form.submitting", "post") : t(lang, "polls.form.vote", "post")}
             </button>
             {Array.isArray(userVote) && userVote.length > 0 ? (
               <button type="button" className="btn-secondary poll-remove" onClick={handleRemove} disabled={submitting}>
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
-                {t(lang, "polls.removeVote", "post")}
+                {t(lang, "polls.form.removeResponse", "post")}
               </button>
             ) : null}
           </div>
@@ -181,6 +183,7 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
 
       {poll.type === "multiple_choice" ? (
         <div className="poll-multiple-choice">
+          <div className="poll-form-label">{t(lang, "polls.form.selectMultipleOptions", "post")}</div>
           <fieldset disabled={submitting}>
             {pollOptions.map((opt: any) => (
               <label key={opt.id} className={`poll-option ${selectedOptions.includes(String(opt.id)) ? "selected" : ""}`}>
@@ -202,12 +205,12 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
           <div className="poll-actions">
             <button type="button" className="btn-primary" onClick={handleVote} disabled={selectedOptions.length === 0 || submitting}>
               <Send className="h-4 w-4" aria-hidden="true" />
-              {submitting ? "Submitting..." : `${t(lang, "polls.vote", "post")} (${selectedOptions.length})`}
+              {submitting ? t(lang, "polls.form.submitting", "post") : `${t(lang, "polls.form.vote", "post")} (${selectedOptions.length})`}
             </button>
             {Array.isArray(userVote) && userVote.length > 0 ? (
               <button type="button" className="btn-secondary poll-remove" onClick={handleRemove} disabled={submitting}>
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
-                {t(lang, "polls.removeVote", "post")}
+                {t(lang, "polls.form.removeResponse", "post")}
               </button>
             ) : null}
           </div>

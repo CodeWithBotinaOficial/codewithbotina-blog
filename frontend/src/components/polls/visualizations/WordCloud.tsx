@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import DownloadButton from "./DownloadButton";
+import { t, type SupportedLanguage } from "../../../lib/i18n";
 
 interface Props {
   responses: string[];
   title?: string;
+  language: SupportedLanguage;
 }
 
 type CloudWord = { text: string; value: number };
@@ -27,10 +29,11 @@ function buildWords(responses: string[]): CloudWord[] {
     .slice(0, 120);
 }
 
-export default function WordCloud({ responses = [], title = "Response Cloud" }: Props) {
+export default function WordCloud({ responses = [], title, language }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [layout, setLayout] = useState<LayoutWord[] | null>(null);
   const words = useMemo(() => buildWords(responses), [responses]);
+  const chartTitle = title ?? t(language, "polls.results.wordCloud", "post");
 
   useEffect(() => {
     let cancelled = false;
@@ -80,15 +83,15 @@ export default function WordCloud({ responses = [], title = "Response Cloud" }: 
   return (
     <div ref={containerRef} className="poll-wordcloud">
       <div className="poll-viz-toolbar">
-        <DownloadButton elementRef={containerRef} filename="wordcloud" />
+        <DownloadButton elementRef={containerRef} filename="wordcloud" language={language} />
       </div>
-      <div className="poll-viz-title">{title}</div>
+      <div className="poll-viz-title">{chartTitle}</div>
       <div className="wordcloud-container" style={{ overflowX: "auto" }}>
         <svg
           width="100%"
           viewBox={`0 0 ${width} ${height}`}
           role="img"
-          aria-label={title}
+          aria-label={chartTitle}
         >
           <rect x="0" y="0" width={width} height={height} fill="transparent" />
           <g transform={`translate(${width / 2},${height / 2})`}>
@@ -109,7 +112,7 @@ export default function WordCloud({ responses = [], title = "Response Cloud" }: 
               ))
               : (
                 <text text-anchor="middle" style={{ fontSize: "14px", fill: "var(--color-text-tertiary)" }}>
-                  Loading…
+                  {t(language, "polls.results.loading", "post")}
                 </text>
               )}
           </g>
@@ -118,4 +121,3 @@ export default function WordCloud({ responses = [], title = "Response Cloud" }: 
     </div>
   );
 }
-

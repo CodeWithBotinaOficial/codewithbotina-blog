@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { Plus, Save, Trash2 } from "lucide-preact";
 import { useSession } from "../../../hooks/useSession";
 import { useToast } from "../../../hooks/useToast";
-import type { SupportedLanguage } from "../../../lib/i18n";
+import { t, type SupportedLanguage } from "../../../lib/i18n";
 import PollAnalytics from "./PollAnalytics";
 import { pollsApi } from "../../../lib/api";
 
@@ -12,6 +12,7 @@ interface Props {
 }
 
 export default function PollEditor({ slug, pollLanguage }: Props) {
+  const lang = (pollLanguage ?? "en") as SupportedLanguage;
   const { isAdmin, loading: sessionLoading } = useSession();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -62,10 +63,10 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
         closes_at: closesAt ? new Date(closesAt).toISOString() : null,
       };
       await pollsApi.update(slug, pollLanguage, payload);
-      showToast("Saved", "success");
+      showToast(t(lang, "polls.editModal.success", "admin"), "success");
       await load();
     } catch (_err) {
-      showToast("Failed to save", "error");
+      showToast(t(lang, "polls.editModal.saveFailed", "admin"), "error");
     } finally {
       setSaving(false);
     }
@@ -79,61 +80,61 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
     try {
       await pollsApi.addOption(slug, pollLanguage, { option_text: text });
       setNewOptionText("");
-      showToast("Option added", "success");
+      showToast(t(lang, "polls.editModal.optionAdded", "admin"), "success");
       await load();
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to add option", "error");
+      showToast(err instanceof Error ? err.message : t(lang, "polls.editModal.addOptionFailed", "admin"), "error");
     } finally {
       setAddingOption(false);
     }
   }
 
   async function deleteOption(optionId: string) {
-    if (!confirm("Delete this option?")) return;
+    if (!confirm(t(lang, "polls.editModal.deleteOptionConfirm", "admin"))) return;
     try {
       await pollsApi.deleteOption(slug, pollLanguage, optionId);
-      showToast("Option deleted", "success");
+      showToast(t(lang, "polls.editModal.optionDeleted", "admin"), "success");
       await load();
     } catch (_err) {
-      showToast("Failed to delete option", "error");
+      showToast(t(lang, "polls.editModal.deleteOptionFailed", "admin"), "error");
     }
   }
 
-  if (sessionLoading) return <div class="text-sm text-[var(--color-text-secondary)]">Loading…</div>;
+  if (sessionLoading) return <div class="text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.loading", "admin")}</div>;
   if (!isAdmin) {
     return (
       <div class="rounded-xl border border-[var(--color-border)] bg-white p-6 text-sm text-[var(--color-text-secondary)]">
-        Admin only.
+        {t(lang, "polls.adminOnly", "admin")}
       </div>
     );
   }
 
-  if (loading) return <div class="text-sm text-[var(--color-text-secondary)]">Loading poll…</div>;
-  if (!poll) return <div class="rounded-xl border border-[var(--color-border)] bg-white p-6 text-sm">Poll not found.</div>;
+  if (loading) return <div class="text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.editModal.loading", "admin")}</div>;
+  if (!poll) return <div class="rounded-xl border border-[var(--color-border)] bg-white p-6 text-sm">{t(lang, "polls.editModal.loadFailed", "admin")}</div>;
 
   return (
     <div class="space-y-6">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-2xl font-bold">Edit Poll</h1>
+          <h1 class="text-2xl font-bold">{t(lang, "polls.editModal.title", "admin")}</h1>
           <p class="text-sm text-[var(--color-text-secondary)]">
             <span class="font-mono text-xs">{poll.slug}</span> · {poll.language} · {poll.type}
           </p>
         </div>
         <button type="button" class="btn-primary inline-flex items-center gap-2" onClick={save} disabled={saving}>
           <Save className="h-4 w-4" />
-          {saving ? "Saving..." : "Save"}
+          {saving ? t(lang, "polls.editModal.saving", "admin") : t(lang, "polls.editModal.save", "admin")}
         </button>
       </div>
 
       <div class="grid grid-cols-1 gap-4 rounded-xl border border-[var(--color-border)] bg-white p-5 md:grid-cols-2">
         <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-semibold">Title</label>
+          <label class="text-sm font-semibold">{t(lang, "polls.createModal.titleField", "admin")}</label>
           <input class="input-field" value={title} onInput={(e) => setTitle((e.currentTarget as HTMLInputElement).value)} />
         </div>
 
         <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-semibold">Description</label>
+          <label class="text-sm font-semibold">{t(lang, "polls.createModal.description", "admin")}</label>
           <textarea
             class="input-field"
             rows={3}
@@ -143,37 +144,37 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-semibold">Status</label>
+          <label class="text-sm font-semibold">{t(lang, "polls.table.status", "admin")}</label>
           <select class="input-field" value={status} onChange={(e) => setStatus((e.currentTarget as HTMLSelectElement).value as any)}>
-            <option value="open">open</option>
-            <option value="closed">closed</option>
+            <option value="open">{t(lang, "polls.status.open", "admin")}</option>
+            <option value="closed">{t(lang, "polls.status.closed", "admin")}</option>
           </select>
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-semibold">Closes At</label>
+          <label class="text-sm font-semibold">{t(lang, "polls.createModal.closesAt", "admin")}</label>
           <input
             class="input-field"
             type="datetime-local"
             value={closesAt}
             onInput={(e) => setClosesAt((e.currentTarget as HTMLInputElement).value)}
           />
-          <div class="text-xs text-[var(--color-text-tertiary)]">Leave blank for no auto-close.</div>
+          <div class="text-xs text-[var(--color-text-tertiary)]">{t(lang, "polls.editModal.closesAtHelp", "admin")}</div>
         </div>
       </div>
 
       {poll.type !== "free_text" ? (
         <div class="rounded-xl border border-[var(--color-border)] bg-white p-5">
-          <h2 class="text-lg font-bold mb-3">Options</h2>
+          <h2 class="text-lg font-bold mb-3">{t(lang, "polls.editModal.options", "admin")}</h2>
 
           <div class="space-y-2">
             {opts.map((o: any) => (
               <div key={o.id} class="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] px-4 py-3">
                 <div class="min-w-0">
                   <div class="truncate font-semibold text-[var(--color-text-primary)]">{o.option_text}</div>
-                  <div class="text-xs text-[var(--color-text-tertiary)]">order: {o.display_order}</div>
+                  <div class="text-xs text-[var(--color-text-tertiary)]">{t(lang, "polls.editModal.order", "admin")}: {o.display_order}</div>
                 </div>
-                <button type="button" class="btn-secondary px-3 py-2" onClick={() => deleteOption(o.id)} title="Delete option">
+                <button type="button" class="btn-secondary px-3 py-2" onClick={() => deleteOption(o.id)} title={t(lang, "polls.editModal.deleteOption", "admin")}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -183,22 +184,22 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
           <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
             <input
               class="input-field flex-1"
-              placeholder="New option text"
+              placeholder={t(lang, "polls.editModal.newOptionPlaceholder", "admin")}
               value={newOptionText}
               onInput={(e) => setNewOptionText((e.currentTarget as HTMLInputElement).value)}
             />
             <button type="button" class="btn-primary inline-flex items-center gap-2" onClick={addOption} disabled={!newOptionText.trim() || addingOption}>
               <Plus className="h-4 w-4" />
-              {addingOption ? "Adding..." : "Add option"}
+              {addingOption ? t(lang, "polls.editModal.addingOption", "admin") : t(lang, "polls.editModal.addOption", "admin")}
             </button>
           </div>
         </div>
       ) : null}
 
       <div class="rounded-xl border border-[var(--color-border)] bg-white p-5">
-        <h2 class="text-lg font-bold mb-2">Embed</h2>
+        <h2 class="text-lg font-bold mb-2">{t(lang, "polls.editModal.embed", "admin")}</h2>
         <div class="text-sm text-[var(--color-text-secondary)]">
-          Use this in Markdown:
+          {t(lang, "polls.editModal.embedHelp", "admin")}
           <pre class="mt-2 rounded-lg bg-[var(--color-bg-subtle)] p-3 text-xs overflow-x-auto"><code>[{poll.title}](poll:{poll.slug})</code></pre>
         </div>
       </div>

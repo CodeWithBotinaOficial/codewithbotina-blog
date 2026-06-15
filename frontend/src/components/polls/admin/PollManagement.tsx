@@ -3,6 +3,7 @@ import { Edit3, Lock, Plus, Trash2, Unlock } from "lucide-preact";
 import { useSession } from "../../../hooks/useSession";
 import { useToast } from "../../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../../lib/i18n";
+import { getAdminPollTypeName, getPollStatusName } from "../../../lib/poll-i18n";
 import { pollsApi } from "../../../lib/api";
 import PollCreator from "./PollCreator";
 
@@ -35,7 +36,7 @@ export default function PollManagement({ language }: Props) {
       const body = await pollsApi.list({ language: langFilter === "all" ? undefined : langFilter, limit: 50 });
       setPolls((body as any).data ?? body);
     } catch (_err) {
-      showToast("Failed to load polls", "error");
+      showToast(t(lang, "polls.loadFailed", "admin"), "error");
     } finally {
       setLoading(false);
     }
@@ -45,30 +46,30 @@ export default function PollManagement({ language }: Props) {
     const newStatus = poll.status === "open" ? "closed" : "open";
     try {
       await pollsApi.update(poll.slug, poll.language ?? language, { status: newStatus });
-      showToast(`Poll ${newStatus}`, "success");
+      showToast(t(lang, "polls.statusUpdated", "admin", { status: getPollStatusName(lang, newStatus, "admin") }), "success");
       await loadPolls();
     } catch (_err) {
-      showToast("Failed to update poll", "error");
+      showToast(t(lang, "polls.updateFailed", "admin"), "error");
     }
   }
 
   async function deletePoll(poll: any) {
-    const confirmSlug = prompt(`Type "${poll.slug}" to confirm deletion:`);
+    const confirmSlug = prompt(t(lang, "polls.confirmDeletePrompt", "admin", { slug: poll.slug }));
     if (confirmSlug !== poll.slug) return;
     try {
       await pollsApi.delete(poll.slug, poll.language ?? language);
-      showToast("Poll deleted", "success");
+      showToast(t(lang, "polls.pollDeleted", "admin"), "success");
       await loadPolls();
     } catch (_err) {
-      showToast("Failed to delete poll", "error");
+      showToast(t(lang, "polls.deleteFailed", "admin"), "error");
     }
   }
 
-  if (sessionLoading) return <div class="text-sm text-[var(--color-text-secondary)]">Loading…</div>;
+  if (sessionLoading) return <div class="text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.loading", "admin")}</div>;
   if (!isAdmin) {
     return (
       <div class="rounded-xl border border-[var(--color-border)] bg-white p-6 text-sm text-[var(--color-text-secondary)]">
-        Admin only.
+        {t(lang, "polls.adminOnly", "admin")}
       </div>
     );
   }
@@ -86,12 +87,12 @@ export default function PollManagement({ language }: Props) {
             class="input-field py-2"
             value={langFilter}
             onChange={(e) => setLangFilter((e.currentTarget as HTMLSelectElement).value as LangFilter)}
-            aria-label="Language filter"
+            aria-label={t(lang, "polls.createModal.language", "admin")}
           >
-            <option value="all">All languages</option>
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="pt-br">Português (BR)</option>
+            <option value="all">{t(lang, "polls.filters.allLanguages", "admin")}</option>
+            <option value="en">{t(lang, "polls.filters.english", "admin")}</option>
+            <option value="es">{t(lang, "polls.filters.spanish", "admin")}</option>
+            <option value="pt-br">{t(lang, "polls.filters.portuguese", "admin")}</option>
           </select>
 
           <button type="button" class="btn-primary inline-flex items-center gap-2" onClick={() => setShowCreator(true)}>
@@ -105,23 +106,23 @@ export default function PollManagement({ language }: Props) {
         <table class="w-full min-w-[860px] border-collapse text-sm">
           <thead class="bg-[var(--color-bg-subtle)] text-[var(--color-text-secondary)]">
             <tr>
-              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">Title</th>
-              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">Slug</th>
-              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">Lang</th>
-              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">Type</th>
-              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">Status</th>
-              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">Created</th>
-              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">Actions</th>
+              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">{t(lang, "polls.table.title", "admin")}</th>
+              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">{t(lang, "polls.table.slug", "admin")}</th>
+              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">{t(lang, "polls.table.language", "admin")}</th>
+              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">{t(lang, "polls.table.type", "admin")}</th>
+              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">{t(lang, "polls.table.status", "admin")}</th>
+              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">{t(lang, "polls.table.created", "admin")}</th>
+              <th class="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">{t(lang, "polls.table.actions", "admin")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td class="px-3 py-3 text-[var(--color-text-secondary)]" colSpan={7}>Loading…</td>
+                <td class="px-3 py-3 text-[var(--color-text-secondary)]" colSpan={7}>{t(lang, "polls.loading", "admin")}</td>
               </tr>
             ) : polls.length === 0 ? (
               <tr>
-                <td class="px-3 py-3 text-[var(--color-text-secondary)]" colSpan={7}>{t(lang, "polls.noPolls", "admin")}</td>
+                <td class="px-3 py-3 text-[var(--color-text-secondary)]" colSpan={7}>{t(lang, "polls.empty", "admin")}</td>
               </tr>
             ) : polls.map((poll) => (
               <tr key={poll.id}>
@@ -135,11 +136,11 @@ export default function PollManagement({ language }: Props) {
                   {poll.language}
                 </td>
                 <td class="border border-[var(--color-border)] px-3 py-2 text-[var(--color-text-secondary)]">
-                  {poll.type}
+                  {getAdminPollTypeName(lang, poll.type)}
                 </td>
                 <td class="border border-[var(--color-border)] px-3 py-2">
                   <span class={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${poll.status === "open" ? "bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]" : "bg-gray-100 text-gray-700"}`}>
-                    {poll.status}
+                    {getPollStatusName(lang, poll.status, "admin")}
                   </span>
                 </td>
                 <td class="border border-[var(--color-border)] px-3 py-2 text-[var(--color-text-secondary)]">
@@ -151,7 +152,7 @@ export default function PollManagement({ language }: Props) {
                       type="button"
                       class="btn-secondary px-3 py-2"
                       onClick={() => toggleStatus(poll)}
-                      title={poll.status === "open" ? "Close" : "Open"}
+                      title={poll.status === "open" ? t(lang, "polls.actions.close", "admin") : t(lang, "polls.actions.open", "admin")}
                     >
                       {poll.status === "open" ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                     </button>
@@ -159,12 +160,12 @@ export default function PollManagement({ language }: Props) {
                     <a
                       class="btn-secondary px-3 py-2"
                       href={`${editBase}/${encodeURIComponent(poll.slug)}/edit?lang=${encodeURIComponent(poll.language ?? language)}`}
-                      title="Edit"
+                      title={t(lang, "polls.actions.edit", "admin")}
                     >
                       <Edit3 className="h-4 w-4" />
                     </a>
 
-                    <button type="button" class="btn-secondary px-3 py-2" onClick={() => deletePoll(poll)} title="Delete">
+                    <button type="button" class="btn-secondary px-3 py-2" onClick={() => deletePoll(poll)} title={t(lang, "polls.actions.delete", "admin")}>
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
