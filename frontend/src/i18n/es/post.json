@@ -80,43 +80,109 @@
     "copied": "¡Copiado al portapapeles!",
     "downloadSuccess": "Fórmula descargada",
     "error": "Error al procesar fórmula"
-  }
-  ,
+  },
   "polls": {
-    "title": "Encuesta",
-    "vote": "Votar",
-    "removeVote": "Eliminar respuesta",
-    "submit": "Enviar",
-    "open": "Abierta",
-    "closed": "Cerrada",
-    "closes": "Cierra {{date}}",
-    "signInToVote": "Inicia sesión para votar",
-    "alreadyVoted": "Ya has votado",
+    "type": {
+      "freeText": "Texto Libre",
+      "singleChoice": "Opción Única",
+      "multipleChoice": "Opción Múltiple"
+    },
+    "meta": {
+      "votes": "{count} {count, plural, one {voto} other {votos}}"
+    },
+    "loading": "Cargando encuesta...",
+    "error": {
+      "notFound": "Encuesta no encontrada"
+    },
+    "status": {
+      "open": "Abierta",
+      "closed": "Cerrada",
+      "closesAt": "Cierra el {date}"
+    },
+    "auth": {
+      "required": "Inicia sesión para votar en esta encuesta"
+    },
+    "form": {
+      "selectOneOption": "Selecciona una opción:",
+      "selectMultipleOptions": "Selecciona una o más opciones:",
+      "yourResponse": "Tu Respuesta:",
+      "responsePlaceholder": "Ingresa tu respuesta... (máximo 500 caracteres)",
+      "submitResponse": "Enviar Respuesta",
+      "vote": "Votar",
+      "removeResponse": "Eliminar Respuesta",
+      "signInToVote": "Por favor, inicia sesión para votar",
+      "selectOption": "Por favor, selecciona una opción",
+      "selectAtLeastOne": "Por favor, selecciona al menos una opción",
+      "enterResponse": "Por favor, ingresa una respuesta",
+      "voteSubmitted": "✓ ¡Voto enviado!",
+      "voteFailed": "Error al enviar voto",
+      "removeFailed": "Error al eliminar respuesta",
+      "confirmRemove": "¿Eliminar tu respuesta?",
+      "submitting": "Enviando..."
+    },
     "freeText": {
-      "placeholder": "Escribe tu respuesta...",
-      "submitted": "Respuesta enviada"
+      "alreadySubmitted": "Ya has enviado una respuesta",
+      "responseDisplay": "Tu respuesta: {text}",
+      "cannotEdit": "Las respuestas no se pueden editar."
     },
     "results": {
-      "title": "Resultados",
-      "wordCloud": "Nube de respuestas",
-      "topList": "Top {count} resultados",
-      "barChart": "Distribución de votos",
-      "download": "Descargar como PNG"
+      "loading": "Cargando resultados...",
+      "empty": "Sin resultados aún",
+      "title": "📊 Resultados",
+      "topTitle": "Top {count} Resultados",
+      "chartTitle": "Distribución de Votos",
+      "rank": "#{rank}",
+      "votes": "{count} {count, plural, one {voto} other {votos}}",
+      "topTabLabel": "Top {count}",
+      "chartTab": "Gráfico",
+      "wordCloud": "Nube de Respuestas",
+      "downloadPNG": "Descargar PNG",
+      "downloadSuccess": "Descargado exitosamente",
+      "downloadFailed": "Error al descargar imagen",
+      "downloading": "Descargando...",
+      "downloadAsPNG": "Descargar como PNG",
+      "viewsLabel": "Vistas de resultados"
     },
-    "analytics": {
-      "title": "Análisis de votos",
-      "user": "Usuario",
-      "vote": "Voto",
-      "date": "Fecha"
+    "admin": {
+      "open": "Abrir",
+      "close": "Cerrar",
+      "edit": "Editar",
+      "manage": "Gestionar",
+      "delete": "Eliminar",
+      "analytics": "Analítica de Votos (Usuario, Voto, Fecha)",
+      "openTitle": "Abrir encuesta",
+      "closeTitle": "Cerrar encuesta",
+      "editTitle": "Editar encuesta",
+      "manageTitle": "Gestionar encuestas",
+      "deleteTitle": "Eliminar encuesta",
+      "statusUpdated": "Encuesta {status}",
+      "updateFailed": "No se pudo actualizar la encuesta",
+      "confirmDelete": "Escribe \"{slug}\" para confirmar la eliminación:",
+      "deleted": "Encuesta eliminada",
+      "deleteFailed": "No se pudo eliminar la encuesta"
+    },
+    "pollsBrowser": {
+      "title": "Insertar Encuesta",
+      "search": "Buscar encuestas por título...",
+      "loading": "Cargando encuestas...",
+      "empty": "No se encontraron encuestas",
+      "copyCode": "Copiar Código",
+      "copied": "¡Copiado!",
+      "info": "💡 Puedes insertar encuestas de cualquier idioma en tus posts. La encuesta siempre se mostrará en su idioma nativo.",
+      "close": "Cerrar",
+      "copyFailed": "No se pudo copiar"
     }
   },
   "pollsBrowser": {
     "title": "Insertar Encuesta",
-    "search": "Buscar encuestas por título o slug...",
+    "search": "Buscar encuestas por título...",
+    "loading": "Cargando encuestas...",
+    "empty": "No se encontraron encuestas",
+    "noPolls": "No se encontraron encuestas",
     "copyCode": "Copiar Código",
     "copied": "¡Copiado!",
-    "noPolls": "No se encontraron encuestas",
-    "loading": "Cargando encuestas...",
-    "close": "Cerrar"
+    "info": "💡 Puedes insertar encuestas de cualquier idioma en tus posts. La encuesta siempre se mostrará en su idioma nativo.",
+    "close": "Cerrar",
+    "copyFailed": "No se pudo copiar"
   }
 }

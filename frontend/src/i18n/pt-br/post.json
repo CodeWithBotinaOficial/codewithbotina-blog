@@ -80,43 +80,109 @@
     "copied": "Copiado para a area de transferencia!",
     "downloadSuccess": "Formula baixada",
     "error": "Erro ao processar formula"
-  }
-  ,
+  },
   "polls": {
-    "title": "Enquete",
-    "vote": "Votar",
-    "removeVote": "Remover resposta",
-    "submit": "Enviar",
-    "open": "Aberta",
-    "closed": "Fechada",
-    "closes": "Fecha {{date}}",
-    "signInToVote": "Faça login para votar",
-    "alreadyVoted": "Você já votou",
+    "type": {
+      "freeText": "Texto Livre",
+      "singleChoice": "Opção Única",
+      "multipleChoice": "Opção Múltipla"
+    },
+    "meta": {
+      "votes": "{count} {count, plural, one {voto} other {votos}}"
+    },
+    "loading": "Carregando pesquisa...",
+    "error": {
+      "notFound": "Pesquisa não encontrada"
+    },
+    "status": {
+      "open": "Aberta",
+      "closed": "Fechada",
+      "closesAt": "Fecha em {date}"
+    },
+    "auth": {
+      "required": "Faça login para votar nesta pesquisa"
+    },
+    "form": {
+      "selectOneOption": "Selecione uma opção:",
+      "selectMultipleOptions": "Selecione uma ou mais opções:",
+      "yourResponse": "Sua Resposta:",
+      "responsePlaceholder": "Digite sua resposta... (máximo 500 caracteres)",
+      "submitResponse": "Enviar Resposta",
+      "vote": "Votar",
+      "removeResponse": "Remover Resposta",
+      "signInToVote": "Faça login para votar",
+      "selectOption": "Selecione uma opção",
+      "selectAtLeastOne": "Selecione pelo menos uma opção",
+      "enterResponse": "Digite uma resposta",
+      "voteSubmitted": "✓ Voto enviado!",
+      "voteFailed": "Falha ao enviar voto",
+      "removeFailed": "Falha ao remover resposta",
+      "confirmRemove": "Remover sua resposta?",
+      "submitting": "Enviando..."
+    },
     "freeText": {
-      "placeholder": "Digite sua resposta...",
-      "submitted": "Resposta enviada"
+      "alreadySubmitted": "Você já enviou uma resposta",
+      "responseDisplay": "Sua resposta: {text}",
+      "cannotEdit": "As respostas não podem ser editadas."
     },
     "results": {
-      "title": "Resultados",
-      "wordCloud": "Nuvem de respostas",
-      "topList": "Top {count} resultados",
-      "barChart": "Distribuição de votos",
-      "download": "Baixar como PNG"
+      "loading": "Carregando resultados...",
+      "empty": "Sem resultados ainda",
+      "title": "📊 Resultados",
+      "topTitle": "Top {count} Resultados",
+      "chartTitle": "Distribuição de Votos",
+      "rank": "#{rank}",
+      "votes": "{count} {count, plural, one {voto} other {votos}}",
+      "topTabLabel": "Top {count}",
+      "chartTab": "Gráfico",
+      "wordCloud": "Nuvem de Respostas",
+      "downloadPNG": "Baixar PNG",
+      "downloadSuccess": "Baixado com sucesso",
+      "downloadFailed": "Falha ao baixar imagem",
+      "downloading": "Baixando...",
+      "downloadAsPNG": "Baixar como PNG",
+      "viewsLabel": "Visualizações dos resultados"
     },
-    "analytics": {
-      "title": "Análise de votos",
-      "user": "Usuário",
-      "vote": "Voto",
-      "date": "Data"
+    "admin": {
+      "open": "Abrir",
+      "close": "Fechar",
+      "edit": "Editar",
+      "manage": "Gerenciar",
+      "delete": "Deletar",
+      "analytics": "Análise de Votos (Usuário, Voto, Data)",
+      "openTitle": "Abrir pesquisa",
+      "closeTitle": "Fechar pesquisa",
+      "editTitle": "Editar pesquisa",
+      "manageTitle": "Gerenciar pesquisas",
+      "deleteTitle": "Deletar pesquisa",
+      "statusUpdated": "Pesquisa {status}",
+      "updateFailed": "Falha ao atualizar pesquisa",
+      "confirmDelete": "Digite \"{slug}\" para confirmar a exclusão:",
+      "deleted": "Pesquisa deletada",
+      "deleteFailed": "Falha ao deletar pesquisa"
+    },
+    "pollsBrowser": {
+      "title": "Inserir Pesquisa",
+      "search": "Pesquisar pesquisas por título...",
+      "loading": "Carregando pesquisas...",
+      "empty": "Nenhuma pesquisa encontrada",
+      "copyCode": "Copiar Código",
+      "copied": "Copiado!",
+      "info": "💡 Você pode inserir pesquisas de qualquer idioma em seus posts. A pesquisa sempre será exibida em seu idioma nativo.",
+      "close": "Fechar",
+      "copyFailed": "Falha ao copiar"
     }
   },
   "pollsBrowser": {
-    "title": "Inserir Enquete",
-    "search": "Pesquisar enquetes por título ou slug...",
+    "title": "Inserir Pesquisa",
+    "search": "Pesquisar pesquisas por título...",
+    "loading": "Carregando pesquisas...",
+    "empty": "Nenhuma pesquisa encontrada",
+    "noPolls": "Nenhuma pesquisa encontrada",
     "copyCode": "Copiar Código",
     "copied": "Copiado!",
-    "noPolls": "Nenhuma enquete encontrada",
-    "loading": "Carregando enquetes...",
-    "close": "Fechar"
+    "info": "💡 Você pode inserir pesquisas de qualquer idioma em seus posts. A pesquisa sempre será exibida em seu idioma nativo.",
+    "close": "Fechar",
+    "copyFailed": "Falha ao copiar"
   }
 }

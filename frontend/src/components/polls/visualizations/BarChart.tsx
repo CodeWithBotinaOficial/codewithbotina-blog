@@ -1,13 +1,15 @@
 import { useRef } from 'preact/hooks';
 import DownloadButton from './DownloadButton';
+import { t, type SupportedLanguage } from '../../../lib/i18n';
 
 interface Props {
-  options: Array<{ option_text: string; vote_count: number; color: string }>;
+  options: Array<{ id?: string; option_text: string; vote_count: number; color: string }>;
   orientation: 'horizontal' | 'vertical';
   optionsCount: number;
+  language: SupportedLanguage;
 }
 
-export default function PollBarChart({ options, orientation, optionsCount }: Props) {
+export default function PollBarChart({ options, orientation, optionsCount, language }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Sort and slice dynamically
@@ -20,8 +22,8 @@ export default function PollBarChart({ options, orientation, optionsCount }: Pro
   return (
     <div ref={containerRef} className="poll-bar-chart">
       <div className="poll-viz-toolbar">
-        <div className="poll-viz-title">Vote Distribution</div>
-        <DownloadButton elementRef={containerRef} filename="bar-chart" type="chart" />
+        <div className="poll-viz-title">{t(language, "polls.results.chartTitle", "post")}</div>
+        <DownloadButton elementRef={containerRef} filename="bar-chart" type="chart" language={language} />
       </div>
       <div className="bar-chart-container">
         {orientation === 'horizontal' ? (

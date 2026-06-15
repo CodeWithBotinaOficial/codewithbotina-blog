@@ -49,7 +49,7 @@ export default function PollResults({ poll, userVote, language }: any) {
     }
   }
 
-  if (!results) return <div className="poll-results-loading">Loading results...</div>;
+  if (!results) return <div className="poll-results-loading">{t(lang, "polls.results.loading", "post")}</div>;
 
   const settings = Array.isArray(poll?.poll_display_settings)
     ? (poll.poll_display_settings[0] ?? {})
@@ -60,7 +60,11 @@ export default function PollResults({ poll, userVote, language }: any) {
     return (
       <div className="poll-results">
         <div className="poll-results-title">{t(lang, "polls.results.wordCloud", "post")}</div>
-        <WordCloud responses={responses} title={t(lang, "polls.results.wordCloud", "post")} />
+        {responses.length === 0 ? (
+          <div className="poll-results-empty">{t(lang, "polls.results.empty", "post")}</div>
+        ) : (
+          <WordCloud responses={responses} title={t(lang, "polls.results.wordCloud", "post")} language={lang} />
+        )}
       </div>
     );
   }
@@ -74,7 +78,7 @@ export default function PollResults({ poll, userVote, language }: any) {
       <div className="poll-results-title">{t(lang, "polls.results.title", "post")}</div>
 
       {(showChart || showTop) ? (
-        <div className="poll-tabs" role="tablist" aria-label="Results views">
+        <div className="poll-tabs" role="tablist" aria-label={t(lang, "polls.results.viewsLabel", "post")}>
           {showChart ? (
             <button
               type="button"
@@ -84,7 +88,7 @@ export default function PollResults({ poll, userVote, language }: any) {
               aria-selected={activeTab === "chart"}
             >
               <BarChart3 className="h-4 w-4" />
-              {t(lang, "polls.results.barChart", "post")}
+              {t(lang, "polls.results.chartTab", "post")}
             </button>
           ) : null}
           {showTop ? (
@@ -96,7 +100,7 @@ export default function PollResults({ poll, userVote, language }: any) {
               aria-selected={activeTab === "top"}
             >
               <ListIcon className="h-4 w-4" />
-              {t(lang, "polls.results.topList", "post", { count: topCount })}
+              {t(lang, "polls.results.topTabLabel", "post", { count: topCount })}
             </button>
           ) : null}
         </div>
@@ -107,6 +111,7 @@ export default function PollResults({ poll, userVote, language }: any) {
           <TopList
             options={options}
             topCount={topCount}
+            language={lang}
             // "Top" is expected to show the most-voted items. If an old poll has `asc` saved,
             // users perceive it as "not updating" because 0-vote options stay at the top.
             // Keep honoring `asc` only when there are no votes yet.
@@ -118,6 +123,7 @@ export default function PollResults({ poll, userVote, language }: any) {
             options={options}
             orientation={settings.bar_chart_orientation || "vertical"}
             optionsCount={settings.bar_chart_options_count || options.length}
+            language={lang}
           />
         ) : null}
       </div>

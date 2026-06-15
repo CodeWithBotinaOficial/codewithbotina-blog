@@ -81,9 +81,19 @@ export function t(
   const dictionary = TRANSLATIONS[language]?.[namespace] ?? TRANSLATIONS[DEFAULT_LANGUAGE][namespace];
   const raw = getNestedValue(dictionary as Record<string, unknown>, key) ?? key;
 
+  const withPlurals = raw.replace(
+    /\{(\w+),\s*plural,\s*one\s*\{([^{}]*)\}\s*other\s*\{([^{}]*)\}\s*\}/g,
+    (_match, varKey: string, one: string, other: string) => {
+      const value = variables[varKey];
+      return Number(value) === 1 ? one : other;
+    },
+  );
+
   return Object.entries(variables).reduce((text, [varKey, value]) => {
-    return text.replace(new RegExp(`{{\\s*${varKey}\\s*}}`, "g"), String(value));
-  }, raw);
+    return text
+      .replace(new RegExp(`{{\\s*${varKey}\\s*}}`, "g"), String(value))
+      .replace(new RegExp(`\\{\\s*${varKey}\\s*\\}`, "g"), String(value));
+  }, withPlurals);
 }
 
 export function detectLanguage(

@@ -80,43 +80,109 @@
     "copied": "Copied to clipboard!",
     "downloadSuccess": "Formula downloaded",
     "error": "Error processing formula"
-  }
-  ,
+  },
   "polls": {
-    "title": "Poll",
-    "vote": "Vote",
-    "removeVote": "Remove response",
-    "submit": "Submit",
-    "open": "Open",
-    "closed": "Closed",
-    "closes": "Closes {{date}}",
-    "signInToVote": "Sign in to vote",
-    "alreadyVoted": "You have already voted",
+    "type": {
+      "freeText": "Free Text",
+      "singleChoice": "Single Choice",
+      "multipleChoice": "Multiple Choice"
+    },
+    "meta": {
+      "votes": "{count} {count, plural, one {vote} other {votes}}"
+    },
+    "loading": "Loading poll...",
+    "error": {
+      "notFound": "Poll not found"
+    },
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "closesAt": "Closes {date}"
+    },
+    "auth": {
+      "required": "Sign in to vote in this poll"
+    },
+    "form": {
+      "selectOneOption": "Select one option:",
+      "selectMultipleOptions": "Select one or more options:",
+      "yourResponse": "Your Response:",
+      "responsePlaceholder": "Enter your response... (max 500 characters)",
+      "submitResponse": "Submit Response",
+      "vote": "Vote",
+      "removeResponse": "Remove Response",
+      "signInToVote": "Please sign in to vote",
+      "selectOption": "Please select an option",
+      "selectAtLeastOne": "Please select at least one option",
+      "enterResponse": "Please enter a response",
+      "voteSubmitted": "✓ Vote submitted!",
+      "voteFailed": "Failed to submit vote",
+      "removeFailed": "Failed to remove response",
+      "confirmRemove": "Remove your response?",
+      "submitting": "Submitting..."
+    },
     "freeText": {
-      "placeholder": "Enter your response...",
-      "submitted": "Response submitted"
+      "alreadySubmitted": "You have already submitted a response",
+      "responseDisplay": "Your response: {text}",
+      "cannotEdit": "Responses cannot be edited."
     },
     "results": {
-      "title": "Results",
+      "loading": "Loading results...",
+      "empty": "No results yet",
+      "title": "📊 Results",
+      "topTitle": "Top {count} Results",
+      "chartTitle": "Vote Distribution",
+      "rank": "#{rank}",
+      "votes": "{count} {count, plural, one {vote} other {votes}}",
+      "topTabLabel": "Top {count}",
+      "chartTab": "Chart",
       "wordCloud": "Response Cloud",
-      "topList": "Top {count} results",
-      "barChart": "Vote Distribution",
-      "download": "Download as PNG"
+      "downloadPNG": "Download PNG",
+      "downloadSuccess": "Downloaded successfully",
+      "downloadFailed": "Failed to download image",
+      "downloading": "Downloading...",
+      "downloadAsPNG": "Download as PNG",
+      "viewsLabel": "Results views"
     },
-    "analytics": {
-      "title": "Vote Analytics",
-      "user": "User",
-      "vote": "Vote",
-      "date": "Date"
+    "admin": {
+      "open": "Open",
+      "close": "Close",
+      "edit": "Edit",
+      "manage": "Manage",
+      "delete": "Delete",
+      "analytics": "Vote Analytics (User, Vote, Date)",
+      "openTitle": "Open poll",
+      "closeTitle": "Close poll",
+      "editTitle": "Edit poll",
+      "manageTitle": "Manage polls",
+      "deleteTitle": "Delete poll",
+      "statusUpdated": "Poll {status}",
+      "updateFailed": "Failed to update poll",
+      "confirmDelete": "Type \"{slug}\" to confirm deletion:",
+      "deleted": "Poll deleted",
+      "deleteFailed": "Failed to delete poll"
+    },
+    "pollsBrowser": {
+      "title": "Insert Poll",
+      "search": "Search polls by title...",
+      "loading": "Loading polls...",
+      "empty": "No polls found",
+      "copyCode": "Copy Code",
+      "copied": "Copied!",
+      "info": "💡 You can embed polls in posts of any language. The poll will always display in its native language.",
+      "close": "Close",
+      "copyFailed": "Failed to copy"
     }
   },
   "pollsBrowser": {
     "title": "Insert Poll",
-    "search": "Search polls by title or slug...",
+    "search": "Search polls by title...",
+    "loading": "Loading polls...",
+    "empty": "No polls found",
+    "noPolls": "No polls found",
     "copyCode": "Copy Code",
     "copied": "Copied!",
-    "noPolls": "No polls found",
-    "loading": "Loading polls...",
-    "close": "Close"
+    "info": "💡 You can embed polls in posts of any language. The poll will always display in its native language.",
+    "close": "Close",
+    "copyFailed": "Failed to copy"
   }
 }

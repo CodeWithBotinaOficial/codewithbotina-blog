@@ -1,14 +1,17 @@
 import { useMemo, useRef } from "preact/hooks";
 import { Award, Medal, Trophy } from "lucide-preact";
 import DownloadButton from "./DownloadButton";
+import { t, type SupportedLanguage } from "../../../lib/i18n";
+import { getPollVoteCount } from "../../../lib/poll-i18n";
 
 interface Props {
-  options: Array<{ option_text: string; vote_count: number; color?: string }>;
+  options: Array<{ id?: string; option_text: string; vote_count: number; color?: string }>;
   topCount: number;
   order: 'asc' | 'desc';
+  language: SupportedLanguage;
 }
 
-export default function TopList({ options, topCount, order }: Props) {
+export default function TopList({ options, topCount, order, language }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const totalVotes = useMemo(() => options.reduce((sum, o) => sum + (o.vote_count ?? 0), 0), [options]);
@@ -34,8 +37,8 @@ export default function TopList({ options, topCount, order }: Props) {
   return (
     <div ref={containerRef} className="poll-top-list">
       <div className="poll-viz-toolbar top-list-header">
-        <div className="poll-viz-title">Top {topCount}</div>
-        <DownloadButton elementRef={containerRef} filename="top-list" type="list" />
+        <div className="poll-viz-title">{t(language, "polls.results.topTitle", "post", { count: topCount })}</div>
+        <DownloadButton elementRef={containerRef} filename="top-list" type="list" language={language} />
       </div>
 
       <div className="top-list-items">
@@ -60,7 +63,7 @@ export default function TopList({ options, topCount, order }: Props) {
                 </div>
               </div>
               <div className="top-list-stats">
-                <div className="vote-count">{votes}</div>
+                <div className="vote-count">{getPollVoteCount(language, votes)}</div>
                 <div className="vote-percent">{pctLabel}</div>
               </div>
             </div>

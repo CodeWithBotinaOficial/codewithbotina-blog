@@ -3,6 +3,7 @@ import { BarChart3, Clock, Edit3, Globe, Lock, Trash2, Unlock, Users } from "luc
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../lib/i18n";
+import { getPollStatusName, getPollTypeName, getPollVoteCount } from "../../lib/poll-i18n";
 import { pollsApi } from "../../lib/api";
 import PollVoteSection from "./PollVoteSection";
 import PollResults from "./PollResults";
@@ -23,7 +24,7 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
   const [activePollLang, setActivePollLang] = useState(language);
   const { user, isAdmin } = useSession();
   const { showToast } = useToast();
-  const lang = (language ?? "en") as SupportedLanguage;
+  const lang = (activePollLang ?? language ?? "en") as SupportedLanguage;
 
   useEffect(() => {
     loadPoll();
@@ -100,11 +101,11 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
     return (
       <div className="poll-loading">
         <div className="loading-spinner" aria-hidden="true" />
-        <div>Loading poll...</div>
+        <div>{t(lang, "polls.loading", "post")}</div>
       </div>
     );
   }
-  if (!poll) return <div className="poll-error">Poll not found</div>;
+  if (!poll) return <div className="poll-error">{t(lang, "polls.error.notFound", "post")}</div>;
 
   const isClosed = poll.status === 'closed' || (poll.closes_at && new Date(poll.closes_at) < new Date());
   const voteCount = typeof poll.vote_count === "number"
@@ -117,22 +118,22 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
     const next = poll.status === "open" ? "closed" : "open";
     try {
       await pollsApi.update(poll.slug, activePollLang, { status: next });
-      showToast(`Poll ${next}`, "success");
+      showToast(t(lang, "polls.admin.statusUpdated", "post", { status: getPollStatusName(lang, next) }), "success");
       await loadPoll();
     } catch (_err) {
-      showToast("Failed to update poll", "error");
+      showToast(t(lang, "polls.admin.updateFailed", "post"), "error");
     }
   };
 
   const deletePoll = async () => {
-    const confirmSlug = prompt(`Type "${poll.slug}" to confirm deletion:`);
+    const confirmSlug = prompt(t(lang, "polls.admin.confirmDelete", "post", { slug: poll.slug }));
     if (confirmSlug !== poll.slug) return;
     try {
       await pollsApi.delete(poll.slug, activePollLang);
-      showToast("Poll deleted", "success");
+      showToast(t(lang, "polls.admin.deleted", "post"), "success");
       setPoll(null);
     } catch (_err) {
-      showToast("Failed to delete poll", "error");
+      showToast(t(lang, "polls.admin.deleteFailed", "post"), "error");
     }
   };
 
@@ -154,15 +155,15 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
           {isClosed ? (
             <span className="poll-status-badge closed">
               <Lock className="h-4 w-4" aria-hidden="true" />
-              {t(lang, "polls.closed", "post")}
+              {t(lang, "polls.status.closed", "post")}
             </span>
           ) : closingDate ? (
             <span className="poll-status-badge open">
               <Clock className="h-4 w-4" aria-hidden="true" />
-              {t(lang, "polls.closes", "post", { date: closingDate })}
+              {t(lang, "polls.status.closesAt", "post", { date: closingDate })}
             </span>
           ) : (
-            <span className="poll-status-badge open">{t(lang, "polls.open", "post")}</span>
+            <span className="poll-status-badge open">{t(lang, "polls.status.open", "post")}</span>
           )}
         </div>
 
@@ -170,36 +171,37 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
 
         {isAdmin ? (
           <div className="poll-admin-controls">
-            <button type="button" className="btn-admin-sm" onClick={toggleStatus} title={poll.status === "open" ? "Close poll" : "Open poll"}>
+            <button type="button" className="btn-admin-sm" onClick={toggleStatus} title={poll.status === "open" ? t(lang, "polls.admin.closeTitle", "post") : t(lang, "polls.admin.openTitle", "post")}>
               {poll.status === "open" ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-              {poll.status === "open" ? "Close" : "Open"}
+              {poll.status === "open" ? t(lang, "polls.admin.close", "post") : t(lang, "polls.admin.open", "post")}
             </button>
             <a
               className="btn-admin-sm"
               href={`/${language}/admin/polls/${encodeURIComponent(poll.slug)}/edit?lang=${encodeURIComponent(poll.language ?? activePollLang)}`}
-              title="Edit poll"
+              title={t(lang, "polls.admin.editTitle", "post")}
             >
               <Edit3 className="h-4 w-4" />
-              Edit
+              {t(lang, "polls.admin.edit", "post")}
             </a>
             <a
               className="btn-admin-sm"
               href={`/${language}/admin/polls?lang=${encodeURIComponent(poll.language ?? activePollLang)}`}
-              title="Manage polls"
+              title={t(lang, "polls.admin.manageTitle", "post")}
             >
               <BarChart3 className="h-4 w-4" />
-              Manage
+              {t(lang, "polls.admin.manage", "post")}
             </a>
-            <button type="button" className="btn-admin-sm danger" onClick={deletePoll} title="Delete poll">
+            <button type="button" className="btn-admin-sm danger" onClick={deletePoll} title={t(lang, "polls.admin.deleteTitle", "post")}>
               <Trash2 className="h-4 w-4" />
-              Delete
+              {t(lang, "polls.admin.delete", "post")}
             </button>
           </div>
         ) : null}
 
         <div className="poll-meta">
           <span className="poll-metaitem">
-            {poll.type === "free_text" ? "✍️ Free Text" : poll.type === "single_choice" ? "🔘 Single Choice" : "☑️ Multiple Choice"}
+            {poll.type === "free_text" ? "✍️ " : poll.type === "single_choice" ? "🔘 " : "☑️ "}
+            {getPollTypeName(lang, poll.type)}
           </span>
           <span className="poll-metaitem">
             <Globe className="h-4 w-4" aria-hidden="true" />
@@ -208,7 +210,7 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
           {typeof voteCount === "number" ? (
             <span className="poll-metaitem">
               <Users className="h-4 w-4" aria-hidden="true" />
-              {voteCount} {voteCount === 1 ? "vote" : "votes"}
+              {getPollVoteCount(lang, voteCount)}
             </span>
           ) : null}
         </div>

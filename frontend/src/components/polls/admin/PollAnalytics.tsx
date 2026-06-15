@@ -41,25 +41,25 @@ export default function PollAnalytics({ slug, language }: Props) {
         aria-expanded={open}
       >
         {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        {t(lang, "polls.analytics.title", "post")}
+        {t(lang, "polls.analytics.title", "admin")}
       </button>
 
       {open ? (
         <div className="mt-3 overflow-x-auto rounded-xl border border-[var(--color-border)] bg-white">
           {loading && !rows ? (
-            <div className="p-4 text-sm text-[var(--color-text-secondary)]">Loading…</div>
+            <div className="p-4 text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.loading", "admin")}</div>
           ) : rows && rows.length ? (
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="bg-[var(--color-bg-subtle)] text-[var(--color-text-secondary)]">
                   <th className="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">
-                    {t(lang, "polls.analytics.user", "post")}
+                    {t(lang, "polls.analytics.user", "admin")}
                   </th>
                   <th className="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">
-                    {t(lang, "polls.analytics.vote", "post")}
+                    {t(lang, "polls.analytics.vote", "admin")}
                   </th>
                   <th className="border border-[var(--color-border)] px-3 py-2 text-left font-semibold">
-                    {t(lang, "polls.analytics.date", "post")}
+                    {t(lang, "polls.analytics.date", "admin")}
                   </th>
                 </tr>
               </thead>
@@ -80,7 +80,7 @@ export default function PollAnalytics({ slug, language }: Props) {
               </tbody>
             </table>
           ) : (
-            <div className="p-4 text-sm text-[var(--color-text-secondary)]">No votes yet.</div>
+            <div className="p-4 text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.analytics.empty", "admin")}</div>
           )}
         </div>
       ) : null}

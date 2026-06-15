@@ -2,14 +2,16 @@ import html2canvas from "html2canvas";
 import { useState } from "preact/hooks";
 import { Download } from "lucide-preact";
 import { useToast } from "../../../hooks/useToast";
+import { t, type SupportedLanguage } from "../../../lib/i18n";
 
 interface Props {
   elementRef: { current: HTMLElement | null };
   filename: string;
   type?: 'chart' | 'list';
+  language: SupportedLanguage;
 }
 
-export default function DownloadButton({ elementRef, filename, type = 'chart' }: Props) {
+export default function DownloadButton({ elementRef, filename, type = 'chart', language }: Props) {
   const [downloading, setDownloading] = useState(false);
   const { showToast } = useToast();
 
@@ -77,10 +79,10 @@ export default function DownloadButton({ elementRef, filename, type = 'chart' }:
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      showToast('Downloaded successfully', 'success');
+      showToast(t(language, "polls.results.downloadSuccess", "post"), 'success');
     } catch (err) {
       console.error('Download failed', err);
-      showToast('Failed to download image', 'error');
+      showToast(t(language, "polls.results.downloadFailed", "post"), 'error');
     } finally {
       setDownloading(false);
     }
@@ -92,10 +94,10 @@ export default function DownloadButton({ elementRef, filename, type = 'chart' }:
       className="btn-secondary download-btn flex items-center gap-2" 
       onClick={handleDownload} 
       disabled={downloading}
-      title="Download as PNG"
+      title={t(language, "polls.results.downloadAsPNG", "post")}
     >
       <Download size={16} />
-      <span>{downloading ? "Downloading..." : "Download PNG"}</span>
+      <span>{downloading ? t(language, "polls.results.downloading", "post") : t(language, "polls.results.downloadPNG", "post")}</span>
     </button>
   );
 }
