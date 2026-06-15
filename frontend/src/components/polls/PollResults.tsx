@@ -8,10 +8,11 @@ import PollBarChart from "./visualizations/BarChart";
 
 type ResultsTab = "chart" | "top";
 
-export default function PollResults({ poll, userVote, language }: any) {
+export default function PollResults({ poll, userVote, language, pollLanguage }: any) {
   const [results, setResults] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<ResultsTab>("chart");
   const lang = (language ?? "en") as SupportedLanguage;
+  const apiLanguage = pollLanguage ?? poll?.language ?? language ?? "en";
   const options = useMemo(
     () =>
       results?.options?.map((o: any) => ({
@@ -42,7 +43,7 @@ export default function PollResults({ poll, userVote, language }: any) {
 
   async function loadResults() {
     try {
-      const body = await pollsApi.results(poll.slug, language);
+      const body = await pollsApi.results(poll.slug, apiLanguage);
       setResults((body as any).data ?? body);
     } catch (err) {
       console.error("Failed to load results", err);

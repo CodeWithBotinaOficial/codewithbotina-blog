@@ -6,10 +6,12 @@ import { pollsApi } from "../../../lib/api";
 interface Props {
   slug: string;
   language: string;
+  pollLanguage?: string;
 }
 
-export default function PollAnalytics({ slug, language }: Props) {
+export default function PollAnalytics({ slug, language, pollLanguage }: Props) {
   const lang = (language ?? "en") as SupportedLanguage;
+  const apiLanguage = pollLanguage ?? language;
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<any[] | null>(null);
@@ -23,7 +25,7 @@ export default function PollAnalytics({ slug, language }: Props) {
   async function load() {
     setLoading(true);
     try {
-      const body = await pollsApi.analytics(slug, language);
+      const body = await pollsApi.analytics(slug, apiLanguage);
       setRows((body as any).data ?? body);
     } catch (_err) {
       // ignore

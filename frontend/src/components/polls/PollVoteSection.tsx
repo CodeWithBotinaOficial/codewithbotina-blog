@@ -5,10 +5,11 @@ import { useToast } from "../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../lib/i18n";
 import { pollsApi } from "../../lib/api";
 
-export default function PollVoteSection({ poll, userVote, onVote, language }: any) {
+export default function PollVoteSection({ poll, userVote, onVote, language, pollLanguage }: any) {
   const { user } = useSession();
   const { showToast } = useToast();
   const lang = (language ?? "en") as SupportedLanguage;
+  const apiLanguage = pollLanguage ?? poll?.language ?? language ?? "en";
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [freeText, setFreeText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -67,7 +68,7 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
         payload = { optionIds: selectedOptions };
       }
 
-      await pollsApi.vote(poll.slug, language, payload);
+      await pollsApi.vote(poll.slug, apiLanguage, payload);
       {
         showToast(t(lang, "polls.form.voteSubmitted", "post"), "success");
         onVote();
@@ -83,7 +84,7 @@ export default function PollVoteSection({ poll, userVote, onVote, language }: an
     if (!confirm(t(lang, "polls.form.confirmRemove", "post"))) return;
     setSubmitting(true);
     try {
-      await pollsApi.removeVote(poll.slug, language);
+      await pollsApi.removeVote(poll.slug, apiLanguage);
       {
         showToast(t(lang, "polls.form.removeResponse", "post"), "success");
         setSelectedOptions([]);

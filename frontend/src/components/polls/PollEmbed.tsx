@@ -16,6 +16,7 @@ interface Props {
 }
 
 export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props) {
+  const uiLanguage = (language ?? "en") as SupportedLanguage;
   const [poll, setPoll] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<any>(null);
@@ -24,7 +25,7 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
   const [activePollLang, setActivePollLang] = useState(language);
   const { user, isAdmin } = useSession();
   const { showToast } = useToast();
-  const lang = (activePollLang ?? language ?? "en") as SupportedLanguage;
+  const pollContentLanguage = (activePollLang ?? poll?.language ?? pollLanguage ?? language ?? "en") as SupportedLanguage;
 
   useEffect(() => {
     loadPoll();
@@ -66,7 +67,7 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
         return;
       }
 
-      setActivePollLang(foundLang);
+      setActivePollLang(pollData.language ?? foundLang);
 
       // Supabase can return related tables as arrays.
       if (Array.isArray(pollData.poll_display_settings)) {
@@ -101,11 +102,11 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
     return (
       <div className="poll-loading">
         <div className="loading-spinner" aria-hidden="true" />
-        <div>{t(lang, "polls.loading", "post")}</div>
+        <div>{t(uiLanguage, "polls.loading", "post")}</div>
       </div>
     );
   }
-  if (!poll) return <div className="poll-error">{t(lang, "polls.error.notFound", "post")}</div>;
+  if (!poll) return <div className="poll-error">{t(uiLanguage, "polls.error.notFound", "post")}</div>;
 
   const isClosed = poll.status === 'closed' || (poll.closes_at && new Date(poll.closes_at) < new Date());
   const voteCount = typeof poll.vote_count === "number"
@@ -118,22 +119,22 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
     const next = poll.status === "open" ? "closed" : "open";
     try {
       await pollsApi.update(poll.slug, activePollLang, { status: next });
-      showToast(t(lang, "polls.admin.statusUpdated", "post", { status: getPollStatusName(lang, next) }), "success");
+      showToast(t(uiLanguage, "polls.admin.statusUpdated", "post", { status: getPollStatusName(uiLanguage, next) }), "success");
       await loadPoll();
     } catch (_err) {
-      showToast(t(lang, "polls.admin.updateFailed", "post"), "error");
+      showToast(t(uiLanguage, "polls.admin.updateFailed", "post"), "error");
     }
   };
 
   const deletePoll = async () => {
-    const confirmSlug = prompt(t(lang, "polls.admin.confirmDelete", "post", { slug: poll.slug }));
+    const confirmSlug = prompt(t(uiLanguage, "polls.admin.confirmDelete", "post", { slug: poll.slug }));
     if (confirmSlug !== poll.slug) return;
     try {
       await pollsApi.delete(poll.slug, activePollLang);
-      showToast(t(lang, "polls.admin.deleted", "post"), "success");
+      showToast(t(uiLanguage, "polls.admin.deleted", "post"), "success");
       setPoll(null);
     } catch (_err) {
-      showToast(t(lang, "polls.admin.deleteFailed", "post"), "error");
+      showToast(t(uiLanguage, "polls.admin.deleteFailed", "post"), "error");
     }
   };
 
@@ -155,15 +156,15 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
           {isClosed ? (
             <span className="poll-status-badge closed">
               <Lock className="h-4 w-4" aria-hidden="true" />
-              {t(lang, "polls.status.closed", "post")}
+              {t(uiLanguage, "polls.status.closed", "post")}
             </span>
           ) : closingDate ? (
             <span className="poll-status-badge open">
               <Clock className="h-4 w-4" aria-hidden="true" />
-              {t(lang, "polls.status.closesAt", "post", { date: closingDate })}
+              {t(uiLanguage, "polls.status.closesAt", "post", { date: closingDate })}
             </span>
           ) : (
-            <span className="poll-status-badge open">{t(lang, "polls.status.open", "post")}</span>
+            <span className="poll-status-badge open">{t(uiLanguage, "polls.status.open", "post")}</span>
           )}
         </div>
 
@@ -171,29 +172,29 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
 
         {isAdmin ? (
           <div className="poll-admin-controls">
-            <button type="button" className="btn-admin-sm" onClick={toggleStatus} title={poll.status === "open" ? t(lang, "polls.admin.closeTitle", "post") : t(lang, "polls.admin.openTitle", "post")}>
+            <button type="button" className="btn-admin-sm" onClick={toggleStatus} title={poll.status === "open" ? t(uiLanguage, "polls.admin.closeTitle", "post") : t(uiLanguage, "polls.admin.openTitle", "post")}>
               {poll.status === "open" ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-              {poll.status === "open" ? t(lang, "polls.admin.close", "post") : t(lang, "polls.admin.open", "post")}
+              {poll.status === "open" ? t(uiLanguage, "polls.admin.close", "post") : t(uiLanguage, "polls.admin.open", "post")}
             </button>
             <a
               className="btn-admin-sm"
               href={`/${language}/admin/polls/${encodeURIComponent(poll.slug)}/edit?lang=${encodeURIComponent(poll.language ?? activePollLang)}`}
-              title={t(lang, "polls.admin.editTitle", "post")}
+              title={t(uiLanguage, "polls.admin.editTitle", "post")}
             >
               <Edit3 className="h-4 w-4" />
-              {t(lang, "polls.admin.edit", "post")}
+              {t(uiLanguage, "polls.admin.edit", "post")}
             </a>
             <a
               className="btn-admin-sm"
               href={`/${language}/admin/polls?lang=${encodeURIComponent(poll.language ?? activePollLang)}`}
-              title={t(lang, "polls.admin.manageTitle", "post")}
+              title={t(uiLanguage, "polls.admin.manageTitle", "post")}
             >
               <BarChart3 className="h-4 w-4" />
-              {t(lang, "polls.admin.manage", "post")}
+              {t(uiLanguage, "polls.admin.manage", "post")}
             </a>
-            <button type="button" className="btn-admin-sm danger" onClick={deletePoll} title={t(lang, "polls.admin.deleteTitle", "post")}>
+            <button type="button" className="btn-admin-sm danger" onClick={deletePoll} title={t(uiLanguage, "polls.admin.deleteTitle", "post")}>
               <Trash2 className="h-4 w-4" />
-              {t(lang, "polls.admin.delete", "post")}
+              {t(uiLanguage, "polls.admin.delete", "post")}
             </button>
           </div>
         ) : null}
@@ -201,16 +202,16 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
         <div className="poll-meta">
           <span className="poll-metaitem">
             {poll.type === "free_text" ? "✍️ " : poll.type === "single_choice" ? "🔘 " : "☑️ "}
-            {getPollTypeName(lang, poll.type)}
+            {getPollTypeName(uiLanguage, poll.type)}
           </span>
           <span className="poll-metaitem">
             <Globe className="h-4 w-4" aria-hidden="true" />
-            {getLanguageLabel(poll.language ?? activePollLang)}
+            {getLanguageLabel(poll.language ?? pollContentLanguage)}
           </span>
           {typeof voteCount === "number" ? (
             <span className="poll-metaitem">
               <Users className="h-4 w-4" aria-hidden="true" />
-              {getPollVoteCount(lang, voteCount)}
+              {getPollVoteCount(uiLanguage, voteCount)}
             </span>
           ) : null}
         </div>
@@ -224,14 +225,15 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
             await loadPoll();
             setResultsKey((v) => v + 1);
           }}
-          language={activePollLang}
+          language={uiLanguage}
+          pollLanguage={pollContentLanguage}
         />
       )}
 
-      <PollResults key={resultsKey} poll={poll} userVote={userVote} language={activePollLang} />
+      <PollResults key={resultsKey} poll={poll} userVote={userVote} language={uiLanguage} pollLanguage={pollContentLanguage} />
 
       {isAdmin ? (
-        <PollAnalytics slug={poll.slug} language={activePollLang} />
+        <PollAnalytics slug={poll.slug} language={uiLanguage} pollLanguage={pollContentLanguage} />
       ) : null}
     </div>
   );
