@@ -130,6 +130,6 @@ export const pollValidation = {
   },
 
   validateSlug(slug: string): boolean {
-    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug.length >= 3;
   },
 };

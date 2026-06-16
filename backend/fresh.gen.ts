@@ -17,6 +17,19 @@ import * as $api_comments_commentId_unpin from "./routes/api/comments/[commentId
 import * as $api_contact from "./routes/api/contact.ts";
 import * as $api_cookies_consent from "./routes/api/cookies/consent.ts";
 import * as $api_health from "./routes/api/health.ts";
+import * as $api_polls_slug_analytics from "./routes/api/polls/[slug]/analytics.ts";
+import * as $api_polls_slug_delete from "./routes/api/polls/[slug]/delete.ts";
+import * as $api_polls_slug_exists from "./routes/api/polls/[slug]/exists.ts";
+import * as $api_polls_slug_index from "./routes/api/polls/[slug]/index.ts";
+import * as $api_polls_slug_my_vote from "./routes/api/polls/[slug]/my-vote.ts";
+import * as $api_polls_slug_options_optionId_delete from "./routes/api/polls/[slug]/options/[optionId]/delete.ts";
+import * as $api_polls_slug_options_create from "./routes/api/polls/[slug]/options/create.ts";
+import * as $api_polls_slug_remove_vote from "./routes/api/polls/[slug]/remove-vote.ts";
+import * as $api_polls_slug_results from "./routes/api/polls/[slug]/results.ts";
+import * as $api_polls_slug_update from "./routes/api/polls/[slug]/update.ts";
+import * as $api_polls_slug_vote from "./routes/api/polls/[slug]/vote.ts";
+import * as $api_polls_create from "./routes/api/polls/create.ts";
+import * as $api_polls_index from "./routes/api/polls/index.ts";
 import * as $api_posts_slug_delete from "./routes/api/posts/[slug]/delete.ts";
 import * as $api_posts_slug_exists from "./routes/api/posts/[slug]/exists.ts";
 import * as $api_posts_slug_index from "./routes/api/posts/[slug]/index.ts";
@@ -68,6 +81,21 @@ const manifest = {
     "./routes/api/contact.ts": $api_contact,
     "./routes/api/cookies/consent.ts": $api_cookies_consent,
     "./routes/api/health.ts": $api_health,
+    "./routes/api/polls/[slug]/analytics.ts": $api_polls_slug_analytics,
+    "./routes/api/polls/[slug]/delete.ts": $api_polls_slug_delete,
+    "./routes/api/polls/[slug]/exists.ts": $api_polls_slug_exists,
+    "./routes/api/polls/[slug]/index.ts": $api_polls_slug_index,
+    "./routes/api/polls/[slug]/my-vote.ts": $api_polls_slug_my_vote,
+    "./routes/api/polls/[slug]/options/[optionId]/delete.ts":
+      $api_polls_slug_options_optionId_delete,
+    "./routes/api/polls/[slug]/options/create.ts":
+      $api_polls_slug_options_create,
+    "./routes/api/polls/[slug]/remove-vote.ts": $api_polls_slug_remove_vote,
+    "./routes/api/polls/[slug]/results.ts": $api_polls_slug_results,
+    "./routes/api/polls/[slug]/update.ts": $api_polls_slug_update,
+    "./routes/api/polls/[slug]/vote.ts": $api_polls_slug_vote,
+    "./routes/api/polls/create.ts": $api_polls_create,
+    "./routes/api/polls/index.ts": $api_polls_index,
     "./routes/api/posts/[slug]/delete.ts": $api_posts_slug_delete,
     "./routes/api/posts/[slug]/exists.ts": $api_posts_slug_exists,
     "./routes/api/posts/[slug]/index.ts": $api_posts_slug_index,

@@ -812,6 +812,115 @@
     flex: 1;
   }
 
+  .slug-input-group {
+    margin-top: 1rem;
+  }
+
+  .slug-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-subtle);
+  }
+
+  .slug-preview label,
+  .slug-edit label {
+    color: var(--color-text-primary);
+  }
+
+  .slug-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .slug-display code {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: white;
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    word-break: break-all;
+  }
+
+  .btn-text {
+    border: 0;
+    background: transparent;
+    color: var(--color-accent-primary);
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  .btn-text:hover {
+    color: var(--color-accent-hover);
+  }
+
+  .btn-text:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .slug-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .slug-input-wrapper {
+    position: relative;
+  }
+
+  .slug-input {
+    padding-right: 2.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+
+  .slug-input-wrapper > svg {
+    position: absolute;
+    top: 50%;
+    right: 0.9rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .slug-input-wrapper.valid .slug-input {
+    border-color: #10b981;
+  }
+
+  .slug-input-wrapper.invalid .slug-input,
+  .slug-input-wrapper.taken .slug-input,
+  .slug-input-wrapper.error .slug-input {
+    border-color: var(--color-error);
+  }
+
+  .slug-status {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .slug-status.valid {
+    color: #047857;
+  }
+
+  .slug-status.invalid,
+  .slug-status.taken,
+  .slug-status.error {
+    color: var(--color-error);
+  }
+
+  .slug-help {
+    margin: 0;
+    color: var(--color-text-tertiary);
+    font-size: 0.75rem;
+  }
+
   .btn-icon-danger {
     padding: 0.55rem;
     background: white;
@@ -849,6 +958,10 @@
     }
     .poll-creator-footer button {
       width: 100%;
+    }
+    .slug-display {
+      align-items: stretch;
+      flex-direction: column;
     }
   }
 

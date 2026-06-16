@@ -5,6 +5,7 @@ import { useToast } from "../../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../../lib/i18n";
 import PollAnalytics from "./PollAnalytics";
 import { pollsApi } from "../../../lib/api";
+import SlugInput from "./SlugInput";
 
 interface Props {
   slug: string;
@@ -18,8 +19,11 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
   const [loading, setLoading] = useState(true);
   const [poll, setPoll] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
+  const [currentSlug, setCurrentSlug] = useState(slug);
 
   const [title, setTitle] = useState("");
+  const [editedSlug, setEditedSlug] = useState(slug);
+  const [slugIsValid, setSlugIsValid] = useState(true);
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"open" | "closed">("open");
   const [closesAt, setClosesAt] = useState<string>("");
@@ -30,18 +34,26 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
   const opts = useMemo(() => poll?.poll_options ?? [], [poll]);
 
   useEffect(() => {
+    setCurrentSlug(slug);
+    setEditedSlug(slug);
+    setSlugIsValid(true);
+  }, [slug]);
+
+  useEffect(() => {
     if (sessionLoading) return;
     if (!isAdmin) return;
     void load();
-  }, [sessionLoading, isAdmin, slug, pollLanguage]);
+  }, [sessionLoading, isAdmin, currentSlug, pollLanguage]);
 
-  async function load() {
+  async function load(lookupSlug = currentSlug) {
     setLoading(true);
     try {
-      const body = await pollsApi.get(slug, pollLanguage);
+      const body = await pollsApi.get(lookupSlug, pollLanguage);
       const p = (body as any).data ?? body;
       setPoll(p);
       setTitle(String(p.title ?? ""));
+      setEditedSlug(String(p.slug ?? lookupSlug));
+      setSlugIsValid(true);
       setDescription(String(p.description ?? ""));
       setStatus((p.status ?? "open") as any);
       setClosesAt(p.closes_at ? toLocalInputValue(p.closes_at) : "");
@@ -54,19 +66,38 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
 
   async function save() {
     if (!poll) return;
+    if (!title.trim()) {
+      showToast(t(lang, "polls.createModal.errors.titleRequired", "admin"), "error");
+      return;
+    }
+    if (!editedSlug.trim()) {
+      showToast(t(lang, "polls.slug.required", "admin"), "error");
+      return;
+    }
+    if (!slugIsValid) {
+      showToast(t(lang, "polls.slug.unique", "admin"), "error");
+      return;
+    }
+
+    const nextSlug = editedSlug.trim();
     setSaving(true);
     try {
       const payload: any = {
         title: title.trim(),
+        slug: nextSlug,
         description: description.trim(),
         status,
         closes_at: closesAt ? new Date(closesAt).toISOString() : null,
       };
-      await pollsApi.update(slug, pollLanguage, payload);
+      const body = await pollsApi.update(currentSlug, pollLanguage, payload);
+      const updated = (body as any)?.data ?? body;
+      const updatedSlug = String((updated as any)?.slug ?? nextSlug);
+      setCurrentSlug(updatedSlug);
+      setEditedSlug(updatedSlug);
       showToast(t(lang, "polls.editModal.success", "admin"), "success");
-      await load();
-    } catch (_err) {
-      showToast(t(lang, "polls.editModal.saveFailed", "admin"), "error");
+      await load(updatedSlug);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : t(lang, "polls.editModal.saveFailed", "admin"), "error");
     } finally {
       setSaving(false);
     }
@@ -78,7 +109,7 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
     if (!text) return;
     setAddingOption(true);
     try {
-      await pollsApi.addOption(slug, pollLanguage, { option_text: text });
+      await pollsApi.addOption(currentSlug, pollLanguage, { option_text: text });
       setNewOptionText("");
       showToast(t(lang, "polls.editModal.optionAdded", "admin"), "success");
       await load();
@@ -92,7 +123,7 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
   async function deleteOption(optionId: string) {
     if (!confirm(t(lang, "polls.editModal.deleteOptionConfirm", "admin"))) return;
     try {
-      await pollsApi.deleteOption(slug, pollLanguage, optionId);
+      await pollsApi.deleteOption(currentSlug, pollLanguage, optionId);
       showToast(t(lang, "polls.editModal.optionDeleted", "admin"), "success");
       await load();
     } catch (_err) {
@@ -121,7 +152,7 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
             <span class="font-mono text-xs">{poll.slug}</span> · {poll.language} · {poll.type}
           </p>
         </div>
-        <button type="button" class="btn-primary inline-flex items-center gap-2" onClick={save} disabled={saving}>
+        <button type="button" class="btn-primary inline-flex items-center gap-2" onClick={save} disabled={saving || !slugIsValid}>
           <Save className="h-4 w-4" />
           {saving ? t(lang, "polls.editModal.saving", "admin") : t(lang, "polls.editModal.save", "admin")}
         </button>
@@ -131,6 +162,19 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
         <div class="space-y-2 md:col-span-2">
           <label class="text-sm font-semibold">{t(lang, "polls.createModal.titleField", "admin")}</label>
           <input class="input-field" value={title} onInput={(e) => setTitle((e.currentTarget as HTMLInputElement).value)} />
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <SlugInput
+            title={title}
+            initialSlug={poll.slug}
+            language={poll.language ?? pollLanguage}
+            uiLanguage={lang}
+            pollId={poll.id}
+            disabled={saving}
+            onSlugChange={setEditedSlug}
+            onValidChange={setSlugIsValid}
+          />
         </div>
 
         <div class="space-y-2 md:col-span-2">
@@ -200,11 +244,11 @@ export default function PollEditor({ slug, pollLanguage }: Props) {
         <h2 class="text-lg font-bold mb-2">{t(lang, "polls.editModal.embed", "admin")}</h2>
         <div class="text-sm text-[var(--color-text-secondary)]">
           {t(lang, "polls.editModal.embedHelp", "admin")}
-          <pre class="mt-2 rounded-lg bg-[var(--color-bg-subtle)] p-3 text-xs overflow-x-auto"><code>[{poll.title}](poll:{poll.slug})</code></pre>
+          <pre class="mt-2 rounded-lg bg-[var(--color-bg-subtle)] p-3 text-xs overflow-x-auto"><code>[{poll.title}](poll:{editedSlug || poll.slug})</code></pre>
         </div>
       </div>
 
-      <PollAnalytics slug={slug} language={pollLanguage} />
+      <PollAnalytics slug={currentSlug} language={pollLanguage} />
     </div>
   );
 }

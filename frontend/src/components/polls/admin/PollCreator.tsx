@@ -3,6 +3,7 @@ import { Globe, Plus, Trash2, X } from "lucide-preact";
 import { useToast } from "../../../hooks/useToast";
 import { pollsApi } from "../../../lib/api";
 import { t, type SupportedLanguage } from "../../../lib/i18n";
+import SlugInput from "./SlugInput";
 
 interface Props {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
   const lang = (language ?? "en") as SupportedLanguage;
   const [type, setType] = useState("single_choice");
   const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugIsValid, setSlugIsValid] = useState(false);
   const [description, setDescription] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState(language);
   const [closesAt, setClosesAt] = useState<string>("");
@@ -44,6 +47,8 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
     setError(null);
     setType("single_choice");
     setTitle("");
+    setSlug("");
+    setSlugIsValid(false);
     setDescription("");
     setSelectedLanguage(language);
     setClosesAt("");
@@ -110,6 +115,20 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
       return;
     }
 
+    if (!slug.trim()) {
+      const message = t(lang, "polls.slug.required", "admin");
+      setError(message);
+      showToast(message, "error");
+      return;
+    }
+
+    if (!slugIsValid) {
+      const message = t(lang, "polls.slug.unique", "admin");
+      setError(message);
+      showToast(message, "error");
+      return;
+    }
+
     if (type !== "free_text") {
       const validOptions = options.map((o) => String(o.text ?? "").trim()).filter(Boolean);
       if (validOptions.length < minOptions) {
@@ -121,8 +140,6 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
     }
 
     const maxTop = maxTopCount;
-
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
     setSubmitting(true);
     setError(null);
@@ -150,8 +167,10 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
       showToast(t(lang, "polls.createModal.success", "admin"), "success");
       onPollCreated?.(((poll as any).data ?? poll));
       onClose();
-    } catch (_err) {
-      const message = t(lang, "polls.createModal.errors.createFailed", "admin");
+    } catch (err) {
+      const message = err instanceof Error
+        ? err.message
+        : t(lang, "polls.createModal.errors.createFailed", "admin");
       setError(message);
       showToast(message, "error");
     } finally {
@@ -229,6 +248,15 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
               disabled={submitting}
             />
           </div>
+
+          <SlugInput
+            title={title}
+            language={selectedLanguage}
+            uiLanguage={lang}
+            disabled={submitting}
+            onSlugChange={setSlug}
+            onValidChange={setSlugIsValid}
+          />
 
           <div className="mt-4 space-y-2">
             <label className="text-sm font-semibold">{t(lang, "polls.createModal.description", "admin")}</label>
@@ -393,7 +421,7 @@ export default function PollCreator({ isOpen, onClose, language, onPollCreated }
           <button type="button" className="btn-secondary" onClick={onClose} disabled={submitting}>
             {t(lang, "polls.createModal.cancel", "admin")}
           </button>
-          <button type="button" className="btn-primary" onClick={(e) => handleCreatePoll(e as any)} disabled={submitting || !title.trim()}>
+          <button type="button" className="btn-primary" onClick={(e) => handleCreatePoll(e as any)} disabled={submitting || !title.trim() || !slugIsValid}>
             {submitting ? t(lang, "polls.createModal.creating", "admin") : t(lang, "polls.createModal.create", "admin")}
           </button>
         </div>
