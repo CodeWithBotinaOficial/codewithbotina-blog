@@ -1,6 +1,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { requireAdmin } from "../../../../middleware/auth.ts";
 import { pollRepository } from "../../../../repositories/poll.repository.ts";
+import { pollValidation } from "../../../../lib/validation.ts";
 import { corsHeaders } from "../../../../middleware/cors.ts";
 import { AppError } from "../../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../../utils/responses.ts";
@@ -35,6 +36,27 @@ export const handler: Handlers = {
         const response = errorResponse("Invalid JSON body", 400);
         headers.forEach((value, key) => response.headers.set(key, value));
         return response;
+      }
+
+      if (typeof body.slug === "string") {
+        const nextSlug = String(body.slug ?? "").trim();
+        if (!pollValidation.validateSlug(nextSlug)) {
+          const response = errorResponse("Invalid poll slug format", 400);
+          headers.forEach((value, key) => response.headers.set(key, value));
+          return response;
+        }
+
+        if (nextSlug !== poll.slug) {
+          const existing = await pollRepository.findPollBySlug(
+            nextSlug,
+            language,
+          );
+          if (existing && existing.id !== poll.id) {
+            const response = errorResponse("Poll slug already exists", 409);
+            headers.forEach((value, key) => response.headers.set(key, value));
+            return response;
+          }
+        }
       }
 
       const updated = await pollRepository.updatePoll(poll.id, body);

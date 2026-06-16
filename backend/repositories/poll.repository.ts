@@ -46,6 +46,18 @@ export const pollRepository = {
     return data;
   },
 
+  async findPollBySlug(slug: string, language: string) {
+    const { data, error } = await supabase
+      .from("polls")
+      .select("id, slug, language")
+      .eq("slug", slug)
+      .eq("language", language)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  },
+
   // Get poll with vote counts
   async getPollWithResults(pollId: string) {
     const { data: poll, error: pollError } = await supabase

@@ -4,6 +4,7 @@ import { handler as voteHandler } from "../../../routes/api/polls/[slug]/vote.ts
 import { handler as removeHandler } from "../../../routes/api/polls/[slug]/remove-vote.ts";
 import { handler as resultsHandler } from "../../../routes/api/polls/[slug]/results.ts";
 import { handler as analyticsHandler } from "../../../routes/api/polls/[slug]/analytics.ts";
+import { handler as existsHandler } from "../../../routes/api/polls/[slug]/exists.ts";
 import { AuthService } from "../../../services/auth.service.ts";
 import { pollService } from "../../../services/poll.service.ts";
 import { pollRepository } from "../../../repositories/poll.repository.ts";
@@ -150,6 +151,42 @@ Deno.test("Poll API - Get Results", async () => {
   const body = await res.json();
   assertEquals(res.status, 200);
   assertEquals(body.success, true);
+
+  restore();
+});
+
+Deno.test("Poll API - Slug Exists", async () => {
+  stub(
+    pollRepository,
+    "findPollBySlug",
+    () => Promise.resolve({ id: "poll-1", slug: "test-poll", language: "en" }),
+  );
+
+  const req = new Request(
+    "http://localhost/api/polls/test-poll/exists?lang=en",
+  );
+  const res = await existsHandler.GET!(req, ctxWithSlug("test-poll"));
+  const body = await res.json();
+  assertEquals(res.status, 200);
+  assertEquals(body.exists, true);
+
+  restore();
+});
+
+Deno.test("Poll API - Slug Exists excludes current poll", async () => {
+  stub(
+    pollRepository,
+    "findPollBySlug",
+    () => Promise.resolve({ id: "poll-1", slug: "test-poll", language: "en" }),
+  );
+
+  const req = new Request(
+    "http://localhost/api/polls/test-poll/exists?lang=en&excludeId=poll-1",
+  );
+  const res = await existsHandler.GET!(req, ctxWithSlug("test-poll"));
+  const body = await res.json();
+  assertEquals(res.status, 200);
+  assertEquals(body.exists, false);
 
   restore();
 });

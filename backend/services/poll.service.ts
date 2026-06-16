@@ -36,6 +36,11 @@ export const pollService = {
       throw new Error("Invalid poll slug format");
     }
 
+    const existingPoll = await pollRepository.findPollBySlug(slug, language);
+    if (existingPoll) {
+      throw new Error("Poll slug already exists");
+    }
+
     // Validate options count for choice-based polls
     if (type !== "free_text") {
       const optionCount = options.length;
