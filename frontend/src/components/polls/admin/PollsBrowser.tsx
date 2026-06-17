@@ -63,11 +63,9 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
   const copyCode = async (poll: any) => {
     const title = String(poll?.title ?? t(lang, "polls.title", "admin")).trim() || t(lang, "polls.title", "admin");
     const slug = String(poll?.slug ?? "").trim();
-    const pollLang = String(poll?.language ?? "").trim();
     if (!slug) return;
-    
-    // Generate code with explicit language parameter
-    const code = pollLang ? `[${title}](poll:${slug}|${pollLang})` : `[${title}](poll:${slug})`;
+
+    const code = `[${title}](poll:${slug})`;
     
     try {
       await writeToClipboard(code);

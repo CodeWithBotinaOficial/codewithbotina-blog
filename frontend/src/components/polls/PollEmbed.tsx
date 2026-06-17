@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { BarChart3, Clock, Edit3, Globe, Lock, Trash2, Unlock, Users } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
-import { t, type SupportedLanguage } from "../../lib/i18n";
+import { SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
 import { getPollStatusName, getPollTypeName, getPollVoteCount } from "../../lib/poll-i18n";
 import { pollsApi } from "../../lib/api";
 import PollVoteSection from "./PollVoteSection";
@@ -36,28 +36,32 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
     try {
       setUserVote(null);
 
-      const langsToTry = [
+      const fallbackLanguages = [
+        ...SUPPORTED_LANGUAGES.filter((supportedLanguage) => supportedLanguage !== language && supportedLanguage !== "en"),
+        "en",
+      ];
+      const uniqueLangs = [...new Set([
         pollLanguage,
         language,
-        'en'
-      ].filter(Boolean) as string[];
-
-      // Unique languages only
-      const uniqueLangs = [...new Set(langsToTry)];
+        ...fallbackLanguages,
+      ].filter(Boolean) as string[])];
 
       let pollData = null;
       let foundLang = language;
 
+      console.debug(`[Poll ${slug}] Trying languages: ${uniqueLangs.join(", ")}`);
       for (const l of uniqueLangs) {
         try {
           const body = await pollsApi.get(slug, l);
           const data = (body as any).data ?? body;
           if (data && data.id) {
             pollData = data;
-            foundLang = l;
+            foundLang = String(data.language ?? l);
+            console.debug(`[Poll ${slug}] Found in language: ${foundLang}`);
             break;
           }
         } catch (_err) {
+          console.debug(`[Poll ${slug}] Not found in language: ${l}`);
           // Try next language
         }
       }
@@ -77,7 +81,7 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
 
       if (user) {
         setVoteLoading(true);
-        const voteBody = await pollsApi.myVote(slug, foundLang).catch(() => null);
+        const voteBody = await pollsApi.myVote(slug, pollData.language ?? foundLang).catch(() => null);
         if (voteBody) setUserVote((voteBody as any).data ?? voteBody);
         setVoteLoading(false);
       } else {
