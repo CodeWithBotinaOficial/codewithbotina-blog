@@ -168,7 +168,7 @@
       "empty": "Nenhuma pesquisa encontrada",
       "copyCode": "Copiar Código",
       "copied": "Copiado!",
-      "info": "💡 Você pode inserir pesquisas de qualquer idioma em seus posts. A pesquisa sempre será exibida em seu idioma nativo.",
+      "info": "Dica: Você pode inserir pesquisas de qualquer idioma em qualquer post. Use [texto](poll:slug) e o sistema encontrará automaticamente.",
       "close": "Fechar",
       "copyFailed": "Falha ao copiar"
     }
@@ -181,7 +181,7 @@
     "noPolls": "Nenhuma pesquisa encontrada",
     "copyCode": "Copiar Código",
     "copied": "Copiado!",
-    "info": "💡 Você pode inserir pesquisas de qualquer idioma em seus posts. A pesquisa sempre será exibida em seu idioma nativo.",
+    "info": "Dica: Você pode inserir pesquisas de qualquer idioma em qualquer post. Use [texto](poll:slug) e o sistema encontrará automaticamente.",
     "close": "Fechar",
     "copyFailed": "Falha ao copiar"
   }

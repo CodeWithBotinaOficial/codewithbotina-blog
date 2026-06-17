@@ -168,7 +168,7 @@
       "empty": "No polls found",
       "copyCode": "Copy Code",
       "copied": "Copied!",
-      "info": "💡 You can embed polls in posts of any language. The poll will always display in its native language.",
+      "info": "Tip: You can embed polls from any language into any post. Use [text](poll:slug) and the system will automatically find it.",
       "close": "Close",
       "copyFailed": "Failed to copy"
     }
@@ -181,7 +181,7 @@
     "noPolls": "No polls found",
     "copyCode": "Copy Code",
     "copied": "Copied!",
-    "info": "💡 You can embed polls in posts of any language. The poll will always display in its native language.",
+    "info": "Tip: You can embed polls from any language into any post. Use [text](poll:slug) and the system will automatically find it.",
     "close": "Close",
     "copyFailed": "Failed to copy"
   }

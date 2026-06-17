@@ -6,6 +6,7 @@ describe("markdown poll embeds", () => {
     const html = renderMarkdownHtml("Try this: [Vote now](poll:favorite-language-2024)");
     expect(html).toContain('class="md-poll"');
     expect(html).toContain('data-poll-slug="favorite-language-2024"');
+    expect(html).not.toContain("data-poll-lang=");
   });
 
   test("renders poll embed placeholder with explicit language [text](poll:slug|lang)", () => {
@@ -28,4 +29,3 @@ describe("markdown poll embeds", () => {
     expect(html).toContain("poll:favorite-language-2024");
   });
 });
-

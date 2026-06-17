@@ -41,30 +41,57 @@ The blog supports 3 types of interactive polls:
 
 ## Embedding Polls
 
-Use this syntax in post content:
+### Smart Auto-Discovery
+
+Use the basic syntax in post content. The embed automatically resolves the poll language:
 
 ```markdown
 [Poll Title](poll:poll-slug)
 ```
 
-By default, the system will try to find the poll in the post's current language.
+Resolution order:
 
-### Cross-Language Embedding
+1. Try the post language first.
+2. Try every supported poll language.
+3. Try English as the final fallback.
+4. Show a not-found error only if the slug does not exist in any language.
 
-To embed a poll in a specific language (e.g., an English poll in a Portuguese post), use the explicit language parameter:
+This means an English poll can be embedded in a Spanish post, a Spanish poll can be embedded in a Portuguese post, and a Portuguese poll can be embedded in an English post without adding a language parameter.
+
+### Explicit Language
+
+To prefer a specific poll language, keep using the explicit language parameter:
 
 ```markdown
 [Poll Title](poll:poll-slug|en)
 ```
 
-**Supported Language Codes:** `en`, `es`, `pt-br`
+Supported language codes: `en`, `es`, `pt-br`
 
-### Fallback Logic
+The explicit format remains backward compatible. The resolver tries the explicit language first, then continues through the normal fallback order.
 
-When a poll is embedded:
-1. It tries the explicit language parameter (if provided).
-2. It tries the post's current language.
-3. It falls back to **English** if the poll is not found in the above.
+### Example Scenarios
+
+| Post Language | Poll Language | Format | Result |
+|---|---|---|---|
+| English | English | `[text](poll:slug)` | Found in English |
+| English | Spanish | `[text](poll:slug)` | Found in Spanish |
+| Spanish | English | `[text](poll:slug)` | Found in English |
+| Portuguese | Spanish | `[text](poll:slug)` | Found in Spanish |
+| Any | Spanish | `[text](poll:slug\|es)` | Tries Spanish first |
+
+### Examples
+
+```markdown
+# Same-language poll
+[What's your favorite framework?](poll:favorite-framework)
+
+# Cross-language poll resolved automatically
+[¿Cuál es tu framework favorito?](poll:framework-favorito)
+
+# Explicit poll language
+[Original Spanish poll](poll:encuesta-original|es)
+```
 
 ## Poll Settings
 
@@ -138,7 +165,7 @@ You can create polls in different languages independently. Each poll has its own
 
 ### Cross-Language Usage
 
-Polls are no longer restricted to the post's language. A single poll (e.g., in English) can be used across the entire blog by using the explicit language syntax or relying on the English fallback.
+Polls are not restricted to the post's language. A poll in any supported language can be used across the blog with `[text](poll:slug)`, while `[text](poll:slug|language)` is available when a specific language should be tried first.
 
 ### Visual Indicators
 
@@ -203,7 +230,7 @@ Poll embeds and the Polls Browser show the poll's native language with a flag ic
 **Check:**
 - Slug is correct in markdown
 - Poll exists in database
-- Language matches post language
+- Poll exists in at least one supported language
 - Poll is not deleted
 
 ### Cannot vote
@@ -249,4 +276,3 @@ GET /api/polls/:slug/analytics
 ```
 
 See [API Documentation](./api-documentation.md) for details.
-

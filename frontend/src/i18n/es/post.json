@@ -168,7 +168,7 @@
       "empty": "No se encontraron encuestas",
       "copyCode": "Copiar Código",
       "copied": "¡Copiado!",
-      "info": "💡 Puedes insertar encuestas de cualquier idioma en tus posts. La encuesta siempre se mostrará en su idioma nativo.",
+      "info": "Consejo: Puedes insertar encuestas de cualquier idioma en cualquier post. Usa [texto](poll:slug) y el sistema la encontrará automáticamente.",
       "close": "Cerrar",
       "copyFailed": "No se pudo copiar"
     }
@@ -181,7 +181,7 @@
     "noPolls": "No se encontraron encuestas",
     "copyCode": "Copiar Código",
     "copied": "¡Copiado!",
-    "info": "💡 Puedes insertar encuestas de cualquier idioma en tus posts. La encuesta siempre se mostrará en su idioma nativo.",
+    "info": "Consejo: Puedes insertar encuestas de cualquier idioma en cualquier post. Usa [texto](poll:slug) y el sistema la encontrará automáticamente.",
     "close": "Cerrar",
     "copyFailed": "No se pudo copiar"
   }
