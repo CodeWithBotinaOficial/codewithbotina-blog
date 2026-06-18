@@ -40,6 +40,7 @@ describe("DiagramRenderer", () => {
   let container: HTMLDivElement;
 
   beforeEach(() => {
+    renderMock.mockClear();
     container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -122,6 +123,26 @@ describe("DiagramRenderer", () => {
 
     HTMLElement.prototype.getBoundingClientRect = originalRect;
     vi.useRealTimers();
+  });
+
+  it("passes unescaped Mermaid operators to mermaid.render", async () => {
+    render(
+      <DiagramRenderer
+        code={"graph LR\nA --&gt; B\nA &lt;--&gt; C\n"}
+        diagramLang="mermaid"
+        // @ts-expect-error tests
+        labels={labels}
+        // @ts-expect-error tests
+        language="en"
+        filenameBase="Test"
+      />,
+      container,
+    );
+
+    await new Promise((r) => setTimeout(r, 450));
+
+    expect(renderMock).toHaveBeenCalled();
+    expect(renderMock.mock.calls[0]?.[1]).toBe("graph LR\nA --> B\nA <--> C");
   });
 
   // Note: render timeout behavior is validated in e2e/manual testing; unit tests here focus on the

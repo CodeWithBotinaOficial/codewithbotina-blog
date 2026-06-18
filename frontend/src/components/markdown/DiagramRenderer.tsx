@@ -12,6 +12,7 @@ import Modal from "../ui/Modal";
 import type { DiagramLabels } from "../../lib/markdown-labels";
 import type { SupportedLanguage } from "../../lib/i18n";
 import { downloadSvgElementAsPng, downloadSvgElementAsSvg } from "../../lib/download-utils";
+import { prepareMermaidContent } from "../../lib/mermaid-unescape";
 
 type ViewMode = "diagram" | "code";
 
@@ -421,6 +422,7 @@ export default function DiagramRenderer({ code, diagramLang, labels, language, f
 
   const normalizedLang = useMemo(() => String(diagramLang ?? "").trim().toLowerCase(), [diagramLang]);
   const isMermaid = normalizedLang === "mermaid";
+  const preparedCode = useMemo(() => isMermaid ? prepareMermaidContent(code) : String(code ?? "").trim(), [code, isMermaid]);
 
   useEffect(() => {
     const node = rootRef.current;
@@ -489,7 +491,7 @@ export default function DiagramRenderer({ code, diagramLang, labels, language, f
     if (!isMermaid) return;
     if (!inView) return;
 
-    const trimmed = String(code ?? "").trim();
+    const trimmed = preparedCode;
     if (!trimmed) {
       setStatus("error");
       setError(labels.errorDetail);
@@ -583,7 +585,7 @@ export default function DiagramRenderer({ code, diagramLang, labels, language, f
       window.clearTimeout(timer);
       window.clearTimeout(watchdog);
     };
-  }, [code, isMermaid, inView, labels.errorDetail, attempt]);
+  }, [preparedCode, isMermaid, inView, labels.errorDetail, attempt]);
 
   const toggleMode = (next: ViewMode) => setMode(next);
   const retryLabel = language === "es" ? "Reintentar" : language === "pt-br" ? "Tentar novamente" : "Retry";
@@ -617,7 +619,7 @@ export default function DiagramRenderer({ code, diagramLang, labels, language, f
 
       {mode === "code" ? (
         <pre class="md-diagram__code">
-          <code>{code}</code>
+          <code>{preparedCode || code}</code>
         </pre>
       ) : status === "loading" || status === "idle" ? (
         <div class="md-diagram__loading" role="status" aria-live="polite">
@@ -645,7 +647,7 @@ export default function DiagramRenderer({ code, diagramLang, labels, language, f
             </button>
           </div>
           <pre class="md-diagram__code">
-            <code>{code}</code>
+            <code>{preparedCode || code}</code>
           </pre>
         </div>
       ) : (
