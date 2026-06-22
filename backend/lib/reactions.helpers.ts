@@ -1,11 +1,35 @@
 import { supabase } from "./supabase.ts";
 import { DatabaseError } from "../utils/errors.ts";
 
+type ReactionTarget = {
+  postId: string;
+  translationGroupId: string;
+};
+
+async function resolveReactionTarget(postId: string): Promise<ReactionTarget> {
+  const { data, error } = await supabase
+    .from("post_translations")
+    .select("translation_group_id")
+    .eq("post_id", postId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Supabase error:", error);
+    throw new DatabaseError("Failed to resolve post translation group");
+  }
+
+  return {
+    postId,
+    translationGroupId: data?.translation_group_id ?? postId,
+  };
+}
+
 export async function getReactionCounts(postId: string) {
+  const target = await resolveReactionTarget(postId);
   const { data, error } = await supabase
     .from("post_reactions")
     .select("reaction_type")
-    .eq("post_id", postId);
+    .eq("translation_group_id", target.translationGroupId);
 
   if (error) {
     console.error("Supabase error:", error);
@@ -18,14 +42,20 @@ export async function getReactionCounts(postId: string) {
     (data ?? []).filter((reaction) => reaction.reaction_type === "dislike")
       .length;
 
-  return { likes, dislikes, total: likes + dislikes };
+  return {
+    likes,
+    dislikes,
+    total: likes + dislikes,
+    translationGroupId: target.translationGroupId,
+  };
 }
 
 export async function getUserReaction(postId: string, userId: string) {
+  const target = await resolveReactionTarget(postId);
   const { data, error } = await supabase
     .from("post_reactions")
     .select("reaction_type")
-    .eq("post_id", postId)
+    .eq("translation_group_id", target.translationGroupId)
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -42,10 +72,11 @@ export async function toggleReaction(
   userId: string,
   reactionType: "like" | "dislike",
 ) {
+  const target = await resolveReactionTarget(postId);
   const { data: existing, error } = await supabase
     .from("post_reactions")
     .select("id, reaction_type")
-    .eq("post_id", postId)
+    .eq("translation_group_id", target.translationGroupId)
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -79,7 +110,8 @@ export async function toggleReaction(
     const { error: insertError } = await supabase
       .from("post_reactions")
       .insert([{
-        post_id: postId,
+        post_id: target.postId,
+        translation_group_id: target.translationGroupId,
         user_id: userId,
         reaction_type: reactionType,
       }]);
@@ -89,6 +121,6 @@ export async function toggleReaction(
     }
   }
 
-  const counts = await getReactionCounts(postId);
+  const counts = await getReactionCounts(target.postId);
   return { reaction: nextReaction, counts };
 }

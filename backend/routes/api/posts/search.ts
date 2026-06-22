@@ -46,6 +46,35 @@ type SearchResultPost = {
   preview?: string;
 };
 
+async function resolveReactionGroups(
+  postIds: string[],
+): Promise<Map<string, string>> {
+  const groupsByPostId = new Map<string, string>();
+  for (const id of postIds) groupsByPostId.set(id, id);
+
+  for (const batch of chunk(postIds, 200)) {
+    const { data, error } = await supabase
+      .from("post_translations")
+      .select("post_id, translation_group_id")
+      .in("post_id", batch);
+
+    if (error) {
+      console.error("Supabase error:", error);
+      throw new AppError("Failed to fetch post translation groups", 500);
+    }
+
+    for (
+      const row of (data ?? []) as Array<
+        { post_id: string; translation_group_id: string | null }
+      >
+    ) {
+      groupsByPostId.set(row.post_id, row.translation_group_id ?? row.post_id);
+    }
+  }
+
+  return groupsByPostId;
+}
+
 function stripMarkdown(value: string): string {
   if (!value) return "";
   let s = String(value);
@@ -369,25 +398,37 @@ async function addMetrics(
   >();
   for (const id of ids) metrics.set(id, { likes: 0, dislikes: 0, comments: 0 });
 
+  const groupsByPostId = await resolveReactionGroups(ids);
+  const postIdsByGroup = new Map<string, string[]>();
+  for (const [postId, groupId] of groupsByPostId.entries()) {
+    const list = postIdsByGroup.get(groupId) ?? [];
+    list.push(postId);
+    postIdsByGroup.set(groupId, list);
+  }
+  const groupIds = Array.from(postIdsByGroup.keys());
+
   // Reactions
-  for (const batch of chunk(ids, 200)) {
+  for (const batch of chunk(groupIds, 200)) {
     const { data, error } = await supabase
       .from("post_reactions")
-      .select("post_id, reaction_type")
-      .in("post_id", batch);
+      .select("translation_group_id, reaction_type")
+      .in("translation_group_id", batch);
     if (error) {
       console.error("Supabase error:", error);
       throw new AppError("Failed to fetch reactions", 500);
     }
     for (
       const row of (data ?? []) as Array<
-        { post_id: string; reaction_type: string }
+        { translation_group_id: string; reaction_type: string }
       >
     ) {
-      const m = metrics.get(row.post_id);
-      if (!m) continue;
-      if (row.reaction_type === "like") m.likes += 1;
-      if (row.reaction_type === "dislike") m.dislikes += 1;
+      const postIds = postIdsByGroup.get(row.translation_group_id) ?? [];
+      for (const postId of postIds) {
+        const m = metrics.get(postId);
+        if (!m) continue;
+        if (row.reaction_type === "like") m.likes += 1;
+        if (row.reaction_type === "dislike") m.dislikes += 1;
+      }
     }
   }
 

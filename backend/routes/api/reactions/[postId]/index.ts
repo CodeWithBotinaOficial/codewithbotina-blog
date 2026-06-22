@@ -26,6 +26,7 @@ export const handler: Handlers = {
           success: true,
           data: {
             post_id: postId,
+            translation_group_id: counts.translationGroupId,
             likes: counts.likes,
             dislikes: counts.dislikes,
             total: counts.total,

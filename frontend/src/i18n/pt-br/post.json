@@ -12,6 +12,16 @@
     "signInSuffix": "para reagir.",
     "loading": "Carregando reacoes...",
     "error": "Falha ao atualizar a reacao. Tente novamente.",
+    "liked": "Voce curtiu este post",
+    "unliked": "Sua curtida foi removida",
+    "disliked": "Voce nao curtiu este post",
+    "undisliked": "Sua reacao negativa foi removida",
+    "signInRequired": "Por favor faca login para reagir",
+    "likeTitle": "Curtir este post",
+    "dislikeTitle": "Nao curtir este post",
+    "loadFailed": "Falha ao carregar reacoes",
+    "likeFailed": "Falha ao curtir",
+    "dislikeFailed": "Falha ao nao curtir",
     "total": "total"
   },
   "share": {

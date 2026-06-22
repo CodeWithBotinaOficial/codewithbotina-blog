@@ -12,6 +12,16 @@
     "signInSuffix": "para reaccionar.",
     "loading": "Cargando reacciones...",
     "error": "No se pudo actualizar la reacción. Intenta de nuevo.",
+    "liked": "Te gustó esta publicación",
+    "unliked": "Se eliminó tu me gusta",
+    "disliked": "No te gustó esta publicación",
+    "undisliked": "Se eliminó tu no me gusta",
+    "signInRequired": "Por favor inicia sesión para reaccionar",
+    "likeTitle": "Me gusta esta publicación",
+    "dislikeTitle": "No me gusta esta publicación",
+    "loadFailed": "Error al cargar reacciones",
+    "likeFailed": "Error al dar me gusta",
+    "dislikeFailed": "Error al dar no me gusta",
     "total": "total"
   },
   "share": {

@@ -1,6 +1,7 @@
 import DOMPurify from "isomorphic-dompurify";
 import { marked } from "marked";
 import { supabase } from "../lib/supabase.ts";
+import { getReactionCounts } from "../lib/reactions.helpers.ts";
 import { sanitizeInput } from "../lib/validation.ts";
 import { ServiceResult } from "../types/api.types.ts";
 import {
@@ -879,32 +880,15 @@ export class PostService {
       throw new DatabaseError("Failed to fetch comment count");
     }
 
-    const { data: reactions, error: reactionError } = await supabase
-      .from("post_reactions")
-      .select("reaction_type")
-      .eq("post_id", post.id);
-
-    if (reactionError) {
-      console.error("Supabase error:", reactionError);
-      throw new DatabaseError("Failed to fetch reaction count");
-    }
-
-    const likesCount =
-      (reactions ?? []).filter((reaction) => reaction.reaction_type === "like")
-        .length;
-    const dislikesCount =
-      (reactions ?? []).filter((reaction) =>
-        reaction.reaction_type === "dislike"
-      ).length;
-    const reactionCount = likesCount + dislikesCount;
+    const reactionCounts = await getReactionCounts(post.id);
 
     return {
       post_id: post.id,
       titulo: post.titulo,
       comments_count: commentCount ?? 0,
-      reactions_count: reactionCount ?? 0,
-      likes_count: likesCount,
-      dislikes_count: dislikesCount,
+      reactions_count: reactionCounts.total,
+      likes_count: reactionCounts.likes,
+      dislikes_count: reactionCounts.dislikes,
       imagen_url: post.imagen_url ?? null,
     };
   }
