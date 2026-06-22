@@ -12,6 +12,16 @@
     "signInSuffix": "to react.",
     "loading": "Loading reactions...",
     "error": "Failed to update reaction. Please try again.",
+    "liked": "You liked this post",
+    "unliked": "Removed your like",
+    "disliked": "You disliked this post",
+    "undisliked": "Removed your dislike",
+    "signInRequired": "Please sign in to react to posts",
+    "likeTitle": "Like this post",
+    "dislikeTitle": "Dislike this post",
+    "loadFailed": "Failed to load reactions",
+    "likeFailed": "Failed to like post",
+    "dislikeFailed": "Failed to dislike post",
     "total": "total"
   },
   "share": {

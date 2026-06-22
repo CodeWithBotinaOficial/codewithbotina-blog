@@ -6,7 +6,7 @@ A production-grade bilingual blog built with Astro, Fresh (Deno), Supabase, and 
 
 - ✅ Google OAuth authentication
 - ✅ Comment system with admin pinning
-- ✅ Like/dislike reactions
+- ✅ Like/dislike reactions unified across translated post versions
 - ✅ User profile page with activity statistics
 - ✅ Self-serve account deletion from profile page (permanent)
 - ✅ **Admin post management (create, edit, delete)**
@@ -62,6 +62,16 @@ The blog supports creating and editing posts in multiple languages simultaneousl
 - 🇺🇸 English (`en`)
 - 🇪🇸 Español (`es`)
 - 🇧🇷 Portugues (Brasil) (`pt-br`)
+
+## Unified Post Reactions
+
+Post reactions are shared across every language version in the same translation group:
+
+- Like a post in English and the count appears on Spanish and Portuguese versions.
+- Change or remove a reaction from any language version and it updates the shared state.
+- Each user gets one reaction per translated post group, not one reaction per language.
+
+Reactions are stored and queried by `translation_group_id`, with standalone posts falling back to their own `post_id`.
 
 ## Advanced Poll System
 
