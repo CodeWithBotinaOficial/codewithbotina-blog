@@ -42,6 +42,7 @@ SEO implementation details and indexing artifacts:
 - Robots: `frontend/public/robots.txt`
 
 Docs:
+
 - [docs/SEO.md](docs/SEO.md)
 - [docs/google-search-console-setup.md](docs/google-search-console-setup.md)
 
@@ -77,13 +78,25 @@ Reactions are stored and queried by `translation_group_id`, with standalone post
 
 Polls support free-text, single-choice, and multiple-choice formats with live results, bar charts, top lists, word clouds, PNG downloads, admin management, and vote analytics.
 
+Polls also support translation linking across English, Spanish, and Portuguese:
+
+- Unified voting: vote in any language and results appear in every linked version.
+- Type safety: translated polls must have the same poll type.
+- Option matching: choice polls must have the same option count.
+- Position mapping: votes map by option order, not option text.
+- User sync: existing votes and free-text responses lock across linked versions.
+
+Important: keep option order identical in every linked choice poll.
+
 Poll embedding works across post languages automatically:
 
 ```markdown
 # Auto-discover poll language
+
 [Your question here](poll:poll-slug)
 
 # Explicit language when needed
+
 [Your question here](poll:poll-slug|es)
 ```
 
@@ -100,6 +113,7 @@ Poll UI renders in the post language, while poll title, description, and options
 - **Hosting:** Cloudflare Pages + Deno Deploy
 
 ## 📦 Project Structure
+
 ```
 codewithbotina-blog/
 ├── frontend/          # Astro static site
@@ -130,18 +144,21 @@ codewithbotina-blog/
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/codewithbotina-blog.git
 cd codewithbotina-blog
 ```
 
 2. Install frontend dependencies:
+
 ```bash
 cd frontend
 npm install
 ```
 
 3. Configure environment variables:
+
 ```bash
 # frontend/.env
 PUBLIC_SUPABASE_URL=your_supabase_url
@@ -159,6 +176,7 @@ ALLOWED_ORIGIN=http://localhost:4321
 ```
 
 4. Run development servers:
+
 ```bash
 # Frontend (Astro)
 cd frontend
@@ -190,6 +208,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## 👤 Author
 
 **Diego Alejandro Botina**
+
 - Website: [blog.codewithbotina.com](https://blog.codewithbotina.com)
 - Email: support@codewithbotina.com
 

@@ -27,7 +27,31 @@ export const handler: Handlers = {
       const { data, error } = await query.range(0, Math.max(limit - 1, 0));
       if (error) throw error;
 
-      const response = successResponse(data ?? [], "Polls fetched", 200);
+      const polls = data ?? [];
+      const pollIds = polls.map((poll) => poll.id).filter(Boolean);
+      const optionCounts = new Map<string, number>();
+      if (pollIds.length > 0) {
+        const { data: optionRows, error: optionError } = await supabase
+          .from("poll_options")
+          .select("poll_id")
+          .in("poll_id", pollIds);
+        if (optionError) throw optionError;
+        for (const row of (optionRows ?? []) as Array<{ poll_id: string }>) {
+          optionCounts.set(
+            row.poll_id,
+            (optionCounts.get(row.poll_id) ?? 0) + 1,
+          );
+        }
+      }
+
+      const response = successResponse(
+        polls.map((poll) => ({
+          ...poll,
+          option_count: optionCounts.get(poll.id) ?? 0,
+        })),
+        "Polls fetched",
+        200,
+      );
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {

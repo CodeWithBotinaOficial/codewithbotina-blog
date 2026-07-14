@@ -132,6 +132,7 @@
     },
     "freeText": {
       "alreadySubmitted": "Você já enviou uma resposta",
+      "alreadySubmittedInLanguage": "Você já respondeu em {language}",
       "responseDisplay": "Sua resposta: {text}",
       "cannotEdit": "As respostas não podem ser editadas."
     },
