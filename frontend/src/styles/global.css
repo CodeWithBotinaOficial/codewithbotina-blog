@@ -30,7 +30,12 @@
     font-family: var(--font-sans);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--color-text-primary);
@@ -45,7 +50,8 @@
     color: var(--color-accent-hover);
   }
 
-  code, pre {
+  code,
+  pre {
     font-family: var(--font-mono);
   }
 }
@@ -297,7 +303,9 @@
     border: 1px solid var(--color-border);
     border-radius: 12px;
     background: white;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.12),
+      0 4px 6px -2px rgba(0, 0, 0, 0.08);
   }
 
   .md-latex__menuitem {
@@ -405,7 +413,9 @@
     font-weight: 800;
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
   }
 
   .btn-admin-sm:hover {
@@ -546,7 +556,10 @@
 
   .poll-option {
     @apply flex cursor-pointer items-center gap-3 rounded-xl border-2 border-[var(--color-border)] bg-white px-4 py-3 text-sm text-[var(--color-text-secondary)];
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease;
   }
 
   .poll-option:hover {
@@ -576,7 +589,10 @@
   .top-list-item {
     @apply flex items-center gap-4 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm;
     min-width: 0;
-    transition: box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease;
+    transition:
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      transform 150ms ease;
   }
 
   .top-list-item:hover {
@@ -878,7 +894,9 @@
 
   .slug-input {
     padding-right: 2.75rem;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      monospace;
   }
 
   .slug-input-wrapper > svg {
@@ -931,7 +949,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 150ms ease, border-color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
   }
 
   .btn-icon-danger:hover {
@@ -942,6 +962,227 @@
   .btn-sm {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
+  }
+
+  .poll-translation-linker {
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: white;
+  }
+
+  .poll-translation-linker.loading {
+    display: flex;
+    min-height: 150px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--color-text-secondary);
+  }
+
+  .spinner-small {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-accent-primary);
+    border-radius: 999px;
+    animation: md-spin 900ms linear infinite;
+  }
+
+  .section-title {
+    margin-bottom: 1.25rem;
+  }
+
+  .section-title h2,
+  .section-title h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+
+  .help-text {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .critical-warning {
+    display: flex;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    border: 2px solid #fecaca;
+    border-radius: 12px;
+    background: #fef2f2;
+    color: #991b1b;
+  }
+
+  .critical-warning svg {
+    flex-shrink: 0;
+    color: #dc2626;
+  }
+
+  .critical-warning strong {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: #dc2626;
+  }
+
+  .critical-warning p {
+    margin: 0.25rem 0;
+    font-size: 0.875rem;
+  }
+
+  .critical-warning details {
+    margin-top: 0.75rem;
+  }
+
+  .critical-warning summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: #dc2626;
+  }
+
+  .example-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.8rem;
+    padding: 1rem;
+    border-radius: 10px;
+    background: white;
+  }
+
+  .example-column {
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--color-accent-primary);
+  }
+
+  .example-column div {
+    padding: 0.2rem 0;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      monospace;
+    font-size: 0.85rem;
+  }
+
+  .warning-text {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+    font-weight: 700;
+  }
+
+  .linked-polls {
+    margin-bottom: 1.25rem;
+  }
+
+  .linked-polls h3 {
+    margin: 0 0 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .linked-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .linked-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-subtle);
+  }
+
+  .linked-info {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .language-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: var(--color-accent-primary);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+
+  .linked-info .title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  .linked-info .slug {
+    color: var(--color-text-tertiary);
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      monospace;
+    font-size: 0.8rem;
+  }
+
+  .link-form {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid #dc2626;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-remove:hover:not(:disabled) {
+    background: #dc2626;
+    color: white;
+  }
+
+  .empty-message {
+    margin: 0;
+    padding: 1rem;
+    border-radius: 10px;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .info-box {
+    padding: 0.9rem 1rem;
+    border: 1px solid #93c5fd;
+    border-radius: 12px;
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.875rem;
+    font-weight: 600;
   }
 
   @media (max-width: 640px) {
@@ -961,6 +1202,14 @@
     }
     .slug-display {
       align-items: stretch;
+      flex-direction: column;
+    }
+    .example-box {
+      grid-template-columns: 1fr;
+    }
+    .linked-item,
+    .linked-info {
+      align-items: flex-start;
       flex-direction: column;
     }
   }
@@ -989,7 +1238,10 @@
 
   .md-diagram__toggle {
     @apply inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)];
-    transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease;
   }
 
   .md-diagram__toggle.is-active {

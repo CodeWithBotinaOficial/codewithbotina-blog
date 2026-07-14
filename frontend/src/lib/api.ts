@@ -1,6 +1,7 @@
 import { getApiUrl } from "./env";
 
-type Json = Record<string, unknown> | unknown[] | string | number | boolean | null;
+type Json =
+  Record<string, unknown> | unknown[] | string | number | boolean | null;
 
 function joinUrl(base: string, path: string) {
   const b = String(base ?? "").replace(/\/$/, "");
@@ -11,12 +12,16 @@ function joinUrl(base: string, path: string) {
   return `${b}/${p}`;
 }
 
-export async function apiFetch<T = Json>(path: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetch<T = Json>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   const url = joinUrl(getApiUrl(), path);
 
   const headers = new Headers(options.headers ?? {});
   const hasBody = options.body !== undefined && options.body !== null;
-  if (hasBody && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  if (hasBody && !headers.has("Content-Type"))
+    headers.set("Content-Type", "application/json");
 
   const res = await fetch(url, {
     credentials: "include",
@@ -28,7 +33,9 @@ export async function apiFetch<T = Json>(path: string, options: RequestInit = {}
     let message = `${res.status} ${res.statusText}`.trim();
     try {
       const body = await res.json();
-      message = String((body as any)?.message || (body as any)?.error || message);
+      message = String(
+        (body as any)?.message || (body as any)?.error || message,
+      );
     } catch (_err) {
       // ignore
     }
@@ -45,7 +52,10 @@ export async function apiFetch<T = Json>(path: string, options: RequestInit = {}
   }
 }
 
-function withQuery(path: string, query: Record<string, string | number | boolean | undefined | null>) {
+function withQuery(
+  path: string,
+  query: Record<string, string | number | boolean | undefined | null>,
+) {
   const url = new URL(path, "http://local");
   for (const [k, v] of Object.entries(query)) {
     if (v === undefined || v === null || v === "") continue;
@@ -57,27 +67,41 @@ function withQuery(path: string, query: Record<string, string | number | boolean
 
 export const pollsApi = {
   get(slug: string, lang: string) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`);
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`,
+    );
   },
   myVote(slug: string, lang: string) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/my-vote?lang=${encodeURIComponent(lang)}`);
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/my-vote?lang=${encodeURIComponent(lang)}`,
+    );
   },
   vote(slug: string, lang: string, data: unknown) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/vote?lang=${encodeURIComponent(lang)}`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/vote?lang=${encodeURIComponent(lang)}`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+    );
   },
   removeVote(slug: string, lang: string) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/remove-vote?lang=${encodeURIComponent(lang)}`, {
-      method: "DELETE",
-    });
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/remove-vote?lang=${encodeURIComponent(lang)}`,
+      {
+        method: "DELETE",
+      },
+    );
   },
   results(slug: string, lang: string) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/results?lang=${encodeURIComponent(lang)}`);
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/results?lang=${encodeURIComponent(lang)}`,
+    );
   },
   analytics(slug: string, lang: string) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/analytics?lang=${encodeURIComponent(lang)}`);
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/analytics?lang=${encodeURIComponent(lang)}`,
+    );
   },
   list(params: { language?: string; status?: string; limit?: number }) {
     // Backend list endpoint uses `language` query param (not `lang`).
@@ -85,24 +109,36 @@ export const pollsApi = {
     return apiFetch(path);
   },
   create(data: unknown) {
-    return apiFetch("/api/polls/create", { method: "POST", body: JSON.stringify(data) });
-  },
-  update(slug: string, lang: string, data: unknown) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/update?lang=${encodeURIComponent(lang)}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  },
-  delete(slug: string, lang: string) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/delete?lang=${encodeURIComponent(lang)}`, {
-      method: "DELETE",
-    });
-  },
-  addOption(slug: string, lang: string, data: unknown) {
-    return apiFetch(`/api/polls/${encodeURIComponent(slug)}/options/create?lang=${encodeURIComponent(lang)}`, {
+    return apiFetch("/api/polls/create", {
       method: "POST",
       body: JSON.stringify(data),
     });
+  },
+  update(slug: string, lang: string, data: unknown) {
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/update?lang=${encodeURIComponent(lang)}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      },
+    );
+  },
+  delete(slug: string, lang: string) {
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/delete?lang=${encodeURIComponent(lang)}`,
+      {
+        method: "DELETE",
+      },
+    );
+  },
+  addOption(slug: string, lang: string, data: unknown) {
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/options/create?lang=${encodeURIComponent(lang)}`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+    );
   },
   deleteOption(slug: string, lang: string, optionId: string) {
     return apiFetch(
@@ -110,5 +146,31 @@ export const pollsApi = {
       { method: "DELETE" },
     );
   },
+  translations(slug: string, lang: string) {
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/translations?lang=${encodeURIComponent(lang)}`,
+    );
+  },
+  linkTranslation(
+    slug: string,
+    lang: string,
+    linkedSlug: string,
+    linkedLanguage: string,
+  ) {
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/translations?lang=${encodeURIComponent(lang)}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ linkedSlug, linkedLanguage }),
+      },
+    );
+  },
+  unlinkTranslation(slug: string, lang: string) {
+    return apiFetch(
+      `/api/polls/${encodeURIComponent(slug)}/unlink?lang=${encodeURIComponent(lang)}`,
+      {
+        method: "POST",
+      },
+    );
+  },
 };
-
