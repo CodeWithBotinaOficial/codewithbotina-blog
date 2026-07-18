@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.216.0/assert/mod.ts";
 import { CommentRepository } from "../../../repositories/comment.repository.ts";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "supabase";
 
 Deno.test("CommentRepository orders pinned first then newest", async () => {
   const orderCalls: Array<{ column: string; opts: { ascending: boolean } }> =

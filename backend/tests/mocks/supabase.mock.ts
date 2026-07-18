@@ -1,4 +1,4 @@
-import { PostgrestSingleResponse } from "@supabase/supabase-js";
+import { PostgrestSingleResponse } from "supabase";
 import { ContactFormData, ContactRecord } from "../../types/api.types.ts";
 
 export const createMockSupabaseClient = (shouldFail = false) => ({

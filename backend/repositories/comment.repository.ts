@@ -1,4 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "supabase";
 import { supabase } from "../lib/supabase.ts";
 import { Comment, CommentInsert } from "../types/comment.types.ts";
 import { DatabaseError } from "../utils/errors.ts";

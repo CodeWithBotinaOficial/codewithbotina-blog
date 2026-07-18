@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "supabase";
 import { AuthRepository } from "../repositories/auth.repository.ts";
 import {
   AuthenticatedUser,

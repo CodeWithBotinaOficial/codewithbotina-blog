@@ -6,7 +6,7 @@ import { ContactRepository } from "../../../repositories/contact.repository.ts";
 import { createMockSupabaseClient } from "../../mocks/supabase.mock.ts";
 import { validContactData } from "../../fixtures/testData.ts";
 import { DatabaseError } from "../../../utils/errors.ts";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "supabase";
 
 Deno.test("ContactRepository inserts contact successfully", async () => {
   const mockClient = createMockSupabaseClient(
