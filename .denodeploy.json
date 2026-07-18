@@ -1,0 +1,27 @@
+{
+  "$schema": "https://deno.land/x/deploy@1.0.0/schema.json",
+  "project": "codewithbotina-blog",
+  "include": [
+    "backend/**"
+  ],
+  "exclude": [
+    "frontend/**",
+    "docs/**",
+    "legal-docs/**",
+    "scripts/**",
+    ".github/**",
+    "*.md"
+  ],
+  "env": {
+    "SUPABASE_URL": {
+      "description": "Supabase project URL",
+      "ts_type": "string"
+    },
+    "SUPABASE_ANON_KEY": {
+      "description": "Supabase anonymous key",
+      "ts_type": "string"
+    },
+    "DENO_ENV": "production"
+  },
+  "main": "backend/dev.ts"
+}

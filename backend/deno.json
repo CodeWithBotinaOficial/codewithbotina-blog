@@ -24,7 +24,6 @@
     "isomorphic-dompurify": "npm:isomorphic-dompurify@^2.13.0",
     "marked": "npm:marked@^15.0.7",
     "resend": "npm:resend@^6.9.1",
-    "sharp": "npm:sharp@^0.33.5",
     "tailwindcss": "npm:tailwindcss@3.4.1",
     "tailwindcss/": "npm:/tailwindcss@3.4.1/",
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",

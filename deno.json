@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "dev": "cd backend && deno run -A --watch dev.ts",
+    "build": "cd backend && deno run -A dev.ts build",
+    "check": "cd backend && deno check --all src/**/*.ts",
+    "test": "cd backend && deno test -A src/**/*.test.ts",
+    "lint": "cd backend && deno lint src/",
+    "fmt": "cd backend && deno fmt src/"
+  },
+  "exclude": [
+    "node_modules/",
+    ".git/",
+    "frontend/",
+    "docs/"
+  ]
+}

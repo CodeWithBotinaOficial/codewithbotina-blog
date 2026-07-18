@@ -1,0 +1,60 @@
+# Tests and mocks (not needed for production execution)
+tests/
+mocks/
+fixtures/
+
+# Documentation and markdown files
+*.md
+docs/
+legal-docs/
+
+# IDE and OS specific files
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Frontend directory (CRITICAL - Deno doesn't need this)
+frontend/
+
+# Configuration and automation
+scripts/
+.github/
+.git/
+.gitignore
+
+# Node modules (frontend has these, backend shouldn't)
+node_modules/
+
+# Environment and build artifacts
+.env
+.env.local
+*.o
+*.a
+*.dylib
+*.dll
+*.exe
+*.so
+
+# Package lock files (use deno.lock instead)
+package-lock.json
+yarn.lock
+npm-shrinkwrap.json
+
+# Build outputs
+dist/
+build/
+_fresh/
+.next/
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+*.tmp
+
+# OS specific
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
