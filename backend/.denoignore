@@ -1,0 +1,20 @@
+# Tests and mocks (not needed for production execution)
+tests/
+mocks/
+fixtures/
+
+# Documentation and markdown files
+*.md
+
+# IDE and OS specific files
+.vscode/
+.idea/
+.DS_Store
+
+# Ignore frontend and other root directories
+# (Required ONLY if your Deno Deploy project root is set to the entire repository instead of just the backend folder)
+../frontend/
+../docs/
+../legal-docs/
+../scripts/
+../content/
