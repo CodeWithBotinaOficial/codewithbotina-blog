@@ -26,6 +26,8 @@ import * as $api_polls_slug_options_optionId_delete from "./routes/api/polls/[sl
 import * as $api_polls_slug_options_create from "./routes/api/polls/[slug]/options/create.ts";
 import * as $api_polls_slug_remove_vote from "./routes/api/polls/[slug]/remove-vote.ts";
 import * as $api_polls_slug_results from "./routes/api/polls/[slug]/results.ts";
+import * as $api_polls_slug_translations from "./routes/api/polls/[slug]/translations.ts";
+import * as $api_polls_slug_unlink from "./routes/api/polls/[slug]/unlink.ts";
 import * as $api_polls_slug_update from "./routes/api/polls/[slug]/update.ts";
 import * as $api_polls_slug_vote from "./routes/api/polls/[slug]/vote.ts";
 import * as $api_polls_create from "./routes/api/polls/create.ts";
@@ -92,6 +94,8 @@ const manifest = {
       $api_polls_slug_options_create,
     "./routes/api/polls/[slug]/remove-vote.ts": $api_polls_slug_remove_vote,
     "./routes/api/polls/[slug]/results.ts": $api_polls_slug_results,
+    "./routes/api/polls/[slug]/translations.ts": $api_polls_slug_translations,
+    "./routes/api/polls/[slug]/unlink.ts": $api_polls_slug_unlink,
     "./routes/api/polls/[slug]/update.ts": $api_polls_slug_update,
     "./routes/api/polls/[slug]/vote.ts": $api_polls_slug_vote,
     "./routes/api/polls/create.ts": $api_polls_create,

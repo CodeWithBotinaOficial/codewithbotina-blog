@@ -44,7 +44,6 @@ npm-shrinkwrap.json
 # Build outputs
 dist/
 build/
-_fresh/
 .next/
 
 # Editor temporary files
