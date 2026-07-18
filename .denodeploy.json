@@ -10,7 +10,9 @@
     "legal-docs/**",
     "scripts/**",
     ".github/**",
-    "*.md"
+    "*.md",
+    "**/node_modules/**",
+    "backend/node_modules/**"
   ],
   "env": {
     "SUPABASE_URL": {
