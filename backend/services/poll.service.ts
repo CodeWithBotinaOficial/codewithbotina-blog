@@ -91,7 +91,10 @@ export const pollService = {
       );
     }
 
-    return poll;
+    return {
+      ...poll,
+      option_count: type === "free_text" ? 0 : options.length,
+    };
   },
 
   async votePoll(pollId: string, userId: string, voteData: unknown) {

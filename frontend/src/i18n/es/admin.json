@@ -179,6 +179,10 @@
   "polls": {
     "title": "Gestión de Encuestas",
     "description": "Crear, editar y gestionar encuestas del blog",
+    "management": {
+      "title": "Gestión de Encuestas",
+      "description": "Crear, editar y gestionar encuestas del blog"
+    },
     "create": "Crear Encuesta",
     "loading": "Cargando...",
     "adminOnly": "Solo administradores.",

@@ -179,6 +179,10 @@
   "polls": {
     "title": "Gerenciamento de Pesquisas",
     "description": "Criar, editar e gerenciar pesquisas do blog",
+    "management": {
+      "title": "Gerenciamento de Pesquisas",
+      "description": "Criar, editar e gerenciar pesquisas do blog"
+    },
     "create": "Criar Pesquisa",
     "loading": "Carregando...",
     "adminOnly": "Apenas administradores.",

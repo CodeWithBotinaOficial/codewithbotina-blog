@@ -179,6 +179,10 @@
   "polls": {
     "title": "Poll Management",
     "description": "Create, edit, and manage blog polls",
+    "management": {
+      "title": "Poll Management",
+      "description": "Create, edit, and manage blog polls"
+    },
     "create": "Create Poll",
     "loading": "Loading...",
     "adminOnly": "Admin only.",

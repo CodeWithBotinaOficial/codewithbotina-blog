@@ -29,7 +29,12 @@ async function writeToClipboard(text: string) {
   document.body.removeChild(el);
 }
 
-export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreatePoll }: Props) {
+export default function PollsBrowser({
+  isOpen,
+  onClose,
+  currentLanguage,
+  onCreatePoll,
+}: Props) {
   const { showToast } = useToast();
   const lang = (currentLanguage ?? "en") as SupportedLanguage;
   const [polls, setPolls] = useState<any[]>([]);
@@ -57,16 +62,26 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return polls;
-    return polls.filter((p) => String(p.title ?? "").toLowerCase().includes(q) || String(p.slug ?? "").toLowerCase().includes(q));
+    return polls.filter(
+      (p) =>
+        String(p.title ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(p.slug ?? "")
+          .toLowerCase()
+          .includes(q),
+    );
   }, [polls, search]);
 
   const copyCode = async (poll: any) => {
-    const title = String(poll?.title ?? t(lang, "polls.title", "admin")).trim() || t(lang, "polls.title", "admin");
+    const title =
+      String(poll?.title ?? t(lang, "polls.title", "admin")).trim() ||
+      t(lang, "polls.title", "admin");
     const slug = String(poll?.slug ?? "").trim();
     if (!slug) return;
 
     const code = `[${title}](poll:${slug})`;
-    
+
     try {
       await writeToClipboard(code);
       setCopiedId(String(poll.id ?? slug));
@@ -79,19 +94,27 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
 
   const getLanguageLabel = (l: string) => {
     switch (l) {
-      case 'en': return '🇺🇸 English';
-      case 'es': return '🇪🇸 Español';
-      case 'pt-br': return '🇧🇷 Português';
-      default: return l.toUpperCase();
+      case "en":
+        return "🇺🇸 English";
+      case "es":
+        return "🇪🇸 Español";
+      case "pt-br":
+        return "🇧🇷 Português";
+      default:
+        return l.toUpperCase();
     }
   };
 
   const getLanguageColor = (l: string) => {
     switch (l) {
-      case 'en': return 'bg-blue-100 text-blue-700';
-      case 'es': return 'bg-pink-100 text-pink-700';
-      case 'pt-br': return 'bg-emerald-100 text-emerald-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case "en":
+        return "bg-blue-100 text-blue-700";
+      case "es":
+        return "bg-pink-100 text-pink-700";
+      case "pt-br":
+        return "bg-emerald-100 text-emerald-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -99,48 +122,80 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={t(lang, "polls.pollsBrowser.title", "post")}
+      title={t(lang, "polls.pollsBrowser.insertTitle", "post")}
       maxWidthClass="max-w-2xl"
-      footer={(
+      footer={
         <>
           {onCreatePoll ? (
-            <button type="button" class="btn-secondary inline-flex items-center gap-2" onClick={onCreatePoll}>
+            <button
+              type="button"
+              class="btn-secondary inline-flex items-center gap-2"
+              title={t(
+                lang,
+                "polls.pollsBrowser.createPollDescription",
+                "post",
+              )}
+              onClick={onCreatePoll}
+            >
               <Plus className="h-4 w-4" />
-              {t(lang, "polls.create", "admin")}
+              {t(lang, "polls.pollsBrowser.createPoll", "post")}
             </button>
           ) : null}
           <button type="button" class="btn-primary" onClick={onClose}>
             {t(lang, "polls.pollsBrowser.close", "post")}
           </button>
         </>
-      )}
+      }
     >
       <div class="space-y-4">
+        <p class="text-sm text-[var(--color-text-secondary)]">
+          {t(lang, "polls.pollsBrowser.insertDescription", "post")}
+        </p>
+
         <div class="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-2">
           <Search className="h-4 w-4 text-[var(--color-text-tertiary)]" />
           <input
             class="w-full bg-transparent outline-none text-sm text-[var(--color-text-primary)]"
             type="text"
             value={search}
-            onInput={(e) => setSearch(String((e.currentTarget as HTMLInputElement).value ?? ""))}
+            onInput={(e) =>
+              setSearch(
+                String((e.currentTarget as HTMLInputElement).value ?? ""),
+              )
+            }
             placeholder={t(lang, "polls.pollsBrowser.search", "post")}
           />
         </div>
 
         <div class="max-h-[420px] overflow-y-auto space-y-2 pr-1">
           {loading ? (
-            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.pollsBrowser.loading", "post")}</div>
+            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">
+              {t(lang, "polls.pollsBrowser.loading", "post")}
+            </div>
           ) : filtered.length === 0 ? (
-            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t(lang, "polls.pollsBrowser.empty", "post")}</div>
+            <div class="py-10 text-center text-sm text-[var(--color-text-secondary)]">
+              {t(lang, "polls.pollsBrowser.empty", "post")}
+            </div>
           ) : (
             filtered.map((poll) => (
-              <div key={poll.id} class="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3">
+              <div
+                key={poll.id}
+                class="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3"
+              >
                 <div class="min-w-0">
-                  <div class="truncate font-semibold text-[var(--color-text-primary)]">{poll.title}</div>
+                  <div class="truncate font-semibold text-[var(--color-text-primary)]">
+                    {poll.title}
+                  </div>
                   <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                    <span class="font-mono text-[var(--color-text-tertiary)]">{poll.slug}</span>
-                    <span class="rounded-full bg-[var(--color-bg-subtle)] px-2 py-0.5 text-[var(--color-text-tertiary)]">{poll.type}</span>
-                    <span class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${getLanguageColor(poll.language)}`}>
+                    <span class="font-mono text-[var(--color-text-tertiary)]">
+                      {poll.slug}
+                    </span>
+                    <span class="rounded-full bg-[var(--color-bg-subtle)] px-2 py-0.5 text-[var(--color-text-tertiary)]">
+                      {poll.type}
+                    </span>
+                    <span
+                      class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${getLanguageColor(poll.language)}`}
+                    >
                       <Globe className="h-3 w-3" />
                       {getLanguageLabel(poll.language)}
                     </span>
@@ -153,7 +208,9 @@ export default function PollsBrowser({ isOpen, onClose, currentLanguage, onCreat
                   onClick={() => copyCode(poll)}
                 >
                   <Copy className="h-4 w-4" />
-                  {copiedId === String(poll.id ?? "") ? t(lang, "polls.pollsBrowser.copied", "post") : t(lang, "polls.pollsBrowser.copyCode", "post")}
+                  {copiedId === String(poll.id ?? "")
+                    ? t(lang, "polls.pollsBrowser.copied", "post")
+                    : t(lang, "polls.pollsBrowser.copyCode", "post")}
                 </button>
               </div>
             ))
