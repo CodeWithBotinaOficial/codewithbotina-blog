@@ -1087,11 +1087,13 @@ export class PostService {
       return;
     }
 
-    const existingIds = new Set((data ?? []).map((row) => row.tag_id));
+    const existingIds = new Set(
+      (data ?? []).map((row: { tag_id: string }) => row.tag_id),
+    );
     const incomingIds = new Set(tagIds);
 
     const toRemove = Array.from(existingIds).filter((id) =>
-      !incomingIds.has(id)
+      !incomingIds.has(id as string)
     );
     const toAdd = tagIds.filter((id) => !existingIds.has(id));
 

@@ -47,46 +47,62 @@ export const handler: Handlers = {
 
       const text = `${title} ${body}`.toLowerCase();
       const suggestions = (tags ?? [])
-        .map((tag) => {
-          const tagName = String(tag.name || "").toLowerCase();
-          if (!tagName) return null;
+        .map(
+          (
+            tag: {
+              id?: string;
+              name?: string;
+              slug?: string;
+              usage_count?: number;
+            },
+          ) => {
+            const tagName = String(tag.name || "").toLowerCase();
+            if (!tagName) return null;
 
-          let score = 0;
-          if (title.toLowerCase().includes(tagName)) score += 100;
-          if (body.toLowerCase().includes(tagName)) score += 50;
+            let score = 0;
+            if (title.toLowerCase().includes(tagName)) score += 100;
+            if (body.toLowerCase().includes(tagName)) score += 50;
 
-          const wordBoundary = new RegExp(
-            `\\b${escapeRegExp(tagName)}\\b`,
-            "i",
-          );
-          if (wordBoundary.test(text)) score += 30;
-          if (text.includes(tagName)) score += 10;
+            const wordBoundary = new RegExp(
+              `\\b${escapeRegExp(tagName)}\\b`,
+              "i",
+            );
+            if (wordBoundary.test(text)) score += 30;
+            if (text.includes(tagName)) score += 10;
 
-          const usage = typeof tag.usage_count === "number"
-            ? tag.usage_count
-            : 0;
-          score += Math.log(usage + 1) * 2;
+            const usage = typeof tag.usage_count === "number"
+              ? tag.usage_count
+              : 0;
+            score += Math.log(usage + 1) * 2;
 
-          return {
-            id: tag.id,
-            name: tag.name,
-            slug: tag.slug,
-            usage_count: usage,
-            score,
-          };
-        })
+            return {
+              id: tag.id,
+              name: tag.name,
+              slug: tag.slug,
+              usage_count: usage,
+              score,
+            };
+          },
+        )
         .filter((
-          tag,
+          tag: { score?: number } & Record<string, unknown>,
         ): tag is {
           id: string;
           name: string;
           slug: string;
           usage_count: number;
           score: number;
-        } => Boolean(tag && tag.score > 0))
-        .sort((a, b) => b.score - a.score)
+        } => Boolean(tag && (tag.score ?? 0) > 0))
+        .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
         .slice(0, 10)
-        .map(({ id, name, slug, usage_count }) => ({
+        .map((
+          { id, name, slug, usage_count }: {
+            id?: string;
+            name?: string;
+            slug?: string;
+            usage_count?: number;
+          },
+        ) => ({
           id,
           name,
           slug,

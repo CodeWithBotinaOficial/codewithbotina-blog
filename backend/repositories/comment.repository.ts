@@ -1,4 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "supabase";
 import { supabase } from "../lib/supabase.ts";
 import { Comment, CommentInsert } from "../types/comment.types.ts";
 import { DatabaseError } from "../utils/errors.ts";
@@ -41,7 +41,9 @@ export class CommentRepository {
       throw new DatabaseError("Failed to fetch comments");
     }
 
-    return (data ?? []).map((row) => this.normalizeComment(row));
+    return (data ?? []).map((
+      row: Parameters<typeof this.normalizeComment>[0],
+    ) => this.normalizeComment(row));
   }
 
   async getCommentById(commentId: string): Promise<Comment | null> {
