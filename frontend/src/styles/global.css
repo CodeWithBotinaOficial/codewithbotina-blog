@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./design-tokens.css";
+@import "./components/poll-translation-linker.css";
 @import "katex/dist/katex.min.css";
 
 @theme {

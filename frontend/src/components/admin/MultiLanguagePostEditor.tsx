@@ -80,9 +80,7 @@ function defaultImageValue(initialUrl?: string | null): ImageValue {
 }
 
 async function checkSlugExists(slug: string, language: string): Promise<boolean> {
-  const response = await fetch(
-    `${API_URL}/api/posts/${encodeURIComponent(slug)}/exists?language=${encodeURIComponent(language)}`,
-  );
+  const response = await fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}/exists?language=${encodeURIComponent(language)}`);
   if (!response.ok) throw new Error("Slug check failed");
   const payload = await response.json();
   return Boolean(payload?.exists);
@@ -114,15 +112,15 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const [signingIn, setSigningIn] = useState(false);
   const [redirectSeconds, setRedirectSeconds] = useState(5);
 
-  const initialPrimary = String(initialData?.language ?? interfaceLanguage).trim().toLowerCase();
+  const initialPrimary = String(initialData?.language ?? interfaceLanguage)
+    .trim()
+    .toLowerCase();
   const [primaryLanguage, setPrimaryLanguage] = useState<LanguageCode>(initialPrimary || "en");
   const [translationLanguages, setTranslationLanguages] = useState<LanguageCode[]>([]);
   const [useSharedTags, setUseSharedTags] = useState(false);
   const [sharedTags, setSharedTags] = useState<TagOption[]>([]);
 
-  const [pinMode, setPinMode] = useState<"all" | "selected">(() =>
-    mode === "edit" ? "selected" : "all"
-  );
+  const [pinMode, setPinMode] = useState<"all" | "selected">(() => (mode === "edit" ? "selected" : "all"));
   const [pinAll, setPinAll] = useState<boolean>(Boolean((initialData as any)?.is_pinned ?? false));
   const [pinnedByLanguage, setPinnedByLanguage] = useState<Record<LanguageCode, boolean>>(() => {
     const lang = initialPrimary || "en";
@@ -215,7 +213,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   }, [primaryLanguage]);
 
   const getLanguageName = (lang: string) => {
-    const normalized = String(lang ?? "").trim().toLowerCase();
+    const normalized = String(lang ?? "")
+      .trim()
+      .toLowerCase();
     if (isUiLanguage(normalized)) return LANGUAGE_NAMES[normalized];
     return normalized.toUpperCase();
   };
@@ -225,7 +225,15 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       if (prev[lang]) return prev;
       return {
         ...prev,
-        [lang]: { language: lang, titulo: "", slug: "", body: "", imagen_url: null, tags: [], is_pinned: false },
+        [lang]: {
+          language: lang,
+          titulo: "",
+          slug: "",
+          body: "",
+          imagen_url: null,
+          tags: [],
+          is_pinned: false,
+        },
       };
     });
     setImageByLanguage((prev) => {
@@ -248,13 +256,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     const linkedUrl = pickLinkedPostImageUrl(selectedLinkedPosts);
     if (!linkedUrl) return;
     setSharedImage(defaultImageValue(linkedUrl));
-  }, [
-    imageAppliesTo,
-    sharedImageTouched,
-    sharedImage.file,
-    sharedImage.url,
-    selectedLinkedPosts,
-  ]);
+  }, [imageAppliesTo, sharedImageTouched, sharedImage.file, sharedImage.url, selectedLinkedPosts]);
 
   useEffect(() => {
     for (const lang of activeLanguages) ensureSection(lang);
@@ -317,7 +319,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         const others = translations
           .map((row) => ({
             id: String(row.post_id),
-            language: String(row.language ?? "").trim().toLowerCase(),
+            language: String(row.language ?? "")
+              .trim()
+              .toLowerCase(),
             slug: String(row.slug ?? ""),
           }))
           .filter((row) => row.id && row.slug && row.language)
@@ -326,10 +330,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         const loadedLanguages: string[] = [];
         const loadedLinkedPosts: TranslationPost[] = [];
         for (const row of others) {
-          const details = await fetch(
-            `${API_URL}/api/posts/${encodeURIComponent(row.slug)}?language=${encodeURIComponent(row.language)}`,
-            { credentials: "include" },
-          );
+          const details = await fetch(`${API_URL}/api/posts/${encodeURIComponent(row.slug)}?language=${encodeURIComponent(row.language)}`, { credentials: "include" });
           if (!details.ok) continue;
           const postPayload = await details.json();
           const post = postPayload?.data ?? postPayload?.post ?? null;
@@ -342,7 +343,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             ...prev,
             [row.language]: {
               id: String(post.id),
-              language: String(post.language ?? row.language).trim().toLowerCase(),
+              language: String(post.language ?? row.language)
+                .trim()
+                .toLowerCase(),
               titulo: String(post.titulo ?? ""),
               slug: String(post.slug ?? ""),
               body: String(post.body ?? ""),
@@ -351,7 +354,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               is_pinned: Boolean(post.is_pinned),
             },
           }));
-          setPinnedByLanguage((prev) => ({ ...prev, [row.language]: Boolean(post.is_pinned) }));
+          setPinnedByLanguage((prev) => ({
+            ...prev,
+            [row.language]: Boolean(post.is_pinned),
+          }));
           setImageByLanguage((prev) => ({
             ...prev,
             [row.language]: defaultImageValue(post.imagen_url ?? null),
@@ -360,7 +366,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           // collect a shape compatible with TranslationLinker so the UI can show current links
           loadedLinkedPosts.push({
             post_id: String(post.id),
-            language: String(post.language ?? row.language).trim().toLowerCase(),
+            language: String(post.language ?? row.language)
+              .trim()
+              .toLowerCase(),
             slug: String(post.slug ?? ""),
             titulo: String(post.titulo ?? ""),
             fecha: post.fecha ?? null,
@@ -410,9 +418,15 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         try {
           setSlugChecking((prev) => ({ ...prev, [lang]: true }));
           const exists = await checkSlugExists(slug, lang);
-          setFieldErrors((prev) => ({ ...prev, [key]: exists ? t(interfaceLanguage, "errors.slugExists", "admin") : "" }));
+          setFieldErrors((prev) => ({
+            ...prev,
+            [key]: exists ? t(interfaceLanguage, "errors.slugExists", "admin") : "",
+          }));
         } catch (_e) {
-          setFieldErrors((prev) => ({ ...prev, [key]: t(interfaceLanguage, "errors.slugCheckFailed", "admin") }));
+          setFieldErrors((prev) => ({
+            ...prev,
+            [key]: t(interfaceLanguage, "errors.slugCheckFailed", "admin"),
+          }));
         } finally {
           setSlugChecking((prev) => ({ ...prev, [lang]: false }));
         }
@@ -506,21 +520,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     return trimmedUrl ? trimmedUrl : null;
   };
 
-  const syncTranslations = async (args: {
-    postId: string;
-    mode: "create" | "edit";
-    selected: string[];
-    initial: string[];
-  }): Promise<void> => {
+  const syncTranslations = async (args: { postId: string; mode: "create" | "edit"; selected: string[]; initial: string[] }): Promise<void> => {
     const postId = String(args.postId ?? "").trim();
     if (!postId) return;
 
-    const uniqueSelected = Array.from(
-      new Set((args.selected ?? []).map((id) => String(id).trim()).filter(Boolean)),
-    );
-    const uniqueInitial = Array.from(
-      new Set((args.initial ?? []).map((id) => String(id).trim()).filter(Boolean)),
-    );
+    const uniqueSelected = Array.from(new Set((args.selected ?? []).map((id) => String(id).trim()).filter(Boolean)));
+    const uniqueInitial = Array.from(new Set((args.initial ?? []).map((id) => String(id).trim()).filter(Boolean)));
 
     const postLink = async (linkedIds: string[]) => {
       const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
@@ -535,10 +540,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     const unlinkOne = async (linkedPostId: string) => {
       const id = String(linkedPostId ?? "").trim();
       if (!id) return;
-      const res = await fetch(
-        `${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(id)}`,
-        { method: "DELETE", credentials: "include" },
-      );
+      const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(id)}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Failed to unlink translation");
     };
 
@@ -611,18 +613,19 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         if (!res.ok) throw new Error("Failed to create posts");
         const payload = await res.json();
         const createdCount = Array.isArray(payload?.data?.posts) ? payload.data.posts.length : 1;
-        showToast(t(interfaceLanguage, "multiLang.postsCreated", "admin", { count: createdCount }), "success");
+        showToast(
+          t(interfaceLanguage, "multiLang.postsCreated", "admin", {
+            count: createdCount,
+          }),
+          "success",
+        );
 
         // If admin selected existing posts to link, attempt to link them to the
         // newly-created primary post. The create endpoint returns created posts
         // (and a translation_group_id for batch creates) – prefer the created
         // post whose language matches the primary language as the base for linking.
         try {
-          const createdPosts = Array.isArray(payload?.data?.posts)
-            ? payload.data.posts
-            : payload?.data
-            ? [payload.data]
-            : [];
+          const createdPosts = Array.isArray(payload?.data?.posts) ? payload.data.posts : payload?.data ? [payload.data] : [];
           const primaryCreated = createdPosts.find((p: any) => p.language === primaryLanguage) ?? createdPosts[0];
           const primaryId = primaryCreated?.id as string | undefined;
           await syncTranslations({
@@ -709,7 +712,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       }
 
       const nextSlug = sections[primaryLanguage]?.slug ?? initialData?.slug ?? "";
-      showToast(t(interfaceLanguage, "multiLang.postsUpdated", "admin", { count: updates.length }), "success");
+      showToast(
+        t(interfaceLanguage, "multiLang.postsUpdated", "admin", {
+          count: updates.length,
+        }),
+        "success",
+      );
 
       window.setTimeout(() => {
         window.location.assign(`/${primaryLanguage}/posts/${nextSlug}`);
@@ -739,9 +747,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             <Lock size={22} />
           </div>
           <h2 class="mt-4 text-center text-xl font-bold">{t(interfaceLanguage, "accessControl.signInRequired", "admin")}</h2>
-          <p class="mt-2 text-center text-[var(--color-text-secondary)]">
-            {t(interfaceLanguage, "accessControl.signInDescription", "admin")}
-          </p>
+          <p class="mt-2 text-center text-[var(--color-text-secondary)]">{t(interfaceLanguage, "accessControl.signInDescription", "admin")}</p>
           <div class="mt-6 flex justify-center">
             <button class="btn-auth" type="button" onClick={startSignIn} disabled={signingIn}>
               {t(interfaceLanguage, "accessControl.signInButton", "admin")}
@@ -762,25 +768,22 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             <ShieldX size={22} />
           </div>
           <div class="mt-4 text-center">
-            <div class="inline-flex items-center gap-2 rounded-full bg-[var(--color-neutral-100)] px-3 py-1 text-xs font-semibold text-[var(--color-text-secondary)]">
-              {t(interfaceLanguage, "accessControl.adminOnly", "admin")}
-            </div>
+            <div class="inline-flex items-center gap-2 rounded-full bg-[var(--color-neutral-100)] px-3 py-1 text-xs font-semibold text-[var(--color-text-secondary)]">{t(interfaceLanguage, "accessControl.adminOnly", "admin")}</div>
           </div>
           <h2 class="mt-4 text-center text-xl font-bold">{t(interfaceLanguage, "accessControl.accessDenied", "admin")}</h2>
-          <p class="mt-2 text-center text-[var(--color-text-secondary)]">
-            {t(interfaceLanguage, "accessControl.notAuthorized", "admin")}
-          </p>
+          <p class="mt-2 text-center text-[var(--color-text-secondary)]">{t(interfaceLanguage, "accessControl.notAuthorized", "admin")}</p>
           <p class="mt-6 text-center text-sm font-semibold text-[var(--color-text-primary)]">
-            {t(interfaceLanguage, "accessControl.redirecting", "admin", { seconds })}
+            {t(interfaceLanguage, "accessControl.redirecting", "admin", {
+              seconds,
+            })}
           </p>
           <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--color-neutral-100)]">
-            <div
-              class="h-full bg-[var(--color-warning)] transition-[width] duration-300"
-              style={{ width: `${progress}%` }}
-            />
+            <div class="h-full bg-[var(--color-warning)] transition-[width] duration-300" style={{ width: `${progress}%` }} />
           </div>
           <p class="mt-4 text-center text-sm text-[var(--color-text-tertiary)]">
-            <a class="underline" href={`/${interfaceLanguage}/`}>/{interfaceLanguage}/</a>
+            <a class="underline" href={`/${interfaceLanguage}/`}>
+              /{interfaceLanguage}/
+            </a>
           </p>
         </div>
       </div>
@@ -815,37 +818,18 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
         <div class="grid gap-3">
           <label class="flex items-start gap-3 text-sm">
-            <input
-              type="radio"
-              name="pin-mode"
-              value="all"
-              checked={pinMode === "all"}
-              onChange={() => setPinMode("all")}
-              disabled={isSubmitting}
-            />
+            <input type="radio" name="pin-mode" value="all" checked={pinMode === "all"} onChange={() => setPinMode("all")} disabled={isSubmitting} />
             <span>{t(interfaceLanguage, "pinAllTranslations", "admin")}</span>
           </label>
           <label class="flex items-start gap-3 text-sm">
-            <input
-              type="radio"
-              name="pin-mode"
-              value="selected"
-              checked={pinMode === "selected"}
-              onChange={() => setPinMode("selected")}
-              disabled={isSubmitting}
-            />
+            <input type="radio" name="pin-mode" value="selected" checked={pinMode === "selected"} onChange={() => setPinMode("selected")} disabled={isSubmitting} />
             <span>{t(interfaceLanguage, "pinSelectedPosts", "admin")}</span>
           </label>
         </div>
 
         {pinMode === "all" ? (
           <label class="flex items-center gap-3 text-sm font-semibold">
-            <input
-              type="checkbox"
-              checked={pinAll}
-              disabled={isSubmitting}
-              onChange={(e) => setPinAll((e.currentTarget as HTMLInputElement).checked)}
-            />
+            <input type="checkbox" checked={pinAll} disabled={isSubmitting} onChange={(e) => setPinAll((e.currentTarget as HTMLInputElement).checked)} />
             <span>{t(interfaceLanguage, "pinAllCheckbox", "admin")}</span>
           </label>
         ) : (
@@ -861,7 +845,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     disabled={isSubmitting}
                     onChange={(e) => {
                       const next = (e.currentTarget as HTMLInputElement).checked;
-                      setPinnedByLanguage((prev) => ({ ...prev, [lang]: next }));
+                      setPinnedByLanguage((prev) => ({
+                        ...prev,
+                        [lang]: next,
+                      }));
                     }}
                   />
                 </span>
@@ -874,12 +861,8 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0">
-            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">
-              {translationsTitle}
-            </h2>
-            <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
-              {translationsDesc}
-            </p>
+            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">{translationsTitle}</h2>
+            <p class="mt-1 text-sm text-[var(--color-text-secondary)]">{translationsDesc}</p>
             <p class="mt-2 text-xs text-[var(--color-text-tertiary)]">
               {t(interfaceLanguage, "multiLang.primaryLanguage", "admin")}: <span class="font-semibold">{getLanguageName(primaryLanguage)}</span>
             </p>
@@ -899,14 +882,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               onChange={(e) => setPrimaryLanguage((e.currentTarget as HTMLSelectElement).value)}
             >
               {UI_LANGS.map((lang) => (
-                <option key={lang} value={lang}>{LANGUAGE_NAMES[lang]}</option>
+                <option key={lang} value={lang}>
+                  {LANGUAGE_NAMES[lang]}
+                </option>
               ))}
             </select>
-            {mode === "edit" ? (
-              <p class="text-xs text-[var(--color-text-tertiary)]">
-                {t(interfaceLanguage, "multiLang.currentPost", "admin")}
-              </p>
-            ) : null}
+            {mode === "edit" ? <p class="text-xs text-[var(--color-text-tertiary)]">{t(interfaceLanguage, "multiLang.currentPost", "admin")}</p> : null}
           </div>
 
           <div class="space-y-2">
@@ -929,11 +910,15 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                             const section = sections[lang];
                             const basePostId = String(initialData?.id ?? "").trim();
                             if (section?.id && basePostId) {
-                              const confirm = window.confirm(
-                                t(interfaceLanguage, "multiLang.confirmUnlink", "admin"),
-                              );
+                              const confirm = window.confirm(t(interfaceLanguage, "multiLang.confirmUnlink", "admin"));
                               if (!confirm) return;
-                              setUnlinks((prev) => [...prev, { post_id: basePostId, linked_post_id: section.id! }]);
+                              setUnlinks((prev) => [
+                                ...prev,
+                                {
+                                  post_id: basePostId,
+                                  linked_post_id: section.id!,
+                                },
+                              ]);
                             }
                           }
 
@@ -958,24 +943,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       </section>
 
       <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
-        <TranslationLinker
-          currentPostId={mode === "edit" ? String(initialData?.id ?? "") : undefined}
-          currentPostLanguage={primaryLanguage}
-          selected={selectedLinkedPosts}
-          onChange={setSelectedLinkedPosts}
-          labels={translationLinkerLabels}
-          uiLocale={
-            interfaceLanguage === "es" ? "es-ES" : interfaceLanguage === "pt-br" ? "pt-BR" : "en-US"
-          }
-          disabled={isSubmitting}
-        />
+        <TranslationLinker currentPostId={mode === "edit" ? String(initialData?.id ?? "") : undefined} currentPostLanguage={primaryLanguage} selected={selectedLinkedPosts} onChange={setSelectedLinkedPosts} labels={translationLinkerLabels} uiLocale={interfaceLanguage === "es" ? "es-ES" : interfaceLanguage === "pt-br" ? "pt-BR" : "en-US"} disabled={isSubmitting} />
       </section>
 
       <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
         <div class="flex items-center justify-between gap-4">
-          <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">
-            {t(interfaceLanguage, "tags.title", "admin")}
-          </h2>
+          <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">{t(interfaceLanguage, "tags.title", "admin")}</h2>
           <label class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
             <input
               type="checkbox"
@@ -994,23 +967,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           </label>
         </div>
 
-        {useSharedTags ? (
-          <TagSelector
-            title={sections[primaryLanguage]?.titulo ?? ""}
-            body={sections[primaryLanguage]?.body ?? ""}
-            selectedTags={sharedTags}
-            onChange={setSharedTags}
-            labels={tagLabels}
-            inputId="post-tags-shared"
-          />
-        ) : null}
+        {useSharedTags ? <TagSelector title={sections[primaryLanguage]?.titulo ?? ""} body={sections[primaryLanguage]?.body ?? ""} selectedTags={sharedTags} onChange={setSharedTags} labels={tagLabels} inputId="post-tags-shared" /> : null}
       </section>
 
       <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
         <div class="flex items-center justify-between gap-4">
-          <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">
-            {t(interfaceLanguage, "editor.featuredImageLabel", "admin")}
-          </h2>
+          <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">{t(interfaceLanguage, "editor.featuredImageLabel", "admin")}</h2>
           <div class="flex items-center gap-2">
             <label class="text-sm font-semibold" htmlFor="image-applies-to">
               {t(interfaceLanguage, "multiLang.imageAppliesTo", "admin")}
@@ -1028,7 +990,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               <option value="all">{t(interfaceLanguage, "multiLang.allVersions", "admin")}</option>
               {activeLanguages.map((lang) => (
                 <option key={lang} value={lang}>
-                  {t(interfaceLanguage, "multiLang.onlyLanguage", "admin", { language: getLanguageName(lang) })}
+                  {t(interfaceLanguage, "multiLang.onlyLanguage", "admin", {
+                    language: getLanguageName(lang),
+                  })}
                 </option>
               ))}
               <option value="custom">{t(interfaceLanguage, "multiLang.customPerLanguage", "admin")}</option>
@@ -1051,15 +1015,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         ) : imageAppliesTo === "custom" ? (
           <div class="space-y-6">
             {activeLanguages.map((lang) => (
-              <FeaturedImagePicker
-                key={lang}
-                langLabel={getLanguageName(lang)}
-                uiLanguage={interfaceLanguage}
-                value={imageByLanguage[lang] ?? defaultImageValue(sections[lang]?.imagen_url ?? null)}
-                onChange={(next) => setImageByLanguage((prev) => ({ ...prev, [lang]: next }))}
-                disabled={isSubmitting}
-                locale={locale}
-              />
+              <FeaturedImagePicker key={lang} langLabel={getLanguageName(lang)} uiLanguage={interfaceLanguage} value={imageByLanguage[lang] ?? defaultImageValue(sections[lang]?.imagen_url ?? null)} onChange={(next) => setImageByLanguage((prev) => ({ ...prev, [lang]: next }))} disabled={isSubmitting} locale={locale} />
             ))}
           </div>
         ) : (
@@ -1067,7 +1023,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             langLabel={getLanguageName(imageAppliesTo)}
             uiLanguage={interfaceLanguage}
             value={imageByLanguage[imageAppliesTo] ?? defaultImageValue(sections[imageAppliesTo]?.imagen_url ?? null)}
-            onChange={(next) => setImageByLanguage((prev) => ({ ...prev, [imageAppliesTo]: next }))}
+            onChange={(next) =>
+              setImageByLanguage((prev) => ({
+                ...prev,
+                [imageAppliesTo]: next,
+              }))
+            }
             disabled={isSubmitting}
             locale={locale}
           />
@@ -1082,27 +1043,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           const preview = Boolean(previewByLanguage[lang]);
 
           return (
-            <section
-              key={lang}
-              class={`rounded-2xl border bg-white p-5 space-y-5 ${
-                isPrimary ? "border-[var(--color-accent-primary)]" : "border-[var(--color-border)]"
-              }`}
-            >
+            <section key={lang} class={`rounded-2xl border bg-white p-5 space-y-5 ${isPrimary ? "border-[var(--color-accent-primary)]" : "border-[var(--color-border)]"}`}>
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
-                    <h2 class="text-lg font-bold text-[var(--color-text-primary)]">
-                      {getLanguageName(lang)}
-                    </h2>
-                    {isPrimary ? (
-                      <span class="rounded-full bg-[var(--color-accent-light)] px-3 py-1 text-xs font-semibold text-[var(--color-accent-primary)]">
-                        {t(interfaceLanguage, "multiLang.primaryLanguage", "admin")}
-                      </span>
-                    ) : (
-                      <span class="rounded-full bg-[var(--color-bg-subtle)] px-3 py-1 text-xs font-semibold text-[var(--color-text-tertiary)]">
-                        {t(interfaceLanguage, "multiLang.translations", "admin")}
-                      </span>
-                    )}
+                    <h2 class="text-lg font-bold text-[var(--color-text-primary)]">{getLanguageName(lang)}</h2>
+                    {isPrimary ? <span class="rounded-full bg-[var(--color-accent-light)] px-3 py-1 text-xs font-semibold text-[var(--color-accent-primary)]">{t(interfaceLanguage, "multiLang.primaryLanguage", "admin")}</span> : <span class="rounded-full bg-[var(--color-bg-subtle)] px-3 py-1 text-xs font-semibold text-[var(--color-text-tertiary)]">{t(interfaceLanguage, "multiLang.translations", "admin")}</span>}
                   </div>
                 </div>
 
@@ -1129,7 +1075,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               <div class="grid gap-5 md:grid-cols-2">
                 <div class="space-y-2">
                   <label class="text-sm font-semibold" htmlFor={`title-${lang}`}>
-                    {t(interfaceLanguage, "multiLang.titleIn", "admin", { language: getLanguageName(lang) })} *
+                    {t(interfaceLanguage, "multiLang.titleIn", "admin", {
+                      language: getLanguageName(lang),
+                    })}{" "}
+                    *
                   </label>
                   <input
                     id={`title-${lang}`}
@@ -1142,18 +1091,22 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                       const v = (e.currentTarget as HTMLInputElement).value;
                       setSections((prev) => {
                         const nextSlug = slugTouched[lang] ? prev[lang].slug : generateSlug(v);
-                        return { ...prev, [lang]: { ...prev[lang], titulo: v, slug: nextSlug } };
+                        return {
+                          ...prev,
+                          [lang]: { ...prev[lang], titulo: v, slug: nextSlug },
+                        };
                       });
                     }}
                   />
-                  {fieldErrors[`title:${lang}`] ? (
-                    <p class="text-sm text-[var(--color-error)]">{fieldErrors[`title:${lang}`]}</p>
-                  ) : null}
+                  {fieldErrors[`title:${lang}`] ? <p class="text-sm text-[var(--color-error)]">{fieldErrors[`title:${lang}`]}</p> : null}
                 </div>
 
                 <div class="space-y-2">
                   <label class="text-sm font-semibold" htmlFor={`slug-${lang}`}>
-                    {t(interfaceLanguage, "multiLang.slugIn", "admin", { language: getLanguageName(lang) })} *
+                    {t(interfaceLanguage, "multiLang.slugIn", "admin", {
+                      language: getLanguageName(lang),
+                    })}{" "}
+                    *
                   </label>
                   <input
                     id={`slug-${lang}`}
@@ -1164,58 +1117,65 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     onInput={(e) => {
                       setSlugTouched((prev) => ({ ...prev, [lang]: true }));
                       const v = (e.currentTarget as HTMLInputElement).value;
-                      setSections((prev) => ({ ...prev, [lang]: { ...prev[lang], slug: v } }));
+                      setSections((prev) => ({
+                        ...prev,
+                        [lang]: { ...prev[lang], slug: v },
+                      }));
                     }}
                     onBlur={() => {
-                      setSections((prev) => ({ ...prev, [lang]: { ...prev[lang], slug: generateSlug(prev[lang].slug) } }));
+                      setSections((prev) => ({
+                        ...prev,
+                        [lang]: {
+                          ...prev[lang],
+                          slug: generateSlug(prev[lang].slug),
+                        },
+                      }));
                     }}
                   />
                   <div class="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
                     <span>{t(interfaceLanguage, "editor.slugHint", "admin")}</span>
                     {slugChecking[lang] ? <span>{t(interfaceLanguage, "editor.slugChecking", "admin")}</span> : null}
                   </div>
-                  {fieldErrors[`slug:${lang}`] ? (
-                    <p class="text-sm text-[var(--color-error)]">{fieldErrors[`slug:${lang}`]}</p>
-                  ) : null}
+                  {fieldErrors[`slug:${lang}`] ? <p class="text-sm text-[var(--color-error)]">{fieldErrors[`slug:${lang}`]}</p> : null}
                 </div>
               </div>
 
               <div class="space-y-2">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <label class="text-sm font-semibold" htmlFor={`body-${lang}`}>
-                    {t(interfaceLanguage, "multiLang.contentIn", "admin", { language: getLanguageName(lang) })} *
+                    {t(interfaceLanguage, "multiLang.contentIn", "admin", {
+                      language: getLanguageName(lang),
+                    })}{" "}
+                    *
                   </label>
                   <div class="flex gap-2">
                     <button
                       type="button"
-                      class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-                        !preview
-                          ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]"
-                          : "border-[var(--color-border)] text-[var(--color-text-secondary)]"
-                      }`}
-                      onClick={() => setPreviewByLanguage((prev) => ({ ...prev, [lang]: false }))}
+                      class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${!preview ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)]"}`}
+                      onClick={() =>
+                        setPreviewByLanguage((prev) => ({
+                          ...prev,
+                          [lang]: false,
+                        }))
+                      }
                     >
                       {t(interfaceLanguage, "editor.rawTab", "admin")}
                     </button>
                     <button
                       type="button"
-                      class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-                        preview
-                          ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]"
-                          : "border-[var(--color-border)] text-[var(--color-text-secondary)]"
-                      }`}
-                      onClick={() => setPreviewByLanguage((prev) => ({ ...prev, [lang]: true }))}
+                      class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${preview ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)]"}`}
+                      onClick={() =>
+                        setPreviewByLanguage((prev) => ({
+                          ...prev,
+                          [lang]: true,
+                        }))
+                      }
                     >
                       {t(interfaceLanguage, "editor.previewTab", "admin")}
                     </button>
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-subtle)]"
-                      onClick={() => setPollBrowserLang(lang)}
-                      title="Insert Poll"
-                    >
+                    <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg-subtle)]" onClick={() => setPollBrowserLang(lang)} title={t(interfaceLanguage, "polls.pollsBrowser.insertTitle", "post")}>
                       <BarChart3 className="h-4 w-4" aria-hidden="true" />
-                      <span class="hidden sm:inline">Insert Poll</span>
+                      <span class="hidden sm:inline">{t(interfaceLanguage, "polls.pollsBrowser.insertTitle", "post")}</span>
                     </button>
                   </div>
                 </div>
@@ -1232,16 +1192,14 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     }}
                     onInput={(e) => {
                       const v = (e.currentTarget as HTMLTextAreaElement).value;
-                      setSections((prev) => ({ ...prev, [lang]: { ...prev[lang], body: v } }));
+                      setSections((prev) => ({
+                        ...prev,
+                        [lang]: { ...prev[lang], body: v },
+                      }));
                     }}
                   />
                 ) : (
-                  <MarkdownPreview
-                    content={section.body}
-                    language={interfaceLanguage}
-                    labels={markdownLabels}
-                    title={section.titulo}
-                  />
+                  <MarkdownPreview content={section.body} language={interfaceLanguage} labels={markdownLabels} title={section.titulo} />
                 )}
 
                 <div class="text-xs text-[var(--color-text-tertiary)]">
@@ -1251,9 +1209,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                     max: 50000,
                   })}
                 </div>
-                {fieldErrors[`body:${lang}`] ? (
-                  <p class="text-sm text-[var(--color-error)]">{fieldErrors[`body:${lang}`]}</p>
-                ) : null}
+                {fieldErrors[`body:${lang}`] ? <p class="text-sm text-[var(--color-error)]">{fieldErrors[`body:${lang}`]}</p> : null}
               </div>
 
               {!useSharedTags ? (
@@ -1261,7 +1217,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
                   title={section.titulo}
                   body={section.body}
                   selectedTags={section.tags ?? []}
-                  onChange={(next) => setSections((prev) => ({ ...prev, [lang]: { ...prev[lang], tags: next } }))}
+                  onChange={(next) =>
+                    setSections((prev) => ({
+                      ...prev,
+                      [lang]: { ...prev[lang], tags: next },
+                    }))
+                  }
                   labels={tagLabels}
                   inputId={`post-tags-${lang}`}
                 />
@@ -1272,11 +1233,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       </div>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <button
-          type="submit"
-          disabled={submitDisabled}
-          class="btn-primary w-full sm:w-auto"
-        >
+        <button type="submit" disabled={submitDisabled} class="btn-primary w-full sm:w-auto">
           {isSubmitting ? (
             <span class="inline-flex items-center justify-center gap-2">
               <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent" />
@@ -1288,10 +1245,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             t(interfaceLanguage, "editor.submitUpdate", "admin")
           )}
         </button>
-        <a
-          href={cancelHref ?? "/"}
-          class="rounded-lg border border-[var(--color-border)] px-6 py-3 text-center font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary)]"
-        >
+        <a href={cancelHref ?? "/"} class="rounded-lg border border-[var(--color-border)] px-6 py-3 text-center font-semibold text-[var(--color-text-secondary)] transition hover:border-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary)]">
           {t(interfaceLanguage, "editor.cancel", "admin")}
         </a>
       </div>
@@ -1302,7 +1256,6 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         language={String(pollCreatorLang ?? interfaceLanguage)}
         onPollCreated={(poll) => {
           void copyPollEmbedToClipboard(poll);
-          setPollCreatorLang(null);
         }}
       />
 
@@ -1313,40 +1266,20 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         onCreatePoll={() => {
           if (!pollBrowserLang) return;
           setPollCreatorLang(pollBrowserLang);
+          setPollBrowserLang(null);
         }}
       />
 
-      <ConfirmDialog
-        isOpen={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        onConfirm={submit}
-        title={mode === "create" ? t(interfaceLanguage, "editor.confirmCreateTitle", "admin") : t(interfaceLanguage, "editor.confirmUpdateTitle", "admin")}
-        message={mode === "create" ? t(interfaceLanguage, "editor.confirmCreateMessage", "admin") : t(interfaceLanguage, "editor.confirmUpdateMessage", "admin")}
-        confirmText={mode === "create" ? t(interfaceLanguage, "editor.confirmCreateAction", "admin") : t(interfaceLanguage, "editor.confirmUpdateAction", "admin")}
-        cancelText={t(interfaceLanguage, "editor.cancel", "admin")}
-        variant="info"
-      />
+      <ConfirmDialog isOpen={showConfirm} onClose={() => setShowConfirm(false)} onConfirm={submit} title={mode === "create" ? t(interfaceLanguage, "editor.confirmCreateTitle", "admin") : t(interfaceLanguage, "editor.confirmUpdateTitle", "admin")} message={mode === "create" ? t(interfaceLanguage, "editor.confirmCreateMessage", "admin") : t(interfaceLanguage, "editor.confirmUpdateMessage", "admin")} confirmText={mode === "create" ? t(interfaceLanguage, "editor.confirmCreateAction", "admin") : t(interfaceLanguage, "editor.confirmUpdateAction", "admin")} cancelText={t(interfaceLanguage, "editor.cancel", "admin")} variant="info" />
 
       {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => removeToast(toast.id)}
-        />
+        <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => removeToast(toast.id)} />
       ))}
     </form>
   );
 }
 
-function FeaturedImagePicker(props: {
-  langLabel: string;
-  uiLanguage: SupportedLanguage;
-  value: ImageValue;
-  onChange: (_next: ImageValue) => void;
-  disabled?: boolean;
-  locale: string;
-}) {
+function FeaturedImagePicker(props: { langLabel: string; uiLanguage: SupportedLanguage; value: ImageValue; onChange: (_next: ImageValue) => void; disabled?: boolean; locale: string }) {
   const { langLabel, uiLanguage, value, onChange, disabled, locale } = props;
   const idSuffix = useMemo(() => generateSlug(langLabel || "image"), [langLabel]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -1374,39 +1307,45 @@ function FeaturedImagePicker(props: {
     };
   }, [value.file]);
 
-  const imageUploadLabels = useMemo(() => ({
-    dropTitle: t(uiLanguage, "editor.imageDropTitle", "admin"),
-    dropSubtitle: t(uiLanguage, "editor.imageDropSubtitle", "admin"),
-    dropActive: t(uiLanguage, "editor.imageDropActive", "admin"),
-    changeLabel: t(uiLanguage, "editor.imageReplaceLabel", "admin"),
-    removeLabel: t(uiLanguage, "editor.imageRemoveLabel", "admin"),
-    fileNameLabel: t(uiLanguage, "editor.imageFileName", "admin"),
-    fileSizeLabel: t(uiLanguage, "editor.imageFileSize", "admin"),
-    dimensionsLabel: t(uiLanguage, "editor.imageDimensions", "admin"),
-  }), [uiLanguage]);
+  const imageUploadLabels = useMemo(
+    () => ({
+      dropTitle: t(uiLanguage, "editor.imageDropTitle", "admin"),
+      dropSubtitle: t(uiLanguage, "editor.imageDropSubtitle", "admin"),
+      dropActive: t(uiLanguage, "editor.imageDropActive", "admin"),
+      changeLabel: t(uiLanguage, "editor.imageReplaceLabel", "admin"),
+      removeLabel: t(uiLanguage, "editor.imageRemoveLabel", "admin"),
+      fileNameLabel: t(uiLanguage, "editor.imageFileName", "admin"),
+      fileSizeLabel: t(uiLanguage, "editor.imageFileSize", "admin"),
+      dimensionsLabel: t(uiLanguage, "editor.imageDimensions", "admin"),
+    }),
+    [uiLanguage],
+  );
 
-  const storageLabels = useMemo(() => ({
-    uploadNew: t(uiLanguage, "editor.imageSection.uploadNew", "admin"),
-    selectFromLibrary: t(uiLanguage, "editor.imageSection.selectFromLibrary", "admin"),
-    externalUrl: t(uiLanguage, "editor.imageSection.externalUrl", "admin"),
-    useThisImage: t(uiLanguage, "editor.imageSection.useThisImage", "admin"),
-    cancel: t(uiLanguage, "editor.imageSection.cancel", "admin"),
-    noImages: t(uiLanguage, "editor.imageSection.noImages", "admin"),
-    filenameReadOnly: t(uiLanguage, "editor.imageSection.filenameReadOnly", "admin"),
-    searchImages: t(uiLanguage, "editor.imageSection.searchImages", "admin"),
-    selectedImage: t(uiLanguage, "editor.imageSection.selectedImage", "admin"),
-    pickHint: t(uiLanguage, "editor.imageSection.pickHint", "admin"),
-    fileInfo: t(uiLanguage, "editor.imageSection.fileInfo", "admin"),
-    filename: t(uiLanguage, "editor.imageSection.filename", "admin"),
-    fileSize: t(uiLanguage, "editor.imageSection.fileSize", "admin"),
-    dimensions: t(uiLanguage, "editor.imageSection.dimensions", "admin"),
-    uploadedOn: t(uiLanguage, "editor.imageSection.uploadedOn", "admin"),
-    loading: t(uiLanguage, "editor.imageSection.loading", "admin"),
-    error: t(uiLanguage, "editor.imageSection.error", "admin"),
-    retry: t(uiLanguage, "editor.imageSection.retry", "admin"),
-    loadMore: t(uiLanguage, "editor.imageSection.loadMore", "admin"),
-    locale,
-  }), [uiLanguage, locale]);
+  const storageLabels = useMemo(
+    () => ({
+      uploadNew: t(uiLanguage, "editor.imageSection.uploadNew", "admin"),
+      selectFromLibrary: t(uiLanguage, "editor.imageSection.selectFromLibrary", "admin"),
+      externalUrl: t(uiLanguage, "editor.imageSection.externalUrl", "admin"),
+      useThisImage: t(uiLanguage, "editor.imageSection.useThisImage", "admin"),
+      cancel: t(uiLanguage, "editor.imageSection.cancel", "admin"),
+      noImages: t(uiLanguage, "editor.imageSection.noImages", "admin"),
+      filenameReadOnly: t(uiLanguage, "editor.imageSection.filenameReadOnly", "admin"),
+      searchImages: t(uiLanguage, "editor.imageSection.searchImages", "admin"),
+      selectedImage: t(uiLanguage, "editor.imageSection.selectedImage", "admin"),
+      pickHint: t(uiLanguage, "editor.imageSection.pickHint", "admin"),
+      fileInfo: t(uiLanguage, "editor.imageSection.fileInfo", "admin"),
+      filename: t(uiLanguage, "editor.imageSection.filename", "admin"),
+      fileSize: t(uiLanguage, "editor.imageSection.fileSize", "admin"),
+      dimensions: t(uiLanguage, "editor.imageSection.dimensions", "admin"),
+      uploadedOn: t(uiLanguage, "editor.imageSection.uploadedOn", "admin"),
+      loading: t(uiLanguage, "editor.imageSection.loading", "admin"),
+      error: t(uiLanguage, "editor.imageSection.error", "admin"),
+      retry: t(uiLanguage, "editor.imageSection.retry", "admin"),
+      loadMore: t(uiLanguage, "editor.imageSection.loadMore", "admin"),
+      locale,
+    }),
+    [uiLanguage, locale],
+  );
 
   const getImageFileError = (file: File) => {
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -1443,41 +1382,19 @@ function FeaturedImagePicker(props: {
 
   return (
     <div class="space-y-3">
-      <div class="text-sm font-semibold text-[var(--color-text-primary)]">
-        {t(uiLanguage, "multiLang.imageIn", "admin", { language: langLabel })}
-      </div>
+      <div class="text-sm font-semibold text-[var(--color-text-primary)]">{t(uiLanguage, "multiLang.imageIn", "admin", { language: langLabel })}</div>
 
       <div class="flex flex-wrap gap-2">
         {(["upload", "library", "url"] as ImageMode[]).map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            disabled={disabled}
-            class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-              value.mode === mode
-                ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]"
-                : "border-[var(--color-border)] text-[var(--color-text-secondary)]"
-            }`}
-            onClick={() => onChange({ ...value, mode })}
-          >
-            {mode === "upload"
-              ? t(uiLanguage, "editor.imageUploadOption", "admin")
-              : mode === "library"
-              ? t(uiLanguage, "editor.imageSection.selectFromLibrary", "admin")
-              : t(uiLanguage, "editor.imageUrlOption", "admin")}
+          <button key={mode} type="button" disabled={disabled} class={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${value.mode === mode ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-light)] text-[var(--color-accent-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)]"}`} onClick={() => onChange({ ...value, mode })}>
+            {mode === "upload" ? t(uiLanguage, "editor.imageUploadOption", "admin") : mode === "library" ? t(uiLanguage, "editor.imageSection.selectFromLibrary", "admin") : t(uiLanguage, "editor.imageUrlOption", "admin")}
           </button>
         ))}
       </div>
 
       {value.mode === "upload" ? (
         <div class="space-y-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            class="hidden"
-            onChange={(e) => handleImageFileSelection((e.currentTarget as HTMLInputElement).files?.[0] ?? null)}
-          />
+          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" class="hidden" onChange={(e) => handleImageFileSelection((e.currentTarget as HTMLInputElement).files?.[0] ?? null)} />
           <ImageUploadPreview
             file={value.file}
             previewUrl={previewUrl}
@@ -1506,18 +1423,18 @@ function FeaturedImagePicker(props: {
               type="text"
               value={value.title}
               disabled={disabled}
-              onInput={(e) => onChange({ ...value, title: (e.currentTarget as HTMLInputElement).value })}
+              onInput={(e) =>
+                onChange({
+                  ...value,
+                  title: (e.currentTarget as HTMLInputElement).value,
+                })
+              }
               placeholder={t(uiLanguage, "editor.imageTitlePlaceholder", "admin")}
             />
           </div>
         </div>
       ) : value.mode === "library" ? (
-        <StorageImageGallery
-          labels={storageLabels}
-          appliedImage={value.libraryAppliedImage}
-          onUse={(img) => onChange({ ...value, url: img.url, libraryAppliedImage: img })}
-          disabled={disabled}
-        />
+        <StorageImageGallery labels={storageLabels} appliedImage={value.libraryAppliedImage} onUse={(img) => onChange({ ...value, url: img.url, libraryAppliedImage: img })} disabled={disabled} />
       ) : (
         <div class="space-y-3">
           <div class="space-y-2">
@@ -1530,18 +1447,20 @@ function FeaturedImagePicker(props: {
               type="url"
               value={value.url}
               disabled={disabled}
-              onInput={(e) => onChange({ ...value, url: (e.currentTarget as HTMLInputElement).value, libraryAppliedImage: null })}
+              onInput={(e) =>
+                onChange({
+                  ...value,
+                  url: (e.currentTarget as HTMLInputElement).value,
+                  libraryAppliedImage: null,
+                })
+              }
               placeholder={t(uiLanguage, "editor.imageUrlPlaceholder", "admin")}
             />
           </div>
           {value.url.trim() ? (
             <div class="w-full max-w-[400px] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] shadow-sm">
               <div class="max-h-[300px] min-h-[220px] flex items-center justify-center p-4">
-                <img
-                  src={value.url.trim()}
-                  alt=""
-                  class="max-h-[260px] w-full object-contain"
-                />
+                <img src={value.url.trim()} alt="" class="max-h-[260px] w-full object-contain" />
               </div>
             </div>
           ) : null}

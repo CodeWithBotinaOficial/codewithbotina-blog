@@ -174,6 +174,10 @@
     },
     "pollsBrowser": {
       "title": "Insertar Encuesta",
+      "insertTitle": "Insertar Encuesta",
+      "insertDescription": "Selecciona o crea una encuesta para incrustar en tu publicación",
+      "createPoll": "Crear Encuesta",
+      "createPollDescription": "Crea una nueva encuesta para incrustar en esta publicación",
       "search": "Buscar encuestas por título...",
       "loading": "Cargando encuestas...",
       "empty": "No se encontraron encuestas",
@@ -186,6 +190,10 @@
   },
   "pollsBrowser": {
     "title": "Insertar Encuesta",
+    "insertTitle": "Insertar Encuesta",
+    "insertDescription": "Selecciona o crea una encuesta para incrustar en tu publicación",
+    "createPoll": "Crear Encuesta",
+    "createPollDescription": "Crea una nueva encuesta para incrustar en esta publicación",
     "search": "Buscar encuestas por título...",
     "loading": "Cargando encuestas...",
     "empty": "No se encontraron encuestas",
