@@ -24,7 +24,7 @@ scripts/
 .gitignore
 
 # Node modules (frontend has these, backend shouldn't)
-**/node_modules/
+node_modules/
 
 # Environment and build artifacts
 .env
