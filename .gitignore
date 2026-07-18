@@ -29,8 +29,8 @@ build/
 deno.lock
 !backend/deno.lock
 
-# Fresh
-_fresh/
+# Fresh (Need to commit or at least deploy _fresh)
+# _fresh/
 
 # OS
 .DS_Store
