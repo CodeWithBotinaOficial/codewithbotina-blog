@@ -76,7 +76,7 @@ export const handler: Handlers = {
 
       const tags = Array.isArray(data.post_tags)
         ? data.post_tags
-          .map((item) => item.tag)
+          .map((item: { tag: string }) => item.tag)
           .filter(Boolean)
         : [];
 

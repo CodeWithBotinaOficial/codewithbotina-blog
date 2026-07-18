@@ -75,7 +75,7 @@ export const handler: Handlers = {
         throw new AppError("Failed to fetch posts", 500);
       }
 
-      const posts = (data ?? []).map((post) => ({
+      const posts = (data ?? []).map((post: Record<string, unknown>) => ({
         ...post,
         updated_at: (post as { updated_at?: string | null }).updated_at ??
           post.fecha ?? null,

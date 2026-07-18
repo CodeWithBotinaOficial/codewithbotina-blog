@@ -37,9 +37,14 @@ export async function getReactionCounts(postId: string) {
   }
 
   const likes =
-    (data ?? []).filter((reaction) => reaction.reaction_type === "like").length;
+    (data ?? []).filter((reaction: { reaction_type: string }) =>
+      reaction.reaction_type === "like"
+    )
+      .length;
   const dislikes =
-    (data ?? []).filter((reaction) => reaction.reaction_type === "dislike")
+    (data ?? []).filter((reaction: { reaction_type: string }) =>
+      reaction.reaction_type === "dislike"
+    )
       .length;
 
   return {

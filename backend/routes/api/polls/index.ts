@@ -28,7 +28,9 @@ export const handler: Handlers = {
       if (error) throw error;
 
       const polls = data ?? [];
-      const pollIds = polls.map((poll) => poll.id).filter(Boolean);
+      const pollIds = polls.map((poll: { id: string }) => poll.id).filter(
+        Boolean,
+      );
       const optionCounts = new Map<string, number>();
       if (pollIds.length > 0) {
         const { data: optionRows, error: optionError } = await supabase
@@ -45,7 +47,7 @@ export const handler: Handlers = {
       }
 
       const response = successResponse(
-        polls.map((poll) => ({
+        polls.map((poll: { id: string } & Record<string, unknown>) => ({
           ...poll,
           option_count: optionCounts.get(poll.id) ?? 0,
         })),
