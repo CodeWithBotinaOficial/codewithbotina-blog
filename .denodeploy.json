@@ -23,5 +23,5 @@
     },
     "DENO_ENV": "production"
   },
-  "main": "backend/dev.ts"
+  "main": "backend/main.ts"
 }

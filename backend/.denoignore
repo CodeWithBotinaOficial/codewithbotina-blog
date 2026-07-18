@@ -17,4 +17,5 @@ fixtures/
 ../docs/
 ../legal-docs/
 ../scripts/
-../content/
+../content/node_modules/
+.deno/

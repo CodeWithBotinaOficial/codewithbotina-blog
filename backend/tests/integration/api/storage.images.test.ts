@@ -23,26 +23,29 @@ Deno.test("Integration: GET /api/storage/images lists images (admin only)", asyn
     () => Promise.resolve(adminUser),
   );
 
-  const storage =
-    (supabase as unknown as { storage: { from: (bucket: string) => unknown } })
-      .storage;
-  const _fromStub = stub(storage, "from", (..._args: unknown[]) => ({
-    list: () =>
-      Promise.resolve({
-        data: [
-          {
-            name: "test-image.webp",
-            created_at: "2026-03-15T00:00:00Z",
-            updated_at: "2026-03-15T00:00:00Z",
-            metadata: { size: 12345, mimetype: "image/webp" },
-          },
-        ],
-        error: null,
+  const originalStorage = Object.getOwnPropertyDescriptor(supabase, "storage");
+  Object.defineProperty(supabase, "storage", {
+    get: () => ({
+      from: (_bucket: string) => ({
+        list: () =>
+          Promise.resolve({
+            data: [
+              {
+                name: "test-image.webp",
+                created_at: "2026-03-15T00:00:00Z",
+                updated_at: "2026-03-15T00:00:00Z",
+                metadata: { size: 12345, mimetype: "image/webp" },
+              },
+            ],
+            error: null,
+          }),
+        getPublicUrl: (name: string) => ({
+          data: { publicUrl: `https://example.com/${name}` },
+        }),
       }),
-    getPublicUrl: (name: string) => ({
-      data: { publicUrl: `https://example.com/${name}` },
     }),
-  }));
+    configurable: true,
+  });
 
   const req = new Request("http://localhost/api/storage/images?limit=10", {
     method: "GET",
@@ -54,6 +57,7 @@ Deno.test("Integration: GET /api/storage/images lists images (admin only)", asyn
 
   const res = await handler.GET!(req, {} as unknown as FreshContext);
   const body = await res.json();
+  if (res.status !== 200) console.log(body);
 
   assertEquals(res.status, 200);
   assertEquals(body.success, true);
@@ -61,4 +65,10 @@ Deno.test("Integration: GET /api/storage/images lists images (admin only)", asyn
   assertEquals(body.data.images[0].name, "test-image.webp");
 
   restore();
+  if (originalStorage) {
+    Object.defineProperty(supabase, "storage", originalStorage);
+  } else {
+    // @ts-ignore - cleaning up mock
+    delete supabase.storage;
+  }
 });
