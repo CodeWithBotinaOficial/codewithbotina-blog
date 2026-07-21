@@ -3,15 +3,15 @@ import { AppError, ValidationError } from "../utils/errors.ts";
 
 const VALID_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const TARGET_MAX_SIZE = 500 * 1024;
-let sharpModule: (typeof import("sharp")) | null = null;
+const EXTENSION_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 
-async function getSharp() {
-  if (!sharpModule) {
-    const mod = await import("sharp");
-    sharpModule = mod.default ?? mod;
-  }
-  return sharpModule;
+function getImageExtension(type: string): string {
+  return EXTENSION_BY_TYPE[type] ?? "bin";
 }
 
 export class ImageService {
@@ -33,7 +33,7 @@ export class ImageService {
       throw new ValidationError("Image title is required (1-100 chars).");
     }
 
-    const optimized = await this.optimizeImage(file);
+    const imageBytes = new Uint8Array(await file.arrayBuffer());
     const safeSlug = slug
       .toLowerCase()
       .normalize("NFD")
@@ -44,12 +44,12 @@ export class ImageService {
       .replace(/-+/g, "-");
 
     const timestamp = Date.now();
-    const filename = `${safeSlug}-${timestamp}.webp`;
+    const filename = `${safeSlug}-${timestamp}.${getImageExtension(file.type)}`;
 
     const { error } = await supabase.storage
       .from("blog-images")
-      .upload(filename, optimized, {
-        contentType: "image/webp",
+      .upload(filename, imageBytes, {
+        contentType: file.type,
         cacheControl: "31536000",
         upsert: false,
       });
@@ -66,7 +66,7 @@ export class ImageService {
     return {
       url: data.publicUrl,
       filename,
-      size: optimized.byteLength,
+      size: imageBytes.byteLength,
     };
   }
 
@@ -95,29 +95,5 @@ export class ImageService {
     } catch (_error) {
       return null;
     }
-  }
-
-  async optimizeImage(file: File): Promise<Uint8Array> {
-    const sharp = await getSharp();
-    const buffer = await file.arrayBuffer();
-    const base = sharp(new Uint8Array(buffer)).resize(1200, 800, {
-      fit: "inside",
-      withoutEnlargement: true,
-    });
-
-    let quality = 85;
-    let optimized = await base.clone().webp({ quality }).toBuffer();
-
-    if (optimized.byteLength > TARGET_MAX_SIZE) {
-      quality = 75;
-      optimized = await base.clone().webp({ quality }).toBuffer();
-    }
-
-    if (optimized.byteLength > TARGET_MAX_SIZE) {
-      quality = 65;
-      optimized = await base.clone().webp({ quality }).toBuffer();
-    }
-
-    return new Uint8Array(optimized);
   }
 }

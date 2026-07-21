@@ -1251,10 +1251,20 @@ async function uploadImage(
     body: formData,
   });
 
-  if (!response.ok) throw new Error("Image upload failed");
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    const requestId = payload?.details?.requestId
+      ? ` (${payload.details.requestId})`
+      : "";
+    throw new Error(`${payload?.error ?? "Image upload failed"}${requestId}`);
+  }
 
   const payload = await response.json();
-  return payload?.data?.url as string;
+  const url = payload?.data?.url ?? payload?.url;
+  if (typeof url !== "string" || !url) {
+    throw new Error("Image upload response did not include a URL");
+  }
+  return url;
 }
 
 async function syncTranslations(args: {
