@@ -78,10 +78,16 @@ export const handler: Handlers = {
       }
 
       const content = typeof body?.content === "string" ? body.content : "";
+      const parentId = typeof body?.parentId === "string"
+        ? body.parentId
+        : typeof body?.parent_id === "string"
+        ? body.parent_id
+        : null;
       const result = await commentService.createComment(
         postId,
         user.id,
         content,
+        parentId,
       );
 
       if (!result.success || !result.data) {

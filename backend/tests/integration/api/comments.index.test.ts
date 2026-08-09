@@ -23,19 +23,24 @@ const mockUser = {
 Deno.test("Integration: GET /api/comments/:postId returns comments", async () => {
   const _serviceStub = stub(
     CommentService.prototype,
-    "getPostComments",
+    "getPostComments" as keyof typeof CommentService.prototype,
     () =>
       Promise.resolve({
-        success: true,
+        success: true as const,
         data: [
           {
             id: "comment-1",
             post_id: "post-1",
+            translation_group_id: null,
+            parent_id: null,
             user_id: "user-1",
             content: "Great post",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             is_pinned: false,
+            post_language: "en",
+            post_slug: "great-post",
+            post_title: "Great Post",
             user: { id: "user-1", full_name: "User", avatar_url: null },
           },
         ],
@@ -68,10 +73,12 @@ Deno.test("Integration: POST /api/comments/:postId creates comment", async () =>
     "createComment",
     () =>
       Promise.resolve({
-        success: true,
+        success: true as const,
         data: {
           id: "comment-2",
           post_id: "post-1",
+          translation_group_id: null,
+          parent_id: null,
           user_id: "user-1",
           content: "Hello",
           created_at: new Date().toISOString(),

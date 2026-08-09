@@ -1,6 +1,6 @@
 import { CommentRepository } from "../repositories/comment.repository.ts";
 import { ServiceResult } from "../types/api.types.ts";
-import { Comment } from "../types/comment.types.ts";
+import { Comment, CommentWithLanguage } from "../types/comment.types.ts";
 import { sanitizeInput, validateCommentContent } from "../lib/validation.ts";
 import { AppError, ValidationError } from "../utils/errors.ts";
 import { AuthService } from "./auth.service.ts";
@@ -22,6 +22,7 @@ export class CommentService {
     postId: string,
     userId: string,
     content: string,
+    parentId?: string | null,
   ): Promise<ServiceResult<Comment>> {
     try {
       if (isUserCommentRateLimited(userId)) {
@@ -51,6 +52,7 @@ export class CommentService {
         post_id: postId,
         user_id: userId,
         content: sanitized,
+        parent_id: parentId ?? null,
         is_pinned: false,
       });
 
@@ -210,10 +212,26 @@ export class CommentService {
     }
   }
 
-  async getPostComments(postId: string): Promise<ServiceResult<Comment[]>> {
+  async getPostComments(
+    postId: string,
+  ): Promise<ServiceResult<CommentWithLanguage[]>> {
     try {
-      const comments = await this.repository.getCommentsByPost(postId);
+      const comments = await this.repository.getUnifiedCommentsByPost(postId);
       return { success: true, data: comments };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error
+          ? error
+          : new AppError("Internal server error"),
+      };
+    }
+  }
+
+  async getPostCommentCount(postId: string): Promise<ServiceResult<number>> {
+    try {
+      const count = await this.repository.getCommentCount(postId);
+      return { success: true, data: count };
     } catch (error) {
       return {
         success: false,

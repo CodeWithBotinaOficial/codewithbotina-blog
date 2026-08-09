@@ -3,7 +3,7 @@ import CommentList from "./CommentList";
 import CommentForm from "./CommentForm";
 import { getApiUrl } from "../../lib/env";
 
-const { postId, labels, dateLocale } = Astro.props;
+const { postId, labels, dateLocale, currentLanguage = "en", hasTranslations = false } = Astro.props;
 const apiUrl = getApiUrl();
 
 let initialComments = [];
@@ -28,6 +28,8 @@ try {
   <CommentList
     postId={postId}
     initialComments={initialComments}
+    currentLanguage={currentLanguage}
+    hasTranslations={hasTranslations}
     labels={labels}
     dateLocale={dateLocale}
     client:load

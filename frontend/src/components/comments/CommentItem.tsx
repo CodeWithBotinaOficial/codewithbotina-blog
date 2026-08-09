@@ -3,11 +3,12 @@ import type { Comment } from "./CommentList";
 
 interface Props {
   comment: Comment;
+  currentLanguage: string;
   currentUserId: string | null;
   isAdmin: boolean;
-  onDelete: () => void;
-  onUpdate: (_content: string) => Promise<Comment | null>;
-  onTogglePin: () => void;
+  onDelete: (_commentId: string) => void;
+  onUpdate: (_commentId: string, _content: string) => Promise<Comment | null>;
+  onTogglePin: (_commentId: string, _nextPinned: boolean) => void;
   labels?: {
     edit: string;
     delete: string;
@@ -19,8 +20,26 @@ interface Props {
     pinned: string;
     anonymous: string;
     updateError: string;
+    fromTranslation: string;
   };
   dateLocale?: string;
+}
+
+const LANGUAGE_BADGES: Record<
+  string,
+  { flag: string; label: string; className: string }
+> = {
+  en: { flag: "🇺🇸", label: "EN", className: "is-en" },
+  es: { flag: "🇪🇸", label: "ES", className: "is-es" },
+  "pt-br": { flag: "🇧🇷", label: "PT-BR", className: "is-pt-br" },
+};
+
+function interpolate(template: string, values: Record<string, string>) {
+  return Object.entries(values).reduce(
+    (result, [key, value]) =>
+      result.replaceAll(`{{${key}}}`, value).replaceAll(`{${key}}`, value),
+    template,
+  );
 }
 
 function formatDate(value: string, locale?: string) {
@@ -34,6 +53,7 @@ function formatDate(value: string, locale?: string) {
 
 export default function CommentItem({
   comment,
+  currentLanguage,
   currentUserId,
   isAdmin,
   onDelete,
@@ -53,6 +73,7 @@ export default function CommentItem({
     pinned: "Pinned",
     anonymous: "Anonymous",
     updateError: "Failed to update comment.",
+    fromTranslation: "Comment from {{language}} version",
   };
 
   const [isEditing, setIsEditing] = useState(false);
@@ -64,14 +85,17 @@ export default function CommentItem({
   const canEdit = isAuthor;
   const canDelete = isAuthor || isAdmin;
   const canPin = isAdmin;
-  const isValid = editedContent.trim().length >= 10 &&
-    editedContent.trim().length <= 1000;
+  const languageBadge = LANGUAGE_BADGES[comment.post_language ?? ""];
+  const isFromDifferentLanguage =
+    Boolean(languageBadge) && comment.post_language !== currentLanguage;
+  const isValid =
+    editedContent.trim().length >= 10 && editedContent.trim().length <= 1000;
 
   const handleSave = async () => {
     if (!isValid || isSaving) return;
     setIsSaving(true);
     setError("");
-    const updated = await onUpdate(editedContent);
+    const updated = await onUpdate(comment.id, editedContent);
     if (updated) {
       setIsEditing(false);
     } else {
@@ -82,6 +106,17 @@ export default function CommentItem({
 
   return (
     <article class={`comment-item ${comment.is_pinned ? "is-pinned" : ""}`}>
+      {isFromDifferentLanguage && languageBadge ? (
+        <span
+          class={`comment-language-badge ${languageBadge.className}`}
+          title={interpolate(copy.fromTranslation, {
+            language: languageBadge.label,
+          })}
+        >
+          {languageBadge.flag} {languageBadge.label}
+        </span>
+      ) : null}
+
       <header class="comment-header">
         <div class="comment-author">
           <img
@@ -93,8 +128,12 @@ export default function CommentItem({
             loading="lazy"
           />
           <div>
-            <p class="comment-name">{comment.user?.full_name || copy.anonymous}</p>
-            <p class="comment-date">{formatDate(comment.created_at, dateLocale)}</p>
+            <p class="comment-name">
+              {comment.user?.full_name || copy.anonymous}
+            </p>
+            <p class="comment-date">
+              {formatDate(comment.created_at, dateLocale)}
+            </p>
           </div>
         </div>
 
@@ -108,7 +147,9 @@ export default function CommentItem({
           <textarea
             class="comment-edit"
             value={editedContent}
-            onInput={(e) => setEditedContent((e.target as HTMLTextAreaElement).value)}
+            onInput={(e) =>
+              setEditedContent((e.target as HTMLTextAreaElement).value)
+            }
             rows={3}
             maxLength={1000}
           />
@@ -153,19 +194,46 @@ export default function CommentItem({
         ) : null}
 
         {canDelete ? (
-          <button type="button" class="comment-action danger" onClick={onDelete}>
+          <button
+            type="button"
+            class="comment-action danger"
+            onClick={() => onDelete(comment.id)}
+          >
             {copy.delete}
           </button>
         ) : null}
 
         {canPin ? (
-          <button type="button" class="comment-action" onClick={onTogglePin}>
+          <button
+            type="button"
+            class="comment-action"
+            onClick={() => onTogglePin(comment.id, !comment.is_pinned)}
+          >
             {comment.is_pinned ? copy.unpin : copy.pin}
           </button>
         ) : null}
       </div>
 
       {error ? <p class="comment-error">{error}</p> : null}
+
+      {comment.replies && comment.replies.length > 0 ? (
+        <div class="comment-replies">
+          {comment.replies.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              currentLanguage={currentLanguage}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+              labels={copy}
+              dateLocale={dateLocale}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+              onTogglePin={onTogglePin}
+            />
+          ))}
+        </div>
+      ) : null}
     </article>
   );
 }
