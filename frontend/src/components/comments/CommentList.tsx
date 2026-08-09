@@ -11,16 +11,25 @@ interface CommentUser {
 
 export interface Comment {
   id: string;
+  post_id: string;
+  translation_group_id?: string | null;
+  parent_id?: string | null;
   content: string;
   created_at: string;
   updated_at: string;
   is_pinned: boolean;
+  post_language?: string;
+  post_slug?: string;
+  post_title?: string;
   user: CommentUser;
+  replies?: Comment[];
 }
 
 interface Props {
   postId: string;
   initialComments: Comment[];
+  currentLanguage: string;
+  hasTranslations?: boolean;
   currentUserId?: string | null;
   isAdmin?: boolean;
   labels?: {
@@ -35,6 +44,8 @@ interface Props {
     pinned: string;
     anonymous: string;
     updateError: string;
+    unifiedNotice: string;
+    fromTranslation: string;
   };
   dateLocale?: string;
 }
@@ -49,9 +60,34 @@ export function sortComments(list: Comment[]) {
   });
 }
 
+function removeCommentById(list: Comment[], commentId: string): Comment[] {
+  return list
+    .filter((comment) => comment.id !== commentId)
+    .map((comment) => ({
+      ...comment,
+      replies: comment.replies
+        ? removeCommentById(comment.replies, commentId)
+        : comment.replies,
+    }));
+}
+
+function updateCommentById(list: Comment[], updated: Comment): Comment[] {
+  return list.map((comment) => {
+    if (comment.id === updated.id) return { ...comment, ...updated };
+    return {
+      ...comment,
+      replies: comment.replies
+        ? updateCommentById(comment.replies, updated)
+        : comment.replies,
+    };
+  });
+}
+
 export default function CommentList({
   postId,
   initialComments,
+  currentLanguage,
+  hasTranslations,
   currentUserId,
   isAdmin,
   labels,
@@ -69,6 +105,9 @@ export default function CommentList({
     pinned: "Pinned",
     anonymous: "Anonymous",
     updateError: "Failed to update comment.",
+    unifiedNotice:
+      "Comments from all language versions of this post are shown here.",
+    fromTranslation: "Comment from {{language}} version",
   };
 
   const [comments, setComments] = useState<Comment[]>(initialComments || []);
@@ -85,7 +124,8 @@ export default function CommentList({
     };
 
     window.addEventListener("comment:created", handler as EventListener);
-    return () => window.removeEventListener("comment:created", handler as EventListener);
+    return () =>
+      window.removeEventListener("comment:created", handler as EventListener);
   }, []);
 
   const sortedComments = useMemo(() => {
@@ -99,7 +139,7 @@ export default function CommentList({
     });
 
     if (response.ok) {
-      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      setComments((prev) => removeCommentById(prev, commentId));
     }
   };
 
@@ -117,9 +157,7 @@ export default function CommentList({
     const body = await response.json();
     const updated = body?.data as Comment;
     if (updated?.id) {
-      setComments((prev) =>
-        prev.map((comment) => (comment.id === updated.id ? { ...comment, ...updated } : comment))
-      );
+      setComments((prev) => updateCommentById(prev, updated));
     }
     return updated ?? null;
   };
@@ -136,24 +174,31 @@ export default function CommentList({
 
     if (!response.ok) return;
     const body = await response.json();
-    const updated = body?.data as { id: string; is_pinned: boolean; updated_at?: string };
+    const updated = body?.data as {
+      id: string;
+      is_pinned: boolean;
+      updated_at?: string;
+    };
     if (!updated?.id) return;
 
     setComments((prev) =>
-      prev.map((comment) =>
-        comment.id === updated.id
-          ? {
-            ...comment,
-            is_pinned: updated.is_pinned,
-            updated_at: updated.updated_at ?? comment.updated_at,
-          }
-          : comment
-      )
+      updateCommentById(prev, {
+        id: updated.id,
+        is_pinned: updated.is_pinned,
+        updated_at: updated.updated_at,
+      } as Comment),
     );
   };
 
   return (
     <div class="comment-list" data-post-id={postId}>
+      {hasTranslations && sortedComments.length > 0 ? (
+        <div class="unified-comments-notice">
+          <span aria-hidden="true">🌐</span>
+          <p>{copy.unifiedNotice}</p>
+        </div>
+      ) : null}
+
       {sortedComments.length === 0 ? (
         <p class="comment-empty">{copy.empty}</p>
       ) : (
@@ -161,13 +206,14 @@ export default function CommentList({
           <CommentItem
             key={comment.id}
             comment={comment}
+            currentLanguage={currentLanguage}
             currentUserId={effectiveUserId}
             isAdmin={effectiveIsAdmin}
             labels={copy}
             dateLocale={dateLocale}
-            onDelete={() => handleDelete(comment.id)}
-            onUpdate={(content) => handleUpdate(comment.id, content)}
-            onTogglePin={() => handleTogglePin(comment.id, !comment.is_pinned)}
+            onDelete={handleDelete}
+            onUpdate={handleUpdate}
+            onTogglePin={handleTogglePin}
           />
         ))
       )}

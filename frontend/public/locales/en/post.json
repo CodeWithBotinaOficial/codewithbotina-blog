@@ -48,6 +48,8 @@
   "commentPostError": "Failed to post comment.",
   "commentPostErrorRetry": "Failed to post comment. Please try again.",
   "commentAuthError": "You must be signed in to comment.",
+  "commentUnifiedNotice": "Comments from all language versions of this post are shown here.",
+  "commentFromTranslation": "Comment from {{language}} version",
   "topics": "Topics",
   "backToPosts": "Back to all posts"
 }

@@ -48,6 +48,8 @@
   "commentPostError": "No se pudo publicar el comentario.",
   "commentPostErrorRetry": "No se pudo publicar el comentario. Intenta de nuevo.",
   "commentAuthError": "Debes iniciar sesión para comentar.",
+  "commentUnifiedNotice": "Se muestran los comentarios de todas las versiones de idioma de esta publicación.",
+  "commentFromTranslation": "Comentario de la versión en {{language}}",
   "topics": "Temas",
   "backToPosts": "Volver a todas las publicaciones"
 }

@@ -74,6 +74,28 @@ try {
   reactions = { likes: 0, dislikes: 0, total: 0 };
 }
 
+let hasTranslations = false;
+try {
+  const { data: translationLink } = await supabase
+    .from("post_translations")
+    .select("translation_group_id")
+    .eq("post_id", post.id)
+    .maybeSingle();
+
+  const translationGroupId = (translationLink as { translation_group_id?: string | null } | null)
+    ?.translation_group_id;
+
+  if (translationGroupId) {
+    const { count } = await supabase
+      .from("post_translations")
+      .select("post_id", { count: "exact", head: true })
+      .eq("translation_group_id", translationGroupId);
+    hasTranslations = (count ?? 0) > 1;
+  }
+} catch (_error) {
+  hasTranslations = false;
+}
+
 const currentPost = post as Post;
 const isPinned = Boolean((currentPost as any)?.is_pinned);
 const content = renderMarkdownHtml(currentPost.body);
@@ -210,6 +232,8 @@ const commentLabels = {
   pinned: t(language, "commentPinned", "post"),
   anonymous: t(language, "commentAnonymous", "post"),
   updateError: t(language, "commentUpdateError", "post"),
+  unifiedNotice: t(language, "commentUnifiedNotice", "post"),
+  fromTranslation: t(language, "commentFromTranslation", "post"),
 };
 
 const adminLabels = {
@@ -352,7 +376,13 @@ const markdownLabels = getMarkdownFeatureLabels(language);
       />
     </section>
 
-    <CommentSection postId={currentPost.id} labels={commentLabels} dateLocale={locale} />
+    <CommentSection
+      postId={currentPost.id}
+      currentLanguage={language}
+      hasTranslations={hasTranslations}
+      labels={commentLabels}
+      dateLocale={locale}
+    />
 
     <div class="mt-16 pt-8 border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-between items-center gap-6">
       <a href={`/${language}/`} class="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-accent-primary)] transition-colors">
