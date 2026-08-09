@@ -433,19 +433,38 @@ async function addMetrics(
   }
 
   // Comments
-  for (const batch of chunk(ids, 200)) {
+  const countedCommentIds = new Set<string>();
+  for (const batch of chunk([...groupIds, ...ids], 200)) {
     const { data, error } = await supabase
       .from("comments")
-      .select("post_id")
-      .in("post_id", batch);
+      .select("id, post_id, translation_group_id")
+      .or(
+        `translation_group_id.in.(${batch.join(",")}),post_id.in.(${
+          batch.join(",")
+        })`,
+      );
     if (error) {
       console.error("Supabase error:", error);
       throw new AppError("Failed to fetch comments", 500);
     }
-    for (const row of (data ?? []) as Array<{ post_id: string }>) {
-      const m = metrics.get(row.post_id);
-      if (!m) continue;
-      m.comments += 1;
+    for (
+      const row of (data ?? []) as Array<
+        { id: string; post_id: string; translation_group_id?: string | null }
+      >
+    ) {
+      if (countedCommentIds.has(row.id)) continue;
+      countedCommentIds.add(row.id);
+      const groupId = row.translation_group_id &&
+          postIdsByGroup.has(row.translation_group_id)
+        ? row.translation_group_id
+        : groupsByPostId.get(row.post_id);
+      if (!groupId) continue;
+      const postIds = postIdsByGroup.get(groupId) ?? [];
+      for (const postId of postIds) {
+        const m = metrics.get(postId);
+        if (!m) continue;
+        m.comments += 1;
+      }
     }
   }
 
