@@ -11,6 +11,11 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     env: loadEnv('test', process.cwd(), ''),
+    environmentOptions: {
+      happyDOM: {
+        url: 'http://localhost',
+      },
+    },
     resolve: {
       alias: {
         '~': '/src',
