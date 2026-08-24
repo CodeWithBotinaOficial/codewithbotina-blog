@@ -195,6 +195,69 @@ ALLOWED_ORIGIN=https://blog.codewithbotina.com
 ⚠️ **Security Note:** Never commit the `.env` file to version control. Use
 `.env.example` as a template.
 
+## Database Setup
+
+The project uses Supabase (PostgreSQL). The full schema is maintained as structural
+backups in `docs/database/migrations/`.
+
+### Option A — Use Supabase (recommended for production)
+
+1. Create a new Supabase project at https://supabase.com
+2. Open the **SQL Editor**
+3. Run `docs/database/migrations/09-08-2026/blog-codewithbotina-structure-01-tables.sql`
+4. Run `docs/database/migrations/09-08-2026/blog-codewithbotina-structure-02-constraints.sql`
+5. If `scripts/db-pending-changes.sql` has content (not just the placeholder), run that too
+6. Set your environment variables in `.env` (see `.env.example`)
+
+### Option B — Local PostgreSQL with Docker
+
+```bash
+# Start a local PostgreSQL instance
+docker run --name cwb-db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=codewithbotina \
+  -p 5432:5432 \
+  -d postgres:16
+
+# Wait for it to be ready
+docker exec cwb-db pg_isready -U postgres
+
+# Apply the latest backup (tables first, then constraints)
+BACKUP_DATE="09-08-2026"
+
+docker exec -i cwb-db psql -U postgres -d codewithbotina \
+  < "docs/database/migrations/${BACKUP_DATE}/blog-codewithbotina-structure-01-tables.sql"
+
+docker exec -i cwb-db psql -U postgres -d codewithbotina \
+  < "docs/database/migrations/${BACKUP_DATE}/blog-codewithbotina-structure-02-constraints.sql"
+
+# Apply pending changes if any
+docker exec -i cwb-db psql -U postgres -d codewithbotina \
+  < scripts/db-pending-changes.sql
+
+# Verify all tables are present
+docker exec -it cwb-db psql -U postgres -d codewithbotina -c "\dt"
+```
+
+Update your `.env` to point to the local instance:
+```
+SUPABASE_URL=http://localhost:5432
+SUPABASE_ANON_KEY=postgres
+```
+
+### How database changes work going forward
+
+When a feature requires a schema change:
+1. The required SQL is written to `scripts/db-pending-changes.sql`
+2. You apply it in your environment (Supabase or Docker)
+3. You run `fish scripts/backup_db.fish` to generate a new full backup
+4. You add the backup to `docs/database/migrations/DD-MM-YYYY/`
+5. You update `docs/database/migrations/README.md` with the new entry
+6. `scripts/db-pending-changes.sql` is reset to the placeholder
+
+See `docs/database/migrations/README.md` for full documentation.
+
 ## 📡 API Endpoints
 
 ### Base URL

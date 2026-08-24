@@ -1,0 +1,27 @@
+-- =============================================================================
+-- PENDING DATABASE CHANGES — CodeWithBotina Blog
+-- =============================================================================
+-- PURPOSE:
+--   This file contains ONLY the SQL for the most recent database change
+--   that has NOT yet been captured in a full structural backup.
+--
+-- WORKFLOW:
+--   1. When a feature requires a database change, the agent writes the
+--      required SQL here, replacing all previous content.
+--   2. The developer copies this SQL and runs it in Supabase SQL Editor
+--      (or applies it via Docker in a local environment).
+--   3. After running it, the developer generates a new backup with
+--      scripts/backup_db.fish and adds it to docs/database/migrations/.
+--   4. Once the backup is done, this file is cleared and reset to this
+--      placeholder message.
+--
+-- CURRENT STATUS:
+--   No pending changes. The latest backup in docs/database/migrations/
+--   reflects the current production schema.
+--
+-- Last backup: 09-08-2026
+-- See: docs/database/migrations/09-08-2026/
+-- =============================================================================
+
+-- No pending SQL changes at this time.
+-- When a new feature requires database changes, the SQL will appear here.
