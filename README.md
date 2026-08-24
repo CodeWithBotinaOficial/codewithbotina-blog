@@ -46,6 +46,19 @@ Docs:
 - [docs/SEO.md](docs/SEO.md)
 - [docs/google-search-console-setup.md](docs/google-search-console-setup.md)
 
+## Database Management
+
+The project uses a **snapshot-based** approach to database schema management:
+
+- **Full backups** (DDL only) are stored in [`docs/database/migrations/`](docs/database/migrations/)
+  as dated directories. Each backup fully reproduces the schema on any PostgreSQL instance.
+- **Pending changes** for the next release are tracked in [`scripts/db-pending-changes.sql`](scripts/db-pending-changes.sql),
+  which is reset after each backup is taken.
+- **No individual migration files** are maintained — the dated backups ARE the migration history.
+
+To set up the database locally or in a new environment, see
+[`docs/database/migrations/README.md`](docs/database/migrations/README.md).
+
 ## Multi-Language Post Management
 
 The blog supports creating and editing posts in multiple languages simultaneously.
