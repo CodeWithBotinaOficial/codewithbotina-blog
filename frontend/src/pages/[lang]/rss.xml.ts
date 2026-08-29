@@ -26,6 +26,17 @@ function buildDescription(content: string, length: number): string {
   return truncateText(plain, length);
 }
 
+type RssPost = {
+  id?: string;
+  titulo?: string | null;
+  slug?: string | null;
+  body?: string | null;
+  imagen_url?: string | null;
+  fecha?: string | null;
+  language?: string | null;
+  status?: string | null;
+};
+
 export const GET: APIRoute = async ({ params }) => {
   const paramLang = params.lang ?? "";
   const language = isSupportedLanguage(paramLang)
@@ -35,7 +46,7 @@ export const GET: APIRoute = async ({ params }) => {
   try {
     const { data: posts, error } = await supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, language")
+      .select("id, titulo, slug, body, imagen_url, fecha, language, status")
       .eq("language", language)
       .order("fecha", { ascending: false })
       .limit(MAX_ITEMS);
@@ -44,12 +55,16 @@ export const GET: APIRoute = async ({ params }) => {
       throw error;
     }
 
+    const publishedPosts = (posts as RssPost[] | null)?.filter((post): post is RssPost => {
+      return Boolean(post) && post.status === "published" && typeof post.slug === "string" && post.slug.length > 0;
+    }) ?? [];
+
     const siteUrl = getSiteUrl().replace(/\/$/, "");
     const currentDate = new Date().toUTCString();
     const feedUrl = `${siteUrl}/${language}/rss.xml`;
     const channelUrl = `${siteUrl}/${language}/`;
 
-    const items = (posts || []).reduce((acc: string[], post) => {
+    const items = publishedPosts.reduce((acc: string[], post) => {
       const slug = typeof post.slug === "string" ? post.slug : "";
       if (!slug) return acc;
 
