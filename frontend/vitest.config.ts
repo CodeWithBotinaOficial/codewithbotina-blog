@@ -16,10 +16,5 @@ export default defineConfig({
         url: 'http://localhost',
       },
     },
-    resolve: {
-      alias: {
-        '~': '/src',
-      },
-    },
   },
 });

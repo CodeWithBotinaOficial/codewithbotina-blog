@@ -2,10 +2,11 @@ import { useEffect, useState } from "preact/hooks";
 import { ThumbsDown, ThumbsUp, MessageSquare } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
 import { useSession } from "../../hooks/useSession";
+import type { SupportedLanguage } from "../../lib/i18n";
 import DeleteAccountSection from "./DeleteAccountSection";
 
 interface Props {
-  language: "en" | "es";
+  language: SupportedLanguage;
   labels: {
     title: string;
     adminBadge: string;

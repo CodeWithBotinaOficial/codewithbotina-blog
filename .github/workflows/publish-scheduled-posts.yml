@@ -1,0 +1,86 @@
+name: Publish Scheduled Posts
+
+# Run every 5 minutes to check for scheduled posts that should be published
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: '*/5 * * * *'
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  publish-scheduled-posts:
+    name: Publish Scheduled Posts
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+
+      - name: Log execution details
+        run: |
+          echo "Job triggered at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "Event: ${{ github.event_name }}"
+
+      - name: Call publish-scheduled endpoint
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_URL }}"
+          CRON_SECRET="${{ secrets.CRON_SECRET }}"
+          
+          if [ -z "$BACKEND_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "ERROR: Missing required secrets (BACKEND_URL, CRON_SECRET)"
+            exit 1
+          fi
+          
+          echo "Calling endpoint: $BACKEND_URL/api/posts/publish-scheduled"
+          
+          # Call the endpoint with Bearer token authentication
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            "$BACKEND_URL/api/posts/publish-scheduled")
+          
+          # Split response body and status code
+          HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
+          HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n 1)
+          
+          echo "Response status: $HTTP_CODE"
+          echo "Response body: $HTTP_BODY"
+          
+          # Check if successful
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Successfully published scheduled posts"
+            echo "$HTTP_BODY" | jq . 2>/dev/null || echo "$HTTP_BODY"
+            exit 0
+          elif [ "$HTTP_CODE" -eq 401 ]; then
+            echo "❌ Unauthorized: Check CRON_SECRET configuration"
+            exit 1
+          elif [ "$HTTP_CODE" -eq 0 ]; then
+            echo "❌ Connection error: Could not reach backend at $BACKEND_URL"
+            exit 1
+          else
+            echo "❌ Request failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Scheduled post publishing job failed"
+          echo "Check the logs above for details"
+          # Optional: Send notification to Slack, Discord, etc.
+
+      - name: Log completion
+        if: always()
+        run: |
+          echo "Job completed at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "Status: ${{ job.status }}"
+

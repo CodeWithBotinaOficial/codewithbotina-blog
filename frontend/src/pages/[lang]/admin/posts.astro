@@ -1,0 +1,100 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../components/BaseLayout.astro";
+import AdminPostsList from "../../../components/admin/AdminPostsList";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, t, type SupportedLanguage } from "../../../lib/i18n";
+import { getApiUrl } from "../../../lib/env";
+
+const { lang } = Astro.params;
+const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
+
+if (!lang || !isSupportedLanguage(lang)) {
+  return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
+}
+
+const pageTitle = t(language, "posts", "admin") || "Posts";
+const pageDescription = "View, edit, and manage your blog posts";
+
+// Fetch posts for the current language
+const apiUrl = getApiUrl().replace(/\/$/, "");
+let posts: any[] = [];
+let postsError: string | null = null;
+
+try {
+  const response = await fetch(
+    `${apiUrl}/api/posts?language=${encodeURIComponent(language)}&limit=100`,
+    {
+      headers: {
+        "Accept": "application/json",
+      },
+    }
+  );
+
+  if (response.ok) {
+    const data = await response.json();
+    posts = Array.isArray(data?.data) ? data.data : Array.isArray(data?.posts) ? data.posts : [];
+  } else {
+    postsError = "Failed to load posts";
+  }
+} catch (error) {
+  console.error("Error fetching posts:", error);
+  postsError = "Error loading posts";
+}
+
+// Sort posts by date (newest first)
+posts.sort((a, b) => {
+  const dateA = new Date(a.fecha || a.created_at || 0).getTime();
+  const dateB = new Date(b.fecha || b.created_at || 0).getTime();
+  return dateB - dateA;
+});
+---
+
+<BaseLayout title={pageTitle} currentLanguage={language} currentPath={Astro.url.pathname}>
+  <section class="container-responsive py-12">
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold">{pageTitle}</h1>
+        <p class="mt-2 text-sm text-[var(--color-text-secondary)]">{pageDescription}</p>
+      </div>
+      <a
+        href={`/${language}/admin/create-post`}
+        class="inline-flex items-center justify-center rounded-lg bg-[var(--color-accent-primary)] px-6 py-3 text-center font-semibold text-white transition hover:bg-[var(--color-accent-primary)]/90"
+      >
+        + {t(language, "createPost", "admin")}
+      </a>
+    </div>
+
+    {postsError ? (
+      <div class="rounded-lg border border-[var(--color-error)] bg-[var(--color-error)]/10 p-4 text-[var(--color-error)]">
+        {postsError}
+      </div>
+    ) : posts.length === 0 ? (
+      <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-8 text-center text-[var(--color-text-secondary)]">
+        <p class="text-lg font-semibold">No posts found</p>
+        <p class="mt-2">Create your first post to get started</p>
+        <a
+          href={`/${language}/admin/create-post`}
+          class="mt-4 inline-block text-[var(--color-accent-primary)] hover:underline"
+        >
+          Create a post →
+        </a>
+      </div>
+    ) : (
+      <AdminPostsList
+        posts={posts}
+        currentLanguage={language}
+        client:load
+      />
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  :global(.container-responsive) {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+</style>
+

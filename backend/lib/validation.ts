@@ -133,3 +133,39 @@ export const pollValidation = {
     return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug.length >= 3;
   },
 };
+
+/**
+ * Validates a scheduled_at timestamp for a post.
+ * Rules:
+ * - Must be a valid ISO 8601 date string
+ * - Must be in the future (after now)
+ * - Must not be more than 30 days from now
+ * All comparisons in UTC.
+ */
+export function validateScheduledAt(scheduledAt: string): {
+  valid: boolean;
+  error?: string;
+} {
+  const now = new Date();
+  const scheduled = new Date(scheduledAt);
+
+  if (isNaN(scheduled.getTime())) {
+    return { valid: false, error: "Invalid date format" };
+  }
+
+  if (scheduled <= now) {
+    return { valid: false, error: "Scheduled date must be in the future" };
+  }
+
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 30);
+
+  if (scheduled > maxDate) {
+    return {
+      valid: false,
+      error: "Scheduled date cannot be more than 30 days from now",
+    };
+  }
+
+  return { valid: true };
+}

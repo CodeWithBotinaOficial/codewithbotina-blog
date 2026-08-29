@@ -85,10 +85,8 @@ describe("MarkdownEnhancer", () => {
     render(
       <MarkdownEnhancer
         containerId="md-root"
-        // @ts-expect-error tests
         language="en"
-        // @ts-expect-error tests
-        labels={labels}
+        labels={labels as any}
       />,
       mount,
     );
@@ -112,10 +110,8 @@ describe("MarkdownEnhancer", () => {
     render(
       <MarkdownEnhancer
         containerId="md-root"
-        // @ts-expect-error tests
         language="en"
-        // @ts-expect-error tests
-        labels={labels}
+        labels={labels as any}
       />,
       mount,
     );

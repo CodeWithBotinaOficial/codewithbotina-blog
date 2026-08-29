@@ -2,7 +2,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { marked } from "marked";
 import { supabase } from "../lib/supabase.ts";
 import { getReactionCounts } from "../lib/reactions.helpers.ts";
-import { sanitizeInput } from "../lib/validation.ts";
+import { sanitizeInput, validateScheduledAt } from "../lib/validation.ts";
 import { ServiceResult } from "../types/api.types.ts";
 import {
   BulkPostUpdateRequest,
@@ -1196,4 +1196,110 @@ export class PostService {
       console.error("Failed to sync translation language:", error);
     }
   }
+
+  /**
+   * Schedule a post for future publication.
+   * Only works on posts with status 'draft' or 'scheduled'.
+   * Cannot reschedule an already published post.
+   */
+  async schedulePost(
+    slug: string,
+    scheduledAt: string,
+    _adminId: string,
+  ): Promise<PostRecord> {
+    const validation = validateScheduledAt(scheduledAt);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    // Get current post
+    const { data: post, error: fetchError } = await supabase
+      .from("posts")
+      .select("id, status, slug")
+      .eq("slug", slug)
+      .single();
+
+    if (fetchError || !post) throw new Error("Post not found");
+
+    // Cannot reschedule a published post
+    if ((post as { status?: string }).status === "published") {
+      throw new Error("Cannot reschedule an already published post");
+    }
+
+    const { data, error } = await supabase
+      .from("posts")
+      .update({
+        status: "scheduled",
+        scheduled_at: scheduledAt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("slug", slug)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as PostRecord;
+  }
+
+  /**
+   * Remove scheduling from a post (revert to draft).
+   * Only works if post is still 'scheduled' (not yet published).
+   */
+  async unschedulePost(slug: string): Promise<PostRecord> {
+    const { data: post } = await supabase
+      .from("posts")
+      .select("status")
+      .eq("slug", slug)
+      .single();
+
+    if ((post as { status?: string })?.status === "published") {
+      throw new Error("Cannot unschedule an already published post");
+    }
+
+    const { data, error } = await supabase
+      .from("posts")
+      .update({
+        status: "draft",
+        scheduled_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("slug", slug)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as PostRecord;
+  }
+
+  /**
+   * Publish all posts whose scheduled_at has arrived.
+   * Called by the cron endpoint. Returns count of published posts.
+   * All comparisons in UTC.
+   */
+  async publishScheduledPosts(): Promise<
+    { published: number; slugs: string[] }
+  > {
+    const now = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("posts")
+      .update({
+        status: "published",
+        updated_at: now,
+      })
+      .eq("status", "scheduled")
+      .lte("scheduled_at", now)
+      .select("slug");
+
+    if (error) throw error;
+
+    const slugs = (data || []).map((p: { slug: string }) => p.slug);
+    console.log(
+      `[Scheduler] Published ${slugs.length} posts: ${slugs.join(", ")}`,
+    );
+
+    return { published: slugs.length, slugs };
+  }
 }
+
+export const postService = new PostService();

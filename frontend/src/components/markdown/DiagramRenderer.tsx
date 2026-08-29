@@ -146,7 +146,7 @@ function DiagramViewer({
   showFullscreen = true,
   onRequestFullscreen,
 }: ViewerProps) {
-  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLButtonElement | null>(null);
   const [container, setContainer] = useState({ w: 1, h: 1 });
   const content = useMemo(() => {
     const size = decodeSvgSize(svg);
@@ -533,21 +533,21 @@ export default function DiagramRenderer({ code, diagramLang, labels, language, f
         let renderedSvg = "";
         let bindFunctions: any = undefined;
         try {
-          const result = await withTimeout(
+          const result = (await withTimeout(
             mermaid.render(mermaidIdRef.current, trimmed, hiddenHost),
             1500,
             "Mermaid render timed out",
-          );
+          )) as { svg?: string; bindFunctions?: any } | undefined;
           renderedSvg = String(result?.svg ?? "");
           bindFunctions = result?.bindFunctions;
         } catch (err) {
           // Fallback: bypass Mermaid's queued wrapper if it gets stuck.
           if (mermaid?.mermaidAPI?.render) {
-            const result = await withTimeout(
+            const result = (await withTimeout(
               mermaid.mermaidAPI.render(mermaidIdRef.current, trimmed, hiddenHost),
               1500,
               "Mermaid API render timed out",
-            );
+            )) as { svg?: string; bindFunctions?: any } | undefined;
             renderedSvg = String(result?.svg ?? "");
             bindFunctions = result?.bindFunctions;
           } else {

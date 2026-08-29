@@ -304,7 +304,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     if (signingIn) return;
     setSigningIn(true);
     const next = window.location.pathname;
-    window.location.assign(getAuthRoute("/google", next));
+    window.location.assign(`${getAuthRoute("/google")}?next=${encodeURIComponent(next)}`);
   };
 
   // Load all linked translations on edit.

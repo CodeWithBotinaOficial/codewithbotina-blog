@@ -25,6 +25,8 @@ interface EditorData {
   imagen_url?: string | null;
   tags?: TagOption[];
   language?: string;
+  status?: string;
+  scheduled_at?: string | null;
 }
 
 interface Props {
@@ -156,6 +158,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [imageUrl, setImageUrl] = useState(initialData?.imagen_url ?? "");
   const [tags, setTags] = useState<TagOption[]>(initialData?.tags ?? []);
   const [language, setLanguage] = useState(initialData?.language ?? "es");
+  const [scheduledAt, _setScheduledAt] = useState<string | null>(initialData?.scheduled_at ?? null);
   const [linkedPosts, setLinkedPosts] = useState<TranslationPost[]>([]);
   const [initialLinkedPostIds, setInitialLinkedPostIds] = useState<string[]>([]);
   const [translationsLoaded, setTranslationsLoaded] = useState(false);
@@ -473,7 +476,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     const imageUrlChanged = imageMode === "upload"
       ? Boolean(imageFile)
       : trimmedImageUrl !== (initialImageUrl ?? "").trim();
-    return titleChanged || slugChanged || bodyChanged || languageChanged || tagsUpdated || imageUrlChanged || translationsChanged;
+    const scheduledAtChanged = scheduledAt !== (initialData?.scheduled_at ?? null);
+    return titleChanged || slugChanged || bodyChanged || languageChanged || tagsUpdated || imageUrlChanged || translationsChanged || scheduledAtChanged;
   }, [
     mode,
     trimmedTitle,
@@ -490,6 +494,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     initialBody,
     initialImageUrl,
     initialLanguage,
+    scheduledAt,
+    initialData?.scheduled_at,
   ]);
 
   const submitDisabled = isSubmitting || !isFormValid || (mode === "edit" && !hasChanges);
@@ -697,7 +703,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         ? "/posts/create"
         : `/posts/${initialSlug}/update`;
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         titulo: trimmedTitle,
         slug: trimmedSlug,
         body: trimmedBody,
@@ -705,6 +711,12 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         language,
         ...(mode === "create" || tagsChanged ? { tag_ids: tags.map((tag) => tag.id) } : {}),
       };
+
+      // Add scheduling info if scheduled_at is set
+      if (scheduledAt) {
+        payload.scheduled_at = scheduledAt;
+        payload.status = 'scheduled';
+      }
 
       const response = await fetch(`${ADMIN_API}${endpoint}`, {
         method: mode === "create" ? "POST" : "PUT",
@@ -901,6 +913,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         labels={tagLabels}
         inputId="post-tags"
       />
+
 
       <div class="space-y-3">
         <label class="text-sm font-semibold">{copy.featuredImageLabel}</label>

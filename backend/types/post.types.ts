@@ -1,3 +1,5 @@
+export type PostStatus = "draft" | "published" | "scheduled";
+
 export interface PostRecord {
   id: string;
   titulo: string;
@@ -6,6 +8,8 @@ export interface PostRecord {
   imagen_url: string | null;
   fecha: string;
   updated_at?: string | null;
+  status?: PostStatus;
+  scheduled_at?: string | null;
   language: PostLanguage;
   is_pinned?: boolean;
 }
@@ -93,4 +97,8 @@ export interface DeleteInfo {
   likes_count: number;
   dislikes_count: number;
   imagen_url: string | null;
+}
+
+export interface SchedulePostInput {
+  scheduled_at: string; // ISO 8601 UTC — validated on backend
 }

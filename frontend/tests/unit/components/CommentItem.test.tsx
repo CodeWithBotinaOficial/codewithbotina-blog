@@ -4,6 +4,7 @@ import CommentItem from "../../../src/components/comments/CommentItem";
 
 const baseComment = {
   id: "comment-1",
+  post_id: "post-1",
   content: "A valid comment content here.",
   created_at: "2026-02-25T10:00:00Z",
   updated_at: "2026-02-25T10:00:00Z",
@@ -31,6 +32,7 @@ describe("CommentItem actions", () => {
     render(
       <CommentItem
         comment={baseComment}
+        currentLanguage="en"
         currentUserId="user-1"
         isAdmin={false}
         onDelete={() => {}}
@@ -49,6 +51,7 @@ describe("CommentItem actions", () => {
     render(
       <CommentItem
         comment={baseComment}
+        currentLanguage="en"
         currentUserId="user-2"
         isAdmin={true}
         onDelete={() => {}}

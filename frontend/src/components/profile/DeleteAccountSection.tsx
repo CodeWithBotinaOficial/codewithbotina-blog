@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { AlertTriangle, Trash2 } from "lucide-preact";
 import { getApiUrl } from "../../lib/env";
 import { setAuthState } from "../../lib/auth-state";
+import type { SupportedLanguage } from "../../lib/i18n";
 import Modal from "../ui/Modal";
 import Toast from "../ui/Toast";
 import { useToast } from "../../hooks/useToast";
 
 interface Props {
-  language: "en" | "es";
+  language: SupportedLanguage;
   labels: {
     dangerZone: string;
     deleteWarning: string;

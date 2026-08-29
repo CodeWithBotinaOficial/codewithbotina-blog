@@ -338,5 +338,26 @@
     "deleteFailed": "Failed to delete poll",
     "updateFailed": "Failed to update poll",
     "statusUpdated": "Poll {status}"
-  }
-}
+   },
+   "scheduling": {
+     "title": "Schedule Post Publication",
+     "label": "Schedule for (your local time)",
+     "placeholder": "Select date and time",
+     "minLabel": "Earliest:",
+     "maxLabel": "Latest:",
+     "helpText": "Posts will be published automatically when the scheduled time arrives",
+     "daysFromNow": "day(s) from now",
+     "scheduleButton": "Schedule Post",
+     "unscheduleButton": "Cancel Schedule",
+     "errorInvalidDate": "Please select a valid future date",
+     "errorDateTooSoon": "Please select a date at least 1 minute in the future",
+     "errorDateTooFar": "Posts cannot be scheduled more than 30 days in advance",
+     "errorPublished": "Published posts cannot be rescheduled",
+     "successScheduled": "Post scheduled successfully",
+     "successUnscheduled": "Post schedule cancelled",
+     "scheduledFor": "Scheduled for:",
+     "cancelButton": "Cancel",
+     "confirmUnschedule": "Are you sure you want to cancel this schedule?"
+   }
+ }
+
