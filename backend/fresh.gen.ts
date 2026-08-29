@@ -36,6 +36,7 @@ import * as $api_posts_slug_delete from "./routes/api/posts/[slug]/delete.ts";
 import * as $api_posts_slug_exists from "./routes/api/posts/[slug]/exists.ts";
 import * as $api_posts_slug_index from "./routes/api/posts/[slug]/index.ts";
 import * as $api_posts_slug_pin from "./routes/api/posts/[slug]/pin.ts";
+import * as $api_posts_slug_schedule from "./routes/api/posts/[slug]/schedule.ts";
 import * as $api_posts_slug_tags from "./routes/api/posts/[slug]/tags.ts";
 import * as $api_posts_slug_translation_language_ from "./routes/api/posts/[slug]/translation/[language].ts";
 import * as $api_posts_slug_translations_linkedPostId_ from "./routes/api/posts/[slug]/translations/[linkedPostId].ts";
@@ -45,6 +46,8 @@ import * as $api_posts_bulk_pin from "./routes/api/posts/bulk-pin.ts";
 import * as $api_posts_bulk_update from "./routes/api/posts/bulk-update.ts";
 import * as $api_posts_create from "./routes/api/posts/create.ts";
 import * as $api_posts_index from "./routes/api/posts/index.ts";
+import * as $api_posts_publish_scheduled from "./routes/api/posts/publish-scheduled.ts";
+import * as $api_posts_schedule_route from "./routes/api/posts/schedule-route.ts";
 import * as $api_posts_search from "./routes/api/posts/search.ts";
 import * as $api_posts_test from "./routes/api/posts/test.ts";
 import * as $api_posts_upload_image from "./routes/api/posts/upload-image.ts";
@@ -104,6 +107,7 @@ const manifest = {
     "./routes/api/posts/[slug]/exists.ts": $api_posts_slug_exists,
     "./routes/api/posts/[slug]/index.ts": $api_posts_slug_index,
     "./routes/api/posts/[slug]/pin.ts": $api_posts_slug_pin,
+    "./routes/api/posts/[slug]/schedule.ts": $api_posts_slug_schedule,
     "./routes/api/posts/[slug]/tags.ts": $api_posts_slug_tags,
     "./routes/api/posts/[slug]/translation/[language].ts":
       $api_posts_slug_translation_language_,
@@ -116,6 +120,8 @@ const manifest = {
     "./routes/api/posts/bulk-update.ts": $api_posts_bulk_update,
     "./routes/api/posts/create.ts": $api_posts_create,
     "./routes/api/posts/index.ts": $api_posts_index,
+    "./routes/api/posts/publish-scheduled.ts": $api_posts_publish_scheduled,
+    "./routes/api/posts/schedule-route.ts": $api_posts_schedule_route,
     "./routes/api/posts/search.ts": $api_posts_search,
     "./routes/api/posts/test.ts": $api_posts_test,
     "./routes/api/posts/upload-image.ts": $api_posts_upload_image,

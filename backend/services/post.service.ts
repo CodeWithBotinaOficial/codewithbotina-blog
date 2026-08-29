@@ -14,6 +14,7 @@ import {
   PostCreateBatchResponse,
   PostLanguage,
   PostRecord,
+  PostStatus,
   PostUpdate,
 } from "../types/post.types.ts";
 import { AppError, DatabaseError, ValidationError } from "../utils/errors.ts";
@@ -75,6 +76,25 @@ export class PostService {
         };
       }
 
+      // Handle scheduled_at and status
+      let status: PostStatus = "draft";
+      let scheduledAt: string | null = null;
+
+      if (data.scheduled_at) {
+        const scheduledAtStr = String(data.scheduled_at).trim();
+        if (scheduledAtStr) {
+          const validation = validateScheduledAt(scheduledAtStr);
+          if (!validation.valid) {
+            return {
+              success: false,
+              error: new ValidationError(validation.error || "Invalid scheduled date"),
+            };
+          }
+          status = "scheduled";
+          scheduledAt = scheduledAtStr;
+        }
+      }
+
       const { data: created, error } = await supabase
         .from("posts")
         .insert([{
@@ -85,9 +105,11 @@ export class PostService {
           fecha: new Date().toISOString(),
           language: sanitized.language,
           is_pinned: sanitized.is_pinned,
+          status,
+          scheduled_at: scheduledAt,
         }])
         .select(
-          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
         )
         .single();
 
@@ -768,19 +790,48 @@ export class PostService {
         }
       }
 
+      // Handle scheduled_at and status
+      let status = existing.status ?? "draft";
+      let scheduledAt = existing.scheduled_at ?? null;
+
+      if (data.scheduled_at !== undefined) {
+        if (data.scheduled_at === null) {
+          // Explicitly null to clear scheduling
+          status = "draft";
+          scheduledAt = null;
+        } else {
+          const scheduledAtStr = String(data.scheduled_at).trim();
+          if (scheduledAtStr) {
+            const validation = validateScheduledAt(scheduledAtStr);
+            if (!validation.valid) {
+              return {
+                success: false,
+                error: new ValidationError(validation.error || "Invalid scheduled date"),
+              };
+            }
+            status = "scheduled";
+            scheduledAt = scheduledAtStr;
+          }
+        }
+      }
+
+      const updatePayload: Record<string, unknown> = {
+        titulo: sanitized.titulo,
+        slug: sanitized.slug,
+        body: sanitized.body,
+        imagen_url: sanitized.imagen_url ?? null,
+        language: sanitized.language,
+        is_pinned: sanitized.is_pinned,
+        status,
+        scheduled_at: scheduledAt,
+      };
+
       const { data: updated, error } = await supabase
         .from("posts")
-        .update({
-          titulo: sanitized.titulo,
-          slug: sanitized.slug,
-          body: sanitized.body,
-          imagen_url: sanitized.imagen_url ?? null,
-          language: sanitized.language,
-          is_pinned: sanitized.is_pinned,
-        })
+        .update(updatePayload)
         .eq("id", existing.id)
         .select(
-          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
         )
         .single();
 

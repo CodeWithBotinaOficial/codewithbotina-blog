@@ -32,6 +32,8 @@ export interface PostCreate {
   tag_ids?: string[];
   language?: PostLanguage;
   is_pinned?: boolean;
+  scheduled_at?: string | null;
+  status?: PostStatus;
 }
 
 export interface PostUpdate {
@@ -42,6 +44,8 @@ export interface PostUpdate {
   tag_ids?: string[];
   language?: PostLanguage;
   is_pinned?: boolean;
+  scheduled_at?: string | null;
+  status?: PostStatus;
 }
 
 export interface PostCreateBatchRequest {
