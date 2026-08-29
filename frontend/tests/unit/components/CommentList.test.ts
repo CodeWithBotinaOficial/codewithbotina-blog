@@ -6,6 +6,7 @@ describe("CommentList sorting", () => {
     const comments = [
       {
         id: "1",
+        post_id: "post-1",
         content: "Old pinned",
         created_at: "2026-02-25T09:00:00Z",
         updated_at: "2026-02-25T09:00:00Z",
@@ -14,6 +15,7 @@ describe("CommentList sorting", () => {
       },
       {
         id: "2",
+        post_id: "post-1",
         content: "New unpinned",
         created_at: "2026-02-25T11:00:00Z",
         updated_at: "2026-02-25T11:00:00Z",
@@ -22,6 +24,7 @@ describe("CommentList sorting", () => {
       },
       {
         id: "3",
+        post_id: "post-1",
         content: "New pinned",
         created_at: "2026-02-25T12:00:00Z",
         updated_at: "2026-02-25T12:00:00Z",

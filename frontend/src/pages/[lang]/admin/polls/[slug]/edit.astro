@@ -14,11 +14,12 @@ if (!lang || !isSupportedLanguage(lang)) {
   return Astro.redirect(`/${DEFAULT_LANGUAGE}/`);
 }
 
+const safeSlug = typeof slug === "string" ? slug : "";
 const pageTitle = "Edit Poll";
 ---
 
 <BaseLayout title={pageTitle} currentLanguage={uiLanguage} currentPath={Astro.url.pathname}>
   <section class="container-responsive py-12">
-    <PollEditor slug={slug} pollLanguage={pollLanguage} client:load />
+    <PollEditor slug={safeSlug} pollLanguage={pollLanguage} client:load />
   </section>
 </BaseLayout>

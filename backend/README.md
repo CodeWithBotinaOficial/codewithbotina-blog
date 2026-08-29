@@ -197,16 +197,19 @@ ALLOWED_ORIGIN=https://blog.codewithbotina.com
 
 ## Database Setup
 
-The project uses Supabase (PostgreSQL). The full schema is maintained as structural
-backups in `docs/database/migrations/`.
+The project uses Supabase (PostgreSQL). The full schema is maintained as
+structural backups in `docs/database/migrations/`.
 
 ### Option A — Use Supabase (recommended for production)
 
 1. Create a new Supabase project at https://supabase.com
 2. Open the **SQL Editor**
-3. Run `docs/database/migrations/09-08-2026/blog-codewithbotina-structure-01-tables.sql`
-4. Run `docs/database/migrations/09-08-2026/blog-codewithbotina-structure-02-constraints.sql`
-5. If `scripts/db-pending-changes.sql` has content (not just the placeholder), run that too
+3. Run
+   `docs/database/migrations/09-08-2026/blog-codewithbotina-structure-01-tables.sql`
+4. Run
+   `docs/database/migrations/09-08-2026/blog-codewithbotina-structure-02-constraints.sql`
+5. If `scripts/db-pending-changes.sql` has content (not just the placeholder),
+   run that too
 6. Set your environment variables in `.env` (see `.env.example`)
 
 ### Option B — Local PostgreSQL with Docker
@@ -241,6 +244,7 @@ docker exec -it cwb-db psql -U postgres -d codewithbotina -c "\dt"
 ```
 
 Update your `.env` to point to the local instance:
+
 ```
 SUPABASE_URL=http://localhost:5432
 SUPABASE_ANON_KEY=postgres
@@ -249,6 +253,7 @@ SUPABASE_ANON_KEY=postgres
 ### How database changes work going forward
 
 When a feature requires a schema change:
+
 1. The required SQL is written to `scripts/db-pending-changes.sql`
 2. You apply it in your environment (Supabase or Docker)
 3. You run `fish scripts/backup_db.fish` to generate a new full backup

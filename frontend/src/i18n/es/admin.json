@@ -337,6 +337,27 @@
     "pollDeleted": "Encuesta eliminada",
     "deleteFailed": "No se pudo eliminar la encuesta",
     "updateFailed": "No se pudo actualizar la encuesta",
-    "statusUpdated": "Encuesta {status}"
-  }
-}
+     "statusUpdated": "Encuesta {status}"
+   },
+   "scheduling": {
+     "title": "Programar Publicación del Artículo",
+     "label": "Programar para (tu hora local)",
+     "placeholder": "Selecciona fecha y hora",
+     "minLabel": "Más temprano:",
+     "maxLabel": "Más tarde:",
+     "helpText": "Los artículos se publicarán automáticamente cuando llegue la hora programada",
+     "daysFromNow": "día(s) a partir de ahora",
+     "scheduleButton": "Programar Artículo",
+     "unscheduleButton": "Cancelar Programación",
+     "errorInvalidDate": "Por favor, selecciona una fecha futura válida",
+     "errorDateTooSoon": "Por favor, selecciona una fecha con al menos 1 minuto en el futuro",
+     "errorDateTooFar": "Los artículos no pueden programarse más de 30 días en el futuro",
+     "errorPublished": "Los artículos publicados no pueden reprogramarse",
+     "successScheduled": "Artículo programado correctamente",
+     "successUnscheduled": "Programación del artículo cancelada",
+     "scheduledFor": "Programado para:",
+     "cancelButton": "Cancelar",
+     "confirmUnschedule": "¿Estás seguro de que deseas cancelar esta programación?"
+   }
+ }
+

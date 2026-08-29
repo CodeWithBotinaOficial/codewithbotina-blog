@@ -337,6 +337,27 @@
     "pollDeleted": "Pesquisa deletada",
     "deleteFailed": "Falha ao deletar pesquisa",
     "updateFailed": "Falha ao atualizar pesquisa",
-    "statusUpdated": "Pesquisa {status}"
-  }
-}
+     "statusUpdated": "Pesquisa {status}"
+   },
+   "scheduling": {
+     "title": "Agendar Publicação do Post",
+     "label": "Agendar para (seu horário local)",
+     "placeholder": "Selecione data e hora",
+     "minLabel": "Mais cedo:",
+     "maxLabel": "Mais tarde:",
+     "helpText": "Os posts serão publicados automaticamente quando o horário agendado chegar",
+     "daysFromNow": "dia(s) a partir de agora",
+     "scheduleButton": "Agendar Post",
+     "unscheduleButton": "Cancelar Agendamento",
+     "errorInvalidDate": "Por favor, selecione uma data futura válida",
+     "errorDateTooSoon": "Por favor, selecione uma data com pelo menos 1 minuto no futuro",
+     "errorDateTooFar": "Posts não podem ser agendados mais de 30 dias no futuro",
+     "errorPublished": "Posts publicados não podem ser reagendados",
+     "successScheduled": "Post agendado com sucesso",
+     "successUnscheduled": "Agendamento do post cancelado",
+     "scheduledFor": "Agendado para:",
+     "cancelButton": "Cancelar",
+     "confirmUnschedule": "Tem certeza de que deseja cancelar este agendamento?"
+   }
+ }
+

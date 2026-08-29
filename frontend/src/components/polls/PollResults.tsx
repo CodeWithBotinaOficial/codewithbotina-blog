@@ -116,7 +116,7 @@ export default function PollResults({ poll, userVote, language, pollLanguage }: 
             // "Top" is expected to show the most-voted items. If an old poll has `asc` saved,
             // users perceive it as "not updating" because 0-vote options stay at the top.
             // Keep honoring `asc` only when there are no votes yet.
-            order={(settings.top_order === "asc" && options.some((o) => o.vote_count > 0)) ? "desc" : (settings.top_order || "desc")}
+            order={(settings.top_order === "asc" && options.some((o: { vote_count: number }) => o.vote_count > 0)) ? "desc" : (settings.top_order || "desc")}
           />
         ) : null}
         {activeTab === "chart" && showChart ? (

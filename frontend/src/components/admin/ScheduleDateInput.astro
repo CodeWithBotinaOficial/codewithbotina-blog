@@ -1,0 +1,591 @@
+---
+// frontend/src/components/admin/ScheduleDateInput.astro
+// TypeScript Astro component for scheduling posts with timezone-aware datetime picker
+// Uses i18n system for multilingual support
+
+import { t } from '../../lib/i18n';
+import type { SupportedLanguage } from '../../lib/i18n';
+
+interface Props {
+  postSlug: string;
+  currentStatus?: string;
+  scheduledAt?: string | null;
+  isLoading?: boolean;
+  onSchedule?: (scheduledAt: string) => void;
+  onUnschedule?: () => void;
+  locale?: SupportedLanguage;
+}
+
+const {
+  postSlug,
+  currentStatus = 'draft',
+  scheduledAt = null,
+  isLoading = false,
+  onSchedule,
+  onUnschedule,
+  locale = 'es',
+} = Astro.props;
+
+
+/**
+ * Converts a datetime-local input value to UTC ISO string
+ * datetime-local values are already in the user's local timezone
+ * We convert them to UTC for storage in the database
+ *
+ * @param localDatetimeValue - Value from datetime-local input (e.g., "2026-08-30T15:30")
+ * @returns ISO 8601 UTC string (e.g., "2026-08-30T19:30:00Z")
+ */
+function localDatetimeToUtcIso(localDatetimeValue: string): string {
+  if (!localDatetimeValue) return '';
+
+  // Parse the datetime-local value
+  // Format: YYYY-MM-DDTHH:mm
+  const parts = localDatetimeValue.split('T');
+  if (parts.length !== 2) return '';
+
+  const [year, month, day] = parts[0].split('-');
+  const [hours, minutes] = parts[1].split(':');
+
+  // Create Date in local timezone
+  const localDate = new Date(
+    parseInt(year),
+    parseInt(month) - 1, // JavaScript months are 0-indexed
+    parseInt(day),
+    parseInt(hours),
+    parseInt(minutes),
+    0,
+    0
+  );
+
+  // Return as ISO UTC string
+  return localDate.toISOString();
+}
+
+/**
+ * Converts a UTC ISO string back to datetime-local format (user's local time)
+ * Used when editing an already-scheduled post
+ *
+ * @param utcIsoString - ISO 8601 UTC string from database
+ * @returns datetime-local format string (e.g., "2026-08-30T15:30")
+ */
+function utcIsoToLocalDatetime(utcIsoString: string): string {
+  if (!utcIsoString) return '';
+
+  const date = new Date(utcIsoString);
+
+  // Get local components
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+/**
+ * Calculate min and max dates for the datetime picker
+ * Min: 1 minute from now
+ * Max: 30 days from now
+ */
+function getDateTimeConstraints() {
+  const now = new Date();
+
+  // Min: 1 minute from now
+  const minDate = new Date(now.getTime() + 60 * 1000);
+  const minYear = minDate.getFullYear();
+  const minMonth = String(minDate.getMonth() + 1).padStart(2, '0');
+  const minDay = String(minDate.getDate()).padStart(2, '0');
+  const minHours = String(minDate.getHours()).padStart(2, '0');
+  const minMinutes = String(minDate.getMinutes()).padStart(2, '0');
+  const minDatetime = `${minYear}-${minMonth}-${minDay}T${minHours}:${minMinutes}`;
+
+  // Max: 30 days from now
+  const maxDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const maxYear = maxDate.getFullYear();
+  const maxMonth = String(maxDate.getMonth() + 1).padStart(2, '0');
+  const maxDay = String(maxDate.getDate()).padStart(2, '0');
+  const maxHours = String(maxDate.getHours()).padStart(2, '0');
+  const maxMinutes = String(maxDate.getMinutes()).padStart(2, '0');
+  const maxDatetime = `${maxYear}-${maxMonth}-${maxDay}T${maxHours}:${maxMinutes}`;
+
+  return { minDatetime, maxDatetime };
+}
+
+const { minDatetime, maxDatetime } = getDateTimeConstraints();
+const initialDatetimeValue = scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : '';
+---
+
+<div class="schedule-date-input">
+  <!-- Title Section -->
+  <div class="section-header">
+    <h3>{t(locale, 'scheduling.title', 'admin')}</h3>
+    {currentStatus === 'published' && (
+      <p class="warning-text">
+        ⚠️ {t(locale, 'scheduling.errorPublished', 'admin')}
+      </p>
+    )}
+  </div>
+
+  <!-- Schedule Form -->
+  {currentStatus !== 'published' && (
+    <form id={`schedule-form-${postSlug}`} class="schedule-form">
+      <div class="form-group">
+        <label for={`datetime-${postSlug}`} class="form-label">
+          {t(locale, 'scheduling.label', 'admin')}
+        </label>
+
+        <input
+          id={`datetime-${postSlug}`}
+          type="datetime-local"
+          class="datetime-input"
+          min={minDatetime}
+          max={maxDatetime}
+          value={initialDatetimeValue}
+          disabled={isLoading}
+          aria-label={t(locale, 'scheduling.label', 'admin')}
+          data-post-slug={postSlug}
+        />
+
+        <p class="help-text">{t(locale, 'scheduling.helpText', 'admin')}</p>
+
+        <div class="constraints-info">
+          <span class="constraint">{t(locale, 'scheduling.minLabel', 'admin')} now + 1 min</span>
+          <span class="separator">•</span>
+          <span class="constraint">{t(locale, 'scheduling.maxLabel', 'admin')} now + 30 days</span>
+        </div>
+      </div>
+
+      <!-- Display scheduled time if already scheduled -->
+      {scheduledAt && (
+        <div class="scheduled-time-display">
+          <p class="scheduled-label">{t(locale, 'scheduling.scheduledFor', 'admin')}</p>
+          <p class="scheduled-value">
+            {new Date(scheduledAt).toLocaleString(locale === 'pt-br' ? 'pt-BR' : locale)}
+          </p>
+        </div>
+      )}
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        {!scheduledAt ? (
+          <button
+            type="submit"
+            class="btn btn-primary"
+            disabled={isLoading}
+            data-action="schedule"
+            data-post-slug={postSlug}
+          >
+            {isLoading ? '⏳ ...' : t(locale, 'scheduling.scheduleButton', 'admin')}
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              class="btn btn-danger"
+              disabled={isLoading}
+              data-action="unschedule"
+              data-post-slug={postSlug}
+            >
+              {isLoading ? '⏳ ...' : t(locale, 'scheduling.unscheduleButton', 'admin')}
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              disabled={isLoading}
+              data-action="schedule"
+              data-post-slug={postSlug}
+            >
+              {isLoading ? '⏳ ...' : 'Update Schedule'}
+            </button>
+          </>
+        )}
+      </div>
+
+      <!-- Error Message -->
+      <div id={`error-${postSlug}`} class="error-message" role="alert"></div>
+      <!-- Success Message -->
+      <div id={`success-${postSlug}`} class="success-message" role="status"></div>
+    </form>
+  )}
+</div>
+
+<!-- Client-side interactivity -->
+<script>
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeScheduler);
+  } else {
+    initializeScheduler();
+  }
+
+  function initializeScheduler() {
+    const forms = document.querySelectorAll<HTMLElement>('[id^="schedule-form-"]');
+
+    forms.forEach((form) => {
+      const postSlug = form.id.replace('schedule-form-', '');
+      const datetimeInput = form.querySelector<HTMLInputElement>(`#datetime-${postSlug}`);
+      const scheduleBtn = form.querySelector<HTMLButtonElement>('[data-action="schedule"]');
+      const unscheduleBtn = form.querySelector<HTMLButtonElement>('[data-action="unschedule"]');
+
+      if (scheduleBtn) {
+        scheduleBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          handleSchedule(postSlug, datetimeInput);
+        });
+      }
+
+      if (unscheduleBtn) {
+        unscheduleBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          handleUnschedule(postSlug);
+        });
+      }
+    });
+  }
+
+  async function handleSchedule(postSlug: string, datetimeInput: HTMLInputElement | null) {
+    const datetimeValue = datetimeInput?.value ?? '';
+
+    if (!datetimeValue) {
+      showError(postSlug, 'Please select a date and time');
+      return;
+    }
+
+    const utcIsoString = localDatetimeToUtcIso(datetimeValue);
+
+    if (!utcIsoString) {
+      showError(postSlug, 'Invalid date format');
+      return;
+    }
+
+    try {
+      setLoading(postSlug, true);
+      clearMessages(postSlug);
+
+      const response = await fetch(`/api/posts/${postSlug}/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduled_at: utcIsoString }),
+      });
+
+      if (!response.ok) {
+        const errorBody = (await response.json()) as { error?: string };
+        throw new Error(errorBody.error || 'Failed to schedule post');
+      }
+
+      showSuccess(postSlug, 'Post scheduled successfully! Reloading...');
+      setTimeout(() => location.reload(), 1500);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred while scheduling';
+      showError(postSlug, message);
+    } finally {
+      setLoading(postSlug, false);
+    }
+  }
+
+  async function handleUnschedule(postSlug: string) {
+    if (!confirm('Are you sure you want to cancel this schedule?')) {
+      return;
+    }
+
+    try {
+      setLoading(postSlug, true);
+      clearMessages(postSlug);
+
+      const response = await fetch(`/api/posts/${postSlug}/schedule`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorBody = (await response.json()) as { error?: string };
+        throw new Error(errorBody.error || 'Failed to cancel schedule');
+      }
+
+      showSuccess(postSlug, 'Schedule cancelled! Reloading...');
+      setTimeout(() => location.reload(), 1500);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred while cancelling';
+      showError(postSlug, message);
+    } finally {
+      setLoading(postSlug, false);
+    }
+  }
+
+  function localDatetimeToUtcIso(localDatetimeValue: string): string {
+    if (!localDatetimeValue) return '';
+
+    const parts = localDatetimeValue.split('T');
+    if (parts.length !== 2) return '';
+
+    const [year, month, day] = parts[0].split('-');
+    const [hours, minutes] = parts[1].split(':');
+
+    const localDate = new Date(
+      parseInt(year, 10),
+      parseInt(month, 10) - 1,
+      parseInt(day, 10),
+      parseInt(hours, 10),
+      parseInt(minutes, 10),
+      0,
+      0,
+    );
+
+    return localDate.toISOString();
+  }
+
+  function showError(postSlug: string, message: string) {
+    const errorEl = document.getElementById(`error-${postSlug}`) as HTMLElement | null;
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function showSuccess(postSlug: string, message: string) {
+    const successEl = document.getElementById(`success-${postSlug}`) as HTMLElement | null;
+    if (successEl) {
+      successEl.textContent = message;
+      successEl.style.display = 'block';
+    }
+  }
+
+  function clearMessages(postSlug: string) {
+    const errorEl = document.getElementById(`error-${postSlug}`) as HTMLElement | null;
+    const successEl = document.getElementById(`success-${postSlug}`) as HTMLElement | null;
+    if (errorEl) errorEl.style.display = 'none';
+    if (successEl) successEl.style.display = 'none';
+  }
+
+  function setLoading(postSlug: string, isLoading: boolean) {
+    const form = document.getElementById(`schedule-form-${postSlug}`) as HTMLElement | null;
+    if (!form) return;
+
+    const inputs = form.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input, button');
+    inputs.forEach((input) => {
+      input.disabled = isLoading;
+    });
+  }
+</script>
+
+<style>
+  .schedule-date-input {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--color-surface, #f5f5f5);
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border, #e0e0e0);
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .section-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-primary, #333);
+  }
+
+  .warning-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-warning, #d97706);
+    padding: 0.5rem;
+    background: var(--color-warning-light, #fef3c7);
+    border-radius: 0.375rem;
+  }
+
+  .schedule-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .datetime-input {
+    padding: 0.625rem 0.75rem;
+    font-size: 1rem;
+    border: 2px solid var(--color-border, #e0e0e0);
+    border-radius: 0.375rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .datetime-input:focus {
+    outline: none;
+    border-color: var(--color-primary, #3b82f6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .datetime-input:disabled {
+    background: var(--color-disabled-bg, #f0f0f0);
+    color: var(--color-disabled-text, #999);
+    cursor: not-allowed;
+  }
+
+  .help-text {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--color-text-tertiary, #999);
+    line-height: 1.4;
+  }
+
+  .constraints-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary, #999);
+    padding: 0.5rem;
+    background: var(--color-info-light, #f0f9ff);
+    border-radius: 0.375rem;
+  }
+
+  .constraint {
+    font-weight: 500;
+  }
+
+  .separator {
+    color: var(--color-border, #e0e0e0);
+  }
+
+  .scheduled-time-display {
+    padding: 1rem;
+    background: var(--color-success-light, #f0fdf4);
+    border: 1px solid var(--color-success-border, #86efac);
+    border-radius: 0.375rem;
+  }
+
+  .scheduled-label {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .scheduled-value {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-success, #16a34a);
+    font-family: 'Courier New', monospace;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-dark, #2563eb);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+
+  .btn-danger {
+    background: var(--color-danger, #ef4444);
+    color: white;
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: var(--color-danger-dark, #dc2626);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
+
+  .error-message {
+    display: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    background: var(--color-error-light, #fee2e2);
+    border: 1px solid var(--color-error-border, #fca5a5);
+    border-radius: 0.375rem;
+    color: var(--color-error, #dc2626);
+  }
+
+  .success-message {
+    display: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    background: var(--color-success-light, #f0fdf4);
+    border: 1px solid var(--color-success-border, #86efac);
+    border-radius: 0.375rem;
+    color: var(--color-success, #16a34a);
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .schedule-date-input {
+      background: var(--color-surface-dark, #1f2937);
+      border-color: var(--color-border-dark, #374151);
+    }
+
+    .section-header h3 {
+      color: var(--color-text-primary-dark, #f3f4f6);
+    }
+
+    .form-label,
+    .help-text {
+      color: var(--color-text-secondary-dark, #d1d5db);
+    }
+
+    .datetime-input {
+      background: var(--color-input-bg-dark, #111827);
+      color: var(--color-text-primary-dark, #f3f4f6);
+      border-color: var(--color-border-dark, #374151);
+    }
+
+    .datetime-input:focus {
+      border-color: var(--color-primary, #3b82f6);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+  }
+</style>
+

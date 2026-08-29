@@ -2,10 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render } from "preact";
 import DiagramRenderer from "../../../src/components/markdown/DiagramRenderer";
 
-const renderMock = vi.fn(async () => {
+const renderMock = vi.fn((...args: any[]) => {
   return {
     svg: '<svg viewBox="0 0 100 50"><text x="5" y="20">ok</text></svg>',
     bindFunctions: undefined,
+    args,
   };
 });
 
@@ -63,9 +64,7 @@ describe("DiagramRenderer", () => {
       <DiagramRenderer
         code={`graph TD\nH${Math.random().toString(36).slice(2)} --> I\n`}
         diagramLang="mermaid"
-        // @ts-expect-error tests
-        labels={labels}
-        // @ts-expect-error tests
+        labels={labels as any}
         language="en"
         filenameBase="Test"
       />,
@@ -105,9 +104,7 @@ describe("DiagramRenderer", () => {
       <DiagramRenderer
         code={"graph TD\nA --> B\n"}
         diagramLang="mermaid"
-        // @ts-expect-error tests
-        labels={labels}
-        // @ts-expect-error tests
+        labels={labels as any}
         language="en"
         filenameBase="Test"
       />,
@@ -130,9 +127,7 @@ describe("DiagramRenderer", () => {
       <DiagramRenderer
         code={"graph LR\nA --&gt; B\nA &lt;--&gt; C\n"}
         diagramLang="mermaid"
-        // @ts-expect-error tests
-        labels={labels}
-        // @ts-expect-error tests
+        labels={labels as any}
         language="en"
         filenameBase="Test"
       />,
@@ -142,7 +137,8 @@ describe("DiagramRenderer", () => {
     await new Promise((r) => setTimeout(r, 450));
 
     expect(renderMock).toHaveBeenCalled();
-    expect(renderMock.mock.calls[0]?.[1]).toBe("graph LR\nA --> B\nA <--> C");
+    const renderArgs = renderMock.mock.calls[0] as any[];
+    expect(renderArgs[1]).toBe("graph LR\nA --> B\nA <--> C");
   });
 
   // Note: render timeout behavior is validated in e2e/manual testing; unit tests here focus on the

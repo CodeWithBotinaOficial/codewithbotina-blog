@@ -15,7 +15,7 @@ if (!lang || !isSupportedLanguage(lang)) {
 
 const tagLabels = getTagSelectorLabels(language);
 const pageTitle = t(language, "createPost", "admin");
-const initialData = { language };
+const initialData = { language, titulo: "", slug: "", body: "" };
 ---
 
 <BaseLayout title={pageTitle} currentLanguage={language} currentPath={Astro.url.pathname}>

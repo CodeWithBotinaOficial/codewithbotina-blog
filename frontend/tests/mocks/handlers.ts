@@ -21,8 +21,8 @@ export const handlers = [
 
   // Contact Form API
   http.post('https://api.codewithbotina.com/api/contact', async ({ request }) => {
-    const data = await request.json();
-    if (data.email === 'fail@example.com') {
+    const data = (await request.json()) as { email?: string } | null;
+    if (data?.email === 'fail@example.com') {
       return HttpResponse.json({ error: 'Failed to send message' }, { status: 500 });
     }
     return HttpResponse.json({ success: true, data: { id: '123' } }, { status: 201 });
