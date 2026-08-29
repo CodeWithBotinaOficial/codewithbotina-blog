@@ -26,6 +26,8 @@ function buildDescription(content: string, length: number): string {
   return truncateText(plain, length);
 }
 
+type RssPostStatus = "draft" | "published" | "scheduled" | null | undefined;
+
 type RssPost = {
   id?: string;
   titulo?: string | null;
@@ -34,7 +36,7 @@ type RssPost = {
   imagen_url?: string | null;
   fecha?: string | null;
   language?: string | null;
-  status?: string | null;
+  status?: RssPostStatus;
 };
 
 export const GET: APIRoute = async ({ params }) => {
@@ -56,7 +58,10 @@ export const GET: APIRoute = async ({ params }) => {
     }
 
     const publishedPosts = (posts as RssPost[] | null)?.filter((post): post is RssPost => {
-      return Boolean(post) && post.status === "published" && typeof post.slug === "string" && post.slug.length > 0;
+      const normalizedStatus = typeof post?.status === "string" ? post.status.trim().toLowerCase() : "";
+      const safeSlug = typeof post?.slug === "string" ? post.slug.trim() : "";
+
+      return Boolean(post) && normalizedStatus === "published" && safeSlug.length > 0;
     }) ?? [];
 
     const siteUrl = getSiteUrl().replace(/\/$/, "");
