@@ -158,7 +158,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [imageUrl, setImageUrl] = useState(initialData?.imagen_url ?? "");
   const [tags, setTags] = useState<TagOption[]>(initialData?.tags ?? []);
   const [language, setLanguage] = useState(initialData?.language ?? "es");
-  const [scheduledAt, _setScheduledAt] = useState<string | null>(initialData?.scheduled_at ?? null);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(initialData?.scheduled_at ?? null);
   const [linkedPosts, setLinkedPosts] = useState<TranslationPost[]>([]);
   const [initialLinkedPostIds, setInitialLinkedPostIds] = useState<string[]>([]);
   const [translationsLoaded, setTranslationsLoaded] = useState(false);
@@ -1161,6 +1161,44 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
           )}
         </div>
       </div>
+
+      <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">
+              Schedule publication
+            </h2>
+            <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
+              Optional. Leave empty to publish immediately.
+            </p>
+          </div>
+          {scheduledAt ? (
+            <button
+              type="button"
+              class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-error)]"
+              onClick={() => setScheduledAt(null)}
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-semibold" htmlFor="post-scheduled-at">
+            Publish date and time
+          </label>
+          <input
+            id="post-scheduled-at"
+            type="datetime-local"
+            value={scheduledAt ?? ""}
+            onChange={(event) => setScheduledAt((event.currentTarget as HTMLInputElement).value || null)}
+            class="input-field pointer-events-auto"
+            min={new Date(Date.now() + 60 * 1000).toISOString().slice(0, 16)}
+            max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
+            disabled={isSubmitting}
+          />
+        </div>
+      </section>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <button

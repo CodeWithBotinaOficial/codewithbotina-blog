@@ -3,7 +3,6 @@ export const prerender = false;
 
 import BaseLayout from "../../../../components/BaseLayout.astro";
 import MultiLanguagePostEditor from "../../../../components/admin/MultiLanguagePostEditor";
-import ScheduleDateInput from "../../../../components/admin/ScheduleDateInput.astro";
 import { supabase } from "../../../../lib/supabase";
 import { formatDate } from "../../../../lib/utils";
 import { getApiUrl } from "../../../../lib/env";
@@ -99,17 +98,6 @@ const pageTitle = t(language, "editPost", "admin");
       </p>
     </div>
 
-    {/* Post Scheduling Section - Astro component for scheduling management */}
-    <div class="mb-8">
-      <ScheduleDateInput
-        postSlug={post.slug}
-        currentStatus={post.status || 'draft'}
-        scheduledAt={post.scheduled_at || null}
-        locale={language}
-      />
-    </div>
-
-    {/* Post Editor - React component with client:load for interactivity */}
     <MultiLanguagePostEditor
       mode="edit"
       uiLanguage={language}

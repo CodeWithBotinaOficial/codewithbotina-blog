@@ -40,6 +40,7 @@ export interface MultiLangEditorPost {
   imagen_url?: string | null;
   tags?: TagOption[];
   is_pinned?: boolean;
+  scheduled_at?: string | null;
 }
 
 interface Props {
@@ -131,6 +132,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const [translationLanguages, setTranslationLanguages] = useState<LanguageCode[]>([]);
   const [useSharedTags, setUseSharedTags] = useState(false);
   const [sharedTags, setSharedTags] = useState<TagOption[]>([]);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(initialData?.scheduled_at ?? null);
 
   const [pinMode, setPinMode] = useState<"all" | "selected">(() => (mode === "edit" ? "selected" : "all"));
   const [pinAll, setPinAll] = useState<boolean>(Boolean((initialData as any)?.is_pinned ?? false));
@@ -506,6 +508,12 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     return (sections[lang]?.tags ?? []).map((t) => t.id);
   };
 
+  const localDateTimeToIso = (value: string): string => {
+    if (!value) return "";
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString();
+  };
+
   const getPinnedForLanguage = (lang: LanguageCode): boolean => {
     if (pinMode === "all") return Boolean(pinAll);
     return Boolean(pinnedByLanguage[lang]);
@@ -614,6 +622,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           imagen_url: finalImageUrlByLanguage[lang],
           language: lang,
           tag_ids: getTagIdsForLanguage(lang),
+          ...(lang === primaryLanguage && scheduledAt ? {
+            scheduled_at: localDateTimeToIso(scheduledAt),
+            status: "scheduled",
+          } : {}),
         }));
 
         const res = await fetch(`${ADMIN_API}/posts/create`, {
@@ -666,6 +678,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         .map((lang) => {
           const section = sections[lang];
           if (!section?.id) return null;
+          const isPrimary = lang === primaryLanguage;
           return {
             post_id: section.id,
             post: {
@@ -676,6 +689,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               language: lang,
               tag_ids: getTagIdsForLanguage(lang),
               is_pinned: getPinnedForLanguage(lang),
+              ...(isPrimary && scheduledAt ? {
+                scheduled_at: localDateTimeToIso(scheduledAt),
+                status: "scheduled",
+              } : {}),
             },
           };
         })
@@ -1045,6 +1062,44 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             locale={locale}
           />
         )}
+      </section>
+
+      <section class="rounded-2xl border border-[var(--color-border)] bg-white p-5 space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--color-text-tertiary)]">
+              {t(interfaceLanguage, "scheduling.title", "admin")}
+            </h2>
+            <p class="mt-1 text-sm text-[var(--color-text-secondary)]">
+              {t(interfaceLanguage, "scheduling.helpText", "admin")}
+            </p>
+          </div>
+          {scheduledAt ? (
+            <button
+              type="button"
+              class="text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-error)]"
+              onClick={() => setScheduledAt(null)}
+            >
+              {t(interfaceLanguage, "scheduling.unscheduleButton", "admin")}
+            </button>
+          ) : null}
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-semibold" htmlFor="scheduled-post-datetime">
+            {t(interfaceLanguage, "scheduling.label", "admin")}
+          </label>
+          <input
+            id="scheduled-post-datetime"
+            type="datetime-local"
+            value={scheduledAt ?? ""}
+            onChange={(e) => setScheduledAt((e.currentTarget as HTMLInputElement).value || null)}
+            class="input-field pointer-events-auto"
+            min={new Date(Date.now() + 60 * 1000).toISOString().slice(0, 16)}
+            max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
+            disabled={isSubmitting}
+          />
+        </div>
       </section>
 
       <div class="space-y-6">

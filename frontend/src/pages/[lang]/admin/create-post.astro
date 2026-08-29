@@ -3,7 +3,6 @@ export const prerender = false;
 
 import BaseLayout from "../../../components/BaseLayout.astro";
 import MultiLanguagePostEditor from "../../../components/admin/MultiLanguagePostEditor";
-import ScheduleDateInput from "../../../components/admin/ScheduleDateInput.astro";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, t, type SupportedLanguage } from "../../../lib/i18n";
 import { getTagSelectorLabels } from "../../../lib/admin-editor";
 
@@ -22,16 +21,6 @@ const initialData = { language, titulo: "", slug: "", body: "", status: "draft" 
 <BaseLayout title={pageTitle} currentLanguage={language} currentPath={Astro.url.pathname}>
   <section class="container-responsive py-12">
     <h1 class="text-3xl font-bold mb-6">{pageTitle}</h1>
-
-    <div class="mb-8">
-      <ScheduleDateInput
-        postSlug={initialData.slug || "new-post"}
-        currentStatus={initialData.status || "draft"}
-        scheduledAt={null}
-        locale={language}
-      />
-    </div>
-
     <MultiLanguagePostEditor
       mode="create"
       uiLanguage={language}
