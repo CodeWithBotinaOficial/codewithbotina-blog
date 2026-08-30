@@ -342,6 +342,7 @@
    "scheduling": {
      "title": "Agendar Publicação do Post",
      "label": "Agendar para (seu horário local)",
+     "scheduledBadge": "Agendado",
      "placeholder": "Selecione data e hora",
      "minLabel": "Mais cedo:",
      "maxLabel": "Mais tarde:",

@@ -139,7 +139,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
       return (
         <div class="inline-flex items-center gap-2 rounded-full bg-[var(--color-warning)]/10 px-3 py-1.5 text-sm font-medium text-[var(--color-warning)]">
           <Clock size={16} />
-          <span>{t(currentLanguage, "scheduling.label", "admin")}</span>
+          <span>{t(currentLanguage, "scheduling.scheduledBadge", "admin")}</span>
           {countdowns[post.id] && (
             <span class="ml-1 font-mono text-xs opacity-80">{countdowns[post.id]}</span>
           )}

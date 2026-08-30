@@ -44,6 +44,7 @@ const joinedResult = await supabase
   `)
   .eq("slug", slug)
   .eq("language", language)
+  .eq("status", "published")
   .single();
 
 if (joinedResult.error) {
@@ -52,6 +53,7 @@ if (joinedResult.error) {
     .select("*")
     .eq("slug", slug)
     .eq("language", language)
+    .eq("status", "published")
     .single();
   post = fallback.data;
   postError = fallback.error;

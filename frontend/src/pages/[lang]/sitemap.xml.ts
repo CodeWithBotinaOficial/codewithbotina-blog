@@ -42,6 +42,7 @@ export const GET: APIRoute = async ({ params }) => {
     const { data, error } = await supabase
       .from("posts")
       .select("slug, language, fecha, updated_at")
+      .eq("status", "published")
       .order("fecha", { ascending: false });
     if (error) throw error;
     posts = data || [];

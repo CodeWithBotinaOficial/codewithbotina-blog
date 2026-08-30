@@ -1326,27 +1326,60 @@ export class PostService {
    * Publish all posts whose scheduled_at has arrived.
    * Called by the cron endpoint. Returns count of published posts.
    * All comparisons in UTC.
+   *
+   * Two-step approach for reliability:
+   * 1. First fetch IDs of posts that need publishing
+   * 2. Then update only those posts
+   * This ensures we handle the 0-results case gracefully without errors.
    */
   async publishScheduledPosts(): Promise<
     { published: number; slugs: string[] }
   > {
     const now = new Date().toISOString();
 
-    const { data, error } = await supabase
+    // Step 1: Fetch posts that are due for publishing
+    const { data: duePosts, error: fetchError } = await supabase
+      .from("posts")
+      .select("id, slug")
+      .eq("status", "scheduled")
+      .lte("scheduled_at", now);
+
+    if (fetchError) {
+      console.error("[publishScheduledPosts] Fetch error:", fetchError);
+      throw new Error(
+        `Failed to query scheduled posts: ${fetchError.message}`,
+      );
+    }
+
+    // If no posts are due, return gracefully — this is NOT an error
+    if (!duePosts || duePosts.length === 0) {
+      console.log("[publishScheduledPosts] No posts due for publishing.");
+      return { published: 0, slugs: [] };
+    }
+
+    // Step 2: Update only the posts we found
+    const ids = (duePosts as Array<{ id: string }> || []).map((p) => p.id);
+    const slugs = (duePosts as Array<{ slug: string }> || []).map((p) =>
+      p.slug
+    );
+
+    const { error: updateError } = await supabase
       .from("posts")
       .update({
         status: "published",
         updated_at: now,
       })
-      .eq("status", "scheduled")
-      .lte("scheduled_at", now)
-      .select("slug");
+      .in("id", ids);
 
-    if (error) throw error;
+    if (updateError) {
+      console.error("[publishScheduledPosts] Update error:", updateError);
+      throw new Error(
+        `Failed to publish scheduled posts: ${updateError.message}`,
+      );
+    }
 
-    const slugs = (data || []).map((p: { slug: string }) => p.slug);
     console.log(
-      `[Scheduler] Published ${slugs.length} posts: ${slugs.join(", ")}`,
+      `[publishScheduledPosts] Published ${slugs.length} posts: ${slugs.join(", ")}`,
     );
 
     return { published: slugs.length, slugs };

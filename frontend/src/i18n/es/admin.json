@@ -342,6 +342,7 @@
    "scheduling": {
      "title": "Programar Publicación del Artículo",
      "label": "Programar para (tu hora local)",
+     "scheduledBadge": "Programado",
      "placeholder": "Selecciona fecha y hora",
      "minLabel": "Más temprano:",
      "maxLabel": "Más tarde:",

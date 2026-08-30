@@ -342,6 +342,7 @@
    "scheduling": {
      "title": "Schedule Post Publication",
      "label": "Schedule for (your local time)",
+     "scheduledBadge": "Scheduled",
      "placeholder": "Select date and time",
      "minLabel": "Earliest:",
      "maxLabel": "Latest:",

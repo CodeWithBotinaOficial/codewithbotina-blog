@@ -16,6 +16,7 @@ interface Props {
     "pt-BR"?: string;
   };
   canonical?: string;
+  postStatus?: "draft" | "scheduled" | "published";
 }
 
 const {
@@ -30,6 +31,7 @@ const {
   locale = "es",
   alternateUrls,
   canonical,
+  postStatus = "published",
 } = Astro.props;
 
 const siteUrl = "https://blog.codewithbotina.com";
@@ -56,7 +58,11 @@ const ogLocale = locale.replace("-", "_");
 <meta name="description" content={metaDescription} />
 {keywords && <meta name="keywords" content={keywords} />}
 <meta name="author" content={author} />
-<meta name="robots" content="index, follow" />
+{postStatus !== "published" ? (
+  <meta name="robots" content="noindex, nofollow" />
+) : (
+  <meta name="robots" content="index, follow" />
+)}
 <meta name="language" content={locale} />
 <link rel="canonical" href={canonicalUrl} />
 

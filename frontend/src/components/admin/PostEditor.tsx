@@ -151,6 +151,38 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       return acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), String(value));
     }, template);
   };
+
+  // Convert UTC ISO string to datetime-local format
+  const utcIsoToLocalDatetime = (utcIsoString: string | null): string => {
+    if (!utcIsoString) return "";
+    const date = new Date(utcIsoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Convert datetime-local format to UTC ISO string
+  const localDatetimeToUtcIso = (localDatetimeValue: string): string => {
+    if (!localDatetimeValue) return "";
+    const parts = localDatetimeValue.split("T");
+    if (parts.length !== 2) return "";
+    const [year, month, day] = parts[0].split("-");
+    const [hours, minutes] = parts[1].split(":");
+    const localDate = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hours),
+      parseInt(minutes),
+      0,
+      0
+    );
+    return localDate.toISOString();
+  };
+
   const { loading: sessionLoading, isAuthenticated, isAdmin } = useSession();
   const [title, setTitle] = useState(initialData?.titulo ?? "");
   const [slug, setSlug] = useState(initialData?.slug ?? "");
@@ -158,7 +190,9 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const [imageUrl, setImageUrl] = useState(initialData?.imagen_url ?? "");
   const [tags, setTags] = useState<TagOption[]>(initialData?.tags ?? []);
   const [language, setLanguage] = useState(initialData?.language ?? "es");
-  const [scheduledAt, setScheduledAt] = useState<string | null>(initialData?.scheduled_at ?? null);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(
+    initialData?.scheduled_at ? utcIsoToLocalDatetime(initialData.scheduled_at) : null
+  );
   const [linkedPosts, setLinkedPosts] = useState<TranslationPost[]>([]);
   const [initialLinkedPostIds, setInitialLinkedPostIds] = useState<string[]>([]);
   const [translationsLoaded, setTranslationsLoaded] = useState(false);
@@ -191,6 +225,10 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const initialBody = useMemo(() => initialData?.body ?? "", [initialData?.body]);
   const initialImageUrl = useMemo(() => initialData?.imagen_url ?? "", [initialData?.imagen_url]);
   const initialLanguage = useMemo(() => initialData?.language ?? "es", [initialData?.language]);
+  const initialScheduledAt = useMemo(
+    () => initialData?.scheduled_at ? utcIsoToLocalDatetime(initialData.scheduled_at) : null,
+    [initialData?.scheduled_at]
+  );
   const initialTagIds = useMemo(
     () => (initialData?.tags ?? []).map((tag) => tag.id).sort().join(","),
     [initialData?.tags],
@@ -476,7 +514,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     const imageUrlChanged = imageMode === "upload"
       ? Boolean(imageFile)
       : trimmedImageUrl !== (initialImageUrl ?? "").trim();
-    const scheduledAtChanged = scheduledAt !== (initialData?.scheduled_at ?? null);
+    const scheduledAtChanged = scheduledAt !== initialScheduledAt;
     return titleChanged || slugChanged || bodyChanged || languageChanged || tagsUpdated || imageUrlChanged || translationsChanged || scheduledAtChanged;
   }, [
     mode,
@@ -494,6 +532,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     initialBody,
     initialImageUrl,
     initialLanguage,
+    scheduledAt,
+    initialScheduledAt,
     scheduledAt,
     initialData?.scheduled_at,
   ]);
@@ -714,7 +754,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
       // Add scheduling info if scheduled_at is set
       if (scheduledAt) {
-        payload.scheduled_at = scheduledAt;
+        payload.scheduled_at = localDatetimeToUtcIso(scheduledAt);
         payload.status = 'scheduled';
       }
 
