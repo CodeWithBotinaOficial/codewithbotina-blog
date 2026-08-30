@@ -1566,6 +1566,8 @@
   main {
     position: relative;
     z-index: 1;
+    /* Compensate for sticky header height to prevent content overlap */
+    padding-top: var(--header-height);
   }
 
   header {

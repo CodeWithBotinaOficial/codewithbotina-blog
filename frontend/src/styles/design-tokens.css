@@ -1,4 +1,7 @@
 :root {
+  /* Layout Dimensions */
+  --header-height: 4rem; /* Matches h-16 in Tailwind (64px) - must match Header.astro h-16 class */
+
   /* Primary Brand Colors */
   --color-primary-50: #e8f5e9;
   --color-primary-100: #d6eed8;
