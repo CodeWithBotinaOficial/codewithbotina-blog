@@ -3,6 +3,7 @@ import { supabase } from "../../../lib/supabase.ts";
 import { corsHeaders } from "../../../middleware/cors.ts";
 import { AppError, ValidationError } from "../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../utils/responses.ts";
+import { optionalAuth } from "../../../middleware/auth.ts";
 
 const SUPPORTED_LANGUAGES = new Set([
   "en",
@@ -51,14 +52,28 @@ export const handler: Handlers = {
       );
       const offset = Math.max(Number.parseInt(offsetParam ?? "0", 10) || 0, 0);
 
+      // Check if the requester is an authenticated admin
+      let user = null;
+      try {
+        user = await optionalAuth(req);
+      } catch (_error) {
+        // If auth fails, user remains null (treated as public user)
+      }
+      const isAdmin = user?.is_admin ?? false;
+
       let query = supabase
         .from("posts")
         .select(
           "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
         )
-        .eq("status", "published")
         .order("is_pinned", { ascending: false })
         .order("fecha", { ascending: false });
+
+      // PUBLIC users: only published posts
+      // ADMIN users: all posts (draft, scheduled, published)
+      if (!isAdmin) {
+        query = query.eq("status", "published");
+      }
 
       if (language) {
         query = query.eq("language", language);

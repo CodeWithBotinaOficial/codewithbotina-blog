@@ -3,6 +3,7 @@ import { supabase } from "../../../../lib/supabase.ts";
 import { corsHeaders } from "../../../../middleware/cors.ts";
 import { AppError, ValidationError } from "../../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../../utils/responses.ts";
+import { optionalAuth } from "../../../../middleware/auth.ts";
 
 const SUPPORTED_LANGUAGES = new Set([
   "en",
@@ -48,6 +49,7 @@ export const handler: Handlers = {
           fecha,
           language,
           is_pinned,
+          status,
           post_tags (
             tag:tags (
               id,
@@ -71,6 +73,20 @@ export const handler: Handlers = {
       }
 
       if (!data) {
+        throw new AppError("Post not found", 404);
+      }
+
+      // Check if the requester is an authenticated admin
+      let user = null;
+      try {
+        user = await optionalAuth(req);
+      } catch (_error) {
+        // If auth fails, user remains null (treated as public user)
+      }
+      const isAdmin = user?.is_admin ?? false;
+
+      // If post is not published AND viewer is not admin → 404
+      if (data.status !== "published" && !isAdmin) {
         throw new AppError("Post not found", 404);
       }
 
