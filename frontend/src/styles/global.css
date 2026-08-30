@@ -1570,7 +1570,9 @@
     padding-top: var(--header-height);
   }
 
-  header {
+  /* Only apply sticky positioning to the page-level header (direct child of body).
+     Do not apply to headers inside articles or other content areas. */
+  body > header {
     position: sticky;
     top: 0;
     z-index: 50;

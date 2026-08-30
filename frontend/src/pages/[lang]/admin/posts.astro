@@ -23,18 +23,17 @@ let postsError: string | null = null;
 
 try {
   const response = await fetch(
-    `${apiUrl}/api/posts?language=${encodeURIComponent(language)}&limit=100`,
+    `/api/admin/posts?language=${encodeURIComponent(language)}&limit=100`,
     {
       headers: {
         "Accept": "application/json",
       },
-      credentials: "include",
     }
   );
 
   if (response.ok) {
     const data = await response.json();
-    posts = Array.isArray(data?.data) ? data.data : Array.isArray(data?.posts) ? data.posts : [];
+    posts = data?.data?.posts ?? [];
   } else {
     postsError = "Failed to load posts";
   }

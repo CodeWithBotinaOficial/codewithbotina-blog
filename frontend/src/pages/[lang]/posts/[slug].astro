@@ -30,38 +30,67 @@ const apiUrl = getApiUrl().replace(/\/$/, "");
 let post: any = null;
 let postError: any = null;
 
-const joinedResult = await supabase
-  .from("posts")
-  .select(`
-    *,
-    post_tags (
-      tag:tags (
-        id,
-        name,
-        slug
-      )
-    )
-  `)
-  .eq("slug", slug)
-  .eq("language", language)
-  .eq("status", "published")
-  .single();
+// Try backend API first (has proper authorization for admins to access draft/scheduled posts)
+try {
+  const headers: Record<string, string> = {
+    "Accept": "application/json",
+  };
+  
+  // Forward authentication token from browser request to backend API
+  const accessToken = Astro.cookies.get("cwb_access")?.value;
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+  
+  const response = await fetch(
+    `${apiUrl}/api/posts/${encodeURIComponent(slug ?? "")}?language=${encodeURIComponent(language)}`,
+    {
+      headers,
+    },
+  );
+  if (response.ok) {
+    const payload = await response.json();
+    post = payload?.data ?? null;
+  }
+} catch (_error) {
+  // Fall back to Supabase if API fails
+}
 
-if (joinedResult.error) {
-  const fallback = await supabase
+// Fall back to Supabase direct query (for public users, filtered to published only)
+if (!post) {
+  const joinedResult = await supabase
     .from("posts")
-    .select("*")
+    .select(`
+      *,
+      post_tags (
+        tag:tags (
+          id,
+          name,
+          slug
+        )
+      )
+    `)
     .eq("slug", slug)
     .eq("language", language)
     .eq("status", "published")
     .single();
-  post = fallback.data;
-  postError = fallback.error;
-} else {
-  post = joinedResult.data;
+
+  if (joinedResult.error) {
+    const fallback = await supabase
+      .from("posts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("language", language)
+      .eq("status", "published")
+      .single();
+    post = fallback.data;
+    postError = fallback.error;
+  } else {
+    post = joinedResult.data;
+  }
 }
 
-if (postError || !post) {
+if (!post) {
   return Astro.redirect(`/${language}/404`);
 }
 

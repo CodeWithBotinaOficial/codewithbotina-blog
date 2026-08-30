@@ -24,6 +24,12 @@ const apiUrl = getApiUrl().replace(/\/$/, "");
 try {
   const response = await fetch(
     `${apiUrl}/api/posts/${encodeURIComponent(slug ?? "")}?language=${encodeURIComponent(language)}`,
+    {
+      headers: {
+        "Accept": "application/json",
+      },
+      credentials: "include",
+    },
   );
   if (response.ok) {
     const payload = await response.json();
@@ -110,7 +116,7 @@ const pageTitle = t(language, "editPost", "admin");
 </BaseLayout>
 
 <style>
-  :global(.container-responsive) {
+  section {
     display: flex;
     flex-direction: column;
     gap: 2rem;

@@ -87,7 +87,9 @@ export class PostService {
           if (!validation.valid) {
             return {
               success: false,
-              error: new ValidationError(validation.error || "Invalid scheduled date"),
+              error: new ValidationError(
+                validation.error || "Invalid scheduled date",
+              ),
             };
           }
           status = "scheduled";
@@ -806,7 +808,9 @@ export class PostService {
             if (!validation.valid) {
               return {
                 success: false,
-                error: new ValidationError(validation.error || "Invalid scheduled date"),
+                error: new ValidationError(
+                  validation.error || "Invalid scheduled date",
+                ),
               };
             }
             status = "scheduled";
@@ -1379,7 +1383,9 @@ export class PostService {
     }
 
     console.log(
-      `[publishScheduledPosts] Published ${slugs.length} posts: ${slugs.join(", ")}`,
+      `[publishScheduledPosts] Published ${slugs.length} posts: ${
+        slugs.join(", ")
+      }`,
     );
 
     return { published: slugs.length, slugs };
