@@ -343,6 +343,9 @@
      "title": "Programar Publicación del Artículo",
      "label": "Programar para (tu hora local)",
      "scheduledBadge": "Programado",
+     "scheduleSection": "Programar Publicación",
+     "scheduledFor": "Programado para",
+     "cancelSchedule": "Cancelar Programación",
      "placeholder": "Selecciona fecha y hora",
      "minLabel": "Más temprano:",
      "maxLabel": "Más tarde:",
@@ -356,7 +359,6 @@
      "errorPublished": "Los artículos publicados no pueden reprogramarse",
      "successScheduled": "Artículo programado correctamente",
      "successUnscheduled": "Programación del artículo cancelada",
-     "scheduledFor": "Programado para:",
      "cancelButton": "Cancelar",
      "confirmUnschedule": "¿Estás seguro de que deseas cancelar esta programación?"
    }

@@ -343,6 +343,9 @@
      "title": "Agendar Publicação do Post",
      "label": "Agendar para (seu horário local)",
      "scheduledBadge": "Agendado",
+     "scheduleSection": "Agendar Publicação",
+     "scheduledFor": "Agendado para",
+     "cancelSchedule": "Cancelar Agendamento",
      "placeholder": "Selecione data e hora",
      "minLabel": "Mais cedo:",
      "maxLabel": "Mais tarde:",
@@ -356,7 +359,6 @@
      "errorPublished": "Posts publicados não podem ser reagendados",
      "successScheduled": "Post agendado com sucesso",
      "successUnscheduled": "Agendamento do post cancelado",
-     "scheduledFor": "Agendado para:",
      "cancelButton": "Cancelar",
      "confirmUnschedule": "Tem certeza de que deseja cancelar este agendamento?"
    }

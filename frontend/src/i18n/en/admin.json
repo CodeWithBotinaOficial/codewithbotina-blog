@@ -343,6 +343,9 @@
      "title": "Schedule Post Publication",
      "label": "Schedule for (your local time)",
      "scheduledBadge": "Scheduled",
+     "scheduleSection": "Schedule Publication",
+     "scheduledFor": "Scheduled for",
+     "cancelSchedule": "Cancel Schedule",
      "placeholder": "Select date and time",
      "minLabel": "Earliest:",
      "maxLabel": "Latest:",
@@ -356,7 +359,6 @@
      "errorPublished": "Published posts cannot be rescheduled",
      "successScheduled": "Post scheduled successfully",
      "successUnscheduled": "Post schedule cancelled",
-     "scheduledFor": "Scheduled for:",
      "cancelButton": "Cancel",
      "confirmUnschedule": "Are you sure you want to cancel this schedule?"
    }

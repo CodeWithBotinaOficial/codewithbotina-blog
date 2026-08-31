@@ -61,6 +61,32 @@ export const handler: Handlers = {
       }
       const isAdmin = user?.is_admin ?? false;
 
+      let countQuery = supabase
+        .from("posts")
+        .select("id", { count: "exact", head: true });
+
+      if (language) {
+        countQuery = countQuery.eq("language", language);
+      }
+
+      // PUBLIC users: only published posts
+      // ADMIN users: all posts (draft, scheduled, published)
+      if (!isAdmin) {
+        countQuery = countQuery.eq("status", "published");
+      }
+
+      if (q) {
+        // Basic autocomplete search: title/slug substring match.
+        // Note: PostgREST "or" syntax. Supabase client escapes values.
+        countQuery = countQuery.or(`titulo.ilike.%${q}%,slug.ilike.%${q}%`);
+      }
+
+      const { count: total, error: countError } = await countQuery;
+      if (countError) {
+        console.error("Supabase count error:", countError);
+        throw new AppError("Failed to count posts", 500);
+      }
+
       let query = supabase
         .from("posts")
         .select(
@@ -70,15 +96,14 @@ export const handler: Handlers = {
         .order("scheduled_at", { ascending: false, nullsFirst: false })
         .order("fecha", { ascending: false });
 
-      // PUBLIC users: only published posts
-      // ADMIN users: all posts (draft, scheduled, published)
+      if (language) {
+        query = query.eq("language", language);
+      }
+
       if (!isAdmin) {
         query = query.eq("status", "published");
       }
 
-      if (language) {
-        query = query.eq("language", language);
-      }
       if (q) {
         // Basic autocomplete search: title/slug substring match.
         // Note: PostgREST "or" syntax. Supabase client escapes values.
@@ -99,7 +124,7 @@ export const handler: Handlers = {
       }));
 
       const response = successResponse(
-        { posts, limit, offset },
+        { posts, limit, offset, total: total ?? posts.length },
         "Posts fetched successfully",
         200,
       );
