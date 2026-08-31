@@ -110,8 +110,22 @@
     @apply w-12 h-12 rounded-full border border-[var(--color-border)] object-cover;
   }
 
-  .auth-avatar .admin-dot {
+    .auth-avatar .admin-dot {
     @apply absolute -bottom-1 -right-1 text-[10px] font-bold bg-[var(--color-accent-primary)] text-white rounded-full w-5 h-5 flex items-center justify-center;
+  }
+
+  .badge-scheduled {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.1875rem 0.625rem;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 9999px;
+    color: #78350f;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   .input-field {

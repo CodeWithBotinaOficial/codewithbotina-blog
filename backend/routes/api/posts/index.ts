@@ -67,6 +67,7 @@ export const handler: Handlers = {
           "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
         )
         .order("is_pinned", { ascending: false })
+        .order("scheduled_at", { ascending: false, nullsFirst: false })
         .order("fecha", { ascending: false });
 
       // PUBLIC users: only published posts

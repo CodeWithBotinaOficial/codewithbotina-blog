@@ -28,6 +28,7 @@ try {
       headers: {
         "Accept": "application/json",
       },
+      credentials: "include",
     }
   );
 
@@ -42,11 +43,15 @@ try {
   postsError = "Error loading posts";
 }
 
-// Sort posts by date (newest first)
+// Sort posts by date (newest first), with scheduled posts ordered by scheduled_at
 posts.sort((a, b) => {
-  const dateA = new Date(a.fecha || a.created_at || 0).getTime();
-  const dateB = new Date(b.fecha || b.created_at || 0).getTime();
-  return dateB - dateA;
+  const sortValueA = a.status === "scheduled" && a.scheduled_at
+    ? new Date(a.scheduled_at).getTime()
+    : new Date(a.fecha || a.created_at || 0).getTime();
+  const sortValueB = b.status === "scheduled" && b.scheduled_at
+    ? new Date(b.scheduled_at).getTime()
+    : new Date(b.fecha || b.created_at || 0).getTime();
+  return sortValueB - sortValueA;
 });
 ---
 

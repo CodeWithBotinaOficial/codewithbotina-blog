@@ -3,6 +3,7 @@ import { corsHeaders } from "../../../middleware/cors.ts";
 import { supabase } from "../../../lib/supabase.ts";
 import { AppError, ValidationError } from "../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../utils/responses.ts";
+import { optionalAuth } from "../../../middleware/auth.ts";
 
 const SUPPORTED_LANGUAGES = new Set([
   "en",
@@ -287,6 +288,7 @@ async function postIdsHavingAnyTag(tagIds: string[]): Promise<Set<string>> {
 
 type BaseFilterChain<T> = {
   in: (column: string, values: string[]) => T;
+  eq: (column: string, value: string) => T;
   gte: (column: string, value: string) => T;
   lte: (column: string, value: string) => T;
 };
@@ -298,6 +300,7 @@ function applyBasePostFilters<T extends BaseFilterChain<T>>(
     fromIso: string | null;
     toIso: string | null;
     allowedPostIds: string[] | null;
+    isAdmin?: boolean;
   },
 ): T {
   let q = query;
@@ -314,6 +317,10 @@ function applyBasePostFilters<T extends BaseFilterChain<T>>(
       q = q.in("id", opts.allowedPostIds);
     }
   }
+  // Non-admin users: only see published posts
+  if (!opts.isAdmin) {
+    q = q.eq("status", "published");
+  }
   return q;
 }
 
@@ -326,6 +333,7 @@ async function countMatchingPosts(
     titleIlike?: string;
     bodyIlike?: string;
     tagSearchPostIds?: string[] | null;
+    isAdmin?: boolean;
   },
 ): Promise<number> {
   let q = supabase.from("posts").select("id", { count: "exact", head: true });
@@ -334,6 +342,7 @@ async function countMatchingPosts(
     fromIso: opts.fromIso,
     toIso: opts.toIso,
     allowedPostIds: opts.tagSearchPostIds ?? opts.allowedPostIds,
+    isAdmin: opts.isAdmin,
   });
   if (opts.titleIlike) q = q.ilike("titulo", opts.titleIlike);
   if (opts.bodyIlike) q = q.ilike("body", opts.bodyIlike);
@@ -354,6 +363,7 @@ async function fetchAllMatchingPosts(
     titleIlike?: string;
     bodyIlike?: string;
     tagSearchPostIds?: string[] | null;
+    isAdmin?: boolean;
   },
 ): Promise<SearchResultPost[]> {
   // Fetch all matches in chunks because ordering by computed metrics requires global sort.
@@ -373,6 +383,7 @@ async function fetchAllMatchingPosts(
       fromIso: opts.fromIso,
       toIso: opts.toIso,
       allowedPostIds: opts.tagSearchPostIds ?? opts.allowedPostIds,
+      isAdmin: opts.isAdmin,
     });
     if (opts.titleIlike) q = q.ilike("titulo", opts.titleIlike);
     if (opts.bodyIlike) q = q.ilike("body", opts.bodyIlike);
@@ -482,6 +493,14 @@ export const handler: Handlers = {
     const headers = corsHeaders(origin);
     const url = new URL(req.url);
 
+    let user = null;
+    try {
+      user = await optionalAuth(req);
+    } catch (_error) {
+      // Ignore auth errors and treat as public user.
+    }
+    const isAdmin = user?.is_admin ?? false;
+
     const qRaw = (url.searchParams.get("q") ?? "").trim();
     const q = qRaw;
     const fromDate = parseDateParam(url.searchParams.get("from"), "from");
@@ -579,7 +598,17 @@ export const handler: Handlers = {
       // AND logic for selected tags.
       let allowedPostIds: string[] | null = null;
       if (selectedTagIds.length > 0) {
-        const ids = await postIdsHavingAllTags(selectedTagIds);
+        let ids = await postIdsHavingAllTags(selectedTagIds);
+        if (!isAdmin && ids.length > 0) {
+          const { data: publishedIds, error } = await supabase
+            .from("posts")
+            .select("id")
+            .eq("status", "published")
+            .in("id", ids);
+          if (!error && publishedIds) {
+            ids = publishedIds.map((p: { id: string }) => p.id);
+          }
+        }
         allowedPostIds = ids;
         if (ids.length === 0) {
           const response = successResponse(
@@ -640,6 +669,16 @@ export const handler: Handlers = {
           }
           const anyPosts = await postIdsHavingAnyTag(qTagIds);
           let ids = Array.from(anyPosts);
+          if (!isAdmin && ids.length > 0) {
+            const { data: publishedIds, error } = await supabase
+              .from("posts")
+              .select("id")
+              .eq("status", "published")
+              .in("id", ids);
+            if (!error && publishedIds) {
+              ids = publishedIds.map((p: { id: string }) => p.id);
+            }
+          }
           if (allowedPostIds) {
             const allowed = new Set(allowedPostIds);
             ids = ids.filter((id) => allowed.has(id));
@@ -668,6 +707,7 @@ export const handler: Handlers = {
             toIso,
             allowedPostIds,
             titleIlike: ilikeTerm,
+            isAdmin,
           });
           if (titleCount > 0) {
             phase = "title";
@@ -679,6 +719,7 @@ export const handler: Handlers = {
               toIso,
               allowedPostIds,
               bodyIlike: ilikeTerm,
+              isAdmin,
             });
             if (bodyCount > 0) {
               phase = "content";
@@ -688,6 +729,16 @@ export const handler: Handlers = {
               if (qTagIds.length > 0) {
                 const anyPosts = await postIdsHavingAnyTag(qTagIds);
                 let ids = Array.from(anyPosts);
+                if (!isAdmin && ids.length > 0) {
+                  const { data: publishedIds, error } = await supabase
+                    .from("posts")
+                    .select("id")
+                    .eq("status", "published")
+                    .in("id", ids);
+                  if (!error && publishedIds) {
+                    ids = publishedIds.map((p: { id: string }) => p.id);
+                  }
+                }
                 if (allowedPostIds) {
                   const allowed = new Set(allowedPostIds);
                   ids = ids.filter((id) => allowed.has(id));
@@ -716,6 +767,7 @@ export const handler: Handlers = {
             fromIso,
             toIso,
             allowedPostIds,
+            isAdmin,
           });
         } else if (scope === "title_content") {
           const titleMatches = await fetchAllMatchingPosts({
@@ -724,6 +776,7 @@ export const handler: Handlers = {
             toIso,
             allowedPostIds,
             titleIlike: ilikeTerm,
+            isAdmin,
           });
           const bodyMatches = await fetchAllMatchingPosts({
             languages,
@@ -731,6 +784,7 @@ export const handler: Handlers = {
             toIso,
             allowedPostIds,
             bodyIlike: ilikeTerm,
+            isAdmin,
           });
           const byId = new Map<string, SearchResultPost>();
           for (const p of [...titleMatches, ...bodyMatches]) byId.set(p.id, p);
@@ -742,6 +796,7 @@ export const handler: Handlers = {
             toIso,
             allowedPostIds,
             tagSearchPostIds,
+            isAdmin,
           });
         } else {
           posts = await fetchAllMatchingPosts({
@@ -751,6 +806,7 @@ export const handler: Handlers = {
             allowedPostIds,
             titleIlike,
             bodyIlike,
+            isAdmin,
           });
         }
 
@@ -819,6 +875,7 @@ export const handler: Handlers = {
             toIso,
             allowedPostIds,
             titleIlike: ilikeTerm,
+            isAdmin,
           }),
           fetchAllMatchingPosts({
             languages,
@@ -826,6 +883,7 @@ export const handler: Handlers = {
             toIso,
             allowedPostIds,
             bodyIlike: ilikeTerm,
+            isAdmin,
           }),
         ]);
         const byId = new Map<string, SearchResultPost>();
@@ -869,6 +927,7 @@ export const handler: Handlers = {
         titleIlike,
         bodyIlike,
         tagSearchPostIds,
+        isAdmin,
       });
 
       if (total === 0) {
@@ -899,6 +958,7 @@ export const handler: Handlers = {
         fromIso,
         toIso,
         allowedPostIds: tagSearchPostIds ?? allowedPostIds,
+        isAdmin,
       });
       if (titleIlike) query = query.ilike("titulo", titleIlike);
       if (bodyIlike) query = query.ilike("body", bodyIlike);

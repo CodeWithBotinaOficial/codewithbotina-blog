@@ -24,6 +24,7 @@ Deno.test("Integration: GET /api/posts/:slug returns post with tags", async () =
           imagen_url: null,
           fecha: new Date().toISOString(),
           updated_at: null,
+          status: "published",
           language: "es",
           post_tags: [
             {

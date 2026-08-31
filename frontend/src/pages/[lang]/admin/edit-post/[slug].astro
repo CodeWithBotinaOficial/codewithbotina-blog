@@ -89,7 +89,7 @@ const tags = Array.isArray(post?.tags)
       .map((item: { tag?: { id: string; name: string; slug: string; usage_count?: number } }) => item.tag)
       .filter(Boolean))
   : [];
-const initialData = { ...post, tags, language: post.language ?? language };
+const initialData = { ...post, scheduled_at: post.scheduled_at ?? null, tags, language: post.language ?? language };
 const tagLabels = getTagSelectorLabels(language);
 const pageTitle = t(language, "editPost", "admin");
 ---

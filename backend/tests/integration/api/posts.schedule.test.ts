@@ -49,15 +49,18 @@ Deno.test("Integration: schedulePost accepts a valid future scheduled_at and upd
 
 Deno.test("Integration: publishScheduledPosts marks posts due at or before now as published", async () => {
   const queryChain = {
-    update: () => ({
+    select: () => ({
       eq: () => ({
-        lte: () => ({
-          select: () =>
-            Promise.resolve({
-              data: [{ slug: "hello" }],
-              error: null,
-            }),
-        }),
+        lte: () =>
+          Promise.resolve({
+            data: [{ id: "post-1", slug: "hello" }],
+            error: null,
+          }),
+      }),
+    }),
+    update: () => ({
+      in: () => ({
+        select: () => Promise.resolve({ error: null }),
       }),
     }),
   };

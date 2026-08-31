@@ -47,6 +47,7 @@ export const handler: Handlers = {
           body,
           imagen_url,
           fecha,
+          scheduled_at,
           language,
           is_pinned,
           status,
@@ -103,6 +104,8 @@ export const handler: Handlers = {
         body: data.body,
         imagen_url: data.imagen_url,
         fecha: data.fecha,
+        scheduled_at: (data as { scheduled_at?: string | null }).scheduled_at ??
+          null,
         updated_at: (data as { updated_at?: string | null }).updated_at ??
           data.fecha ?? null,
         language: data.language,

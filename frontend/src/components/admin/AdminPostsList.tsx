@@ -27,6 +27,26 @@ interface CountdownState {
 
 const ADMIN_API = getAdminRoute("");
 
+function ScheduledBadge({ scheduledAt }: { scheduledAt: string }) {
+  const date = new Date(scheduledAt);
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffH = Math.floor(diffMs / 3600000);
+  const diffD = Math.floor(diffH / 24);
+
+  const countdown = diffMs <= 0
+    ? "publishing soon"
+    : diffD >= 1 ? `in ${diffD}d`
+    : diffH >= 1 ? `in ${diffH}h`
+    : `in ${Math.max(1, Math.floor(diffMs / 60000))}m`;
+
+  return (
+    <span class="badge-scheduled" title={date.toLocaleString()}>
+      🕐 Scheduled · {countdown}
+    </span>
+  );
+}
+
 function getCountdownValue(post: Post, now = new Date()): string | null {
   if (post.status !== "scheduled" || !post.scheduled_at) return null;
 
@@ -214,7 +234,12 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
                   /{currentLanguage}/{post.slug}
                 </p>
               </div>
-              {getStatusBadge(post)}
+              <div class="flex flex-col items-end gap-2">
+                {post.status === "scheduled" && post.scheduled_at && (
+                  <ScheduledBadge scheduledAt={post.scheduled_at} />
+                )}
+                {getStatusBadge(post)}
+              </div>
             </div>
 
             {/* Dates */}

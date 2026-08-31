@@ -238,6 +238,10 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
   const markdownLabels = useMemo(() => getMarkdownFeatureLabels(uiLanguage), [uiLanguage]);
 
   useEffect(() => {
+    setScheduledAt(initialData?.scheduled_at ? utcIsoToLocalDatetime(initialData.scheduled_at) : null);
+  }, [initialData?.scheduled_at]);
+
+  useEffect(() => {
     if (sessionLoading) return;
     if (!isAuthenticated) return;
     if (isAdmin) return;
