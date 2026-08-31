@@ -133,7 +133,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const [translationLanguages, setTranslationLanguages] = useState<LanguageCode[]>([]);
   const [useSharedTags, setUseSharedTags] = useState(false);
   const [sharedTags, setSharedTags] = useState<TagOption[]>([]);
-  const [scheduledAt, setScheduledAt] = useState<string | null>(initialData?.scheduled_at ?? null);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(
+    initialData?.scheduled_at ? utcIsoToLocalDatetime(initialData.scheduled_at) : null,
+  );
 
   const [pinMode, setPinMode] = useState<"all" | "selected">(() => (mode === "edit" ? "selected" : "all"));
   const [pinAll, setPinAll] = useState<boolean>(Boolean((initialData as any)?.is_pinned ?? false));
@@ -1093,7 +1095,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           <input
             id="scheduled-post-datetime"
             type="datetime-local"
-            value={scheduledAt ?? ""}
+            value={scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : ""}
             onChange={(e) => setScheduledAt((e.currentTarget as HTMLInputElement).value || null)}
             class="input-field pointer-events-auto"
             min={utcIsoToLocalDatetime(new Date(Date.now() + 60 * 1000).toISOString())}

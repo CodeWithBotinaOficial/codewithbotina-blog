@@ -1,7 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render } from "preact";
 import AdminPostsList from "../../../src/components/admin/AdminPostsList";
-import { utcToLocalInputValue, localDatetimeToUtcIso } from "../../../src/lib/scheduled-post-datetime";
+import MultiLanguagePostEditor from "../../../src/components/admin/MultiLanguagePostEditor";
+import { utcToLocalInputValue, localDatetimeToUtcIso, utcIsoToLocalDatetime } from "../../../src/lib/scheduled-post-datetime";
+
+vi.mock("../../../src/hooks/useSession", () => ({
+  useSession: () => ({
+    loading: false,
+    isAuthenticated: true,
+    isAdmin: true,
+  }),
+}));
 
 describe("AdminPostsList countdown behavior", () => {
   beforeEach(() => {
@@ -111,5 +120,33 @@ describe("timezone-aware formatting", () => {
     expect(value).not.toContain("+");
     expect(value).not.toContain("Z");
     expect(localDatetimeToUtcIso(value)).toBe(new Date(iso).toISOString());
+  });
+
+  it("uses the local datetime value when hydrating the scheduled input", () => {
+    const iso = "2026-09-01T13:00:00+00:00";
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    render(
+      <MultiLanguagePostEditor
+        mode="edit"
+        uiLanguage="en"
+        initialData={{
+          id: "post-3",
+          language: "en",
+          titulo: "Test title",
+          slug: "test-title",
+          body: "This is enough content for the post body.",
+          scheduled_at: iso,
+        }}
+      />,
+      container,
+    );
+
+    const input = container.querySelector("#scheduled-post-datetime") as HTMLInputElement | null;
+    expect(input).not.toBeNull();
+    expect(input?.value).toBe(utcIsoToLocalDatetime(iso));
+    expect(input?.value).not.toContain("+");
+    expect(input?.value).not.toContain("Z");
   });
 });

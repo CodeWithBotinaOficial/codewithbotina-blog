@@ -322,11 +322,16 @@ const markdownLabels = getMarkdownFeatureLabels(language);
       />
     </div>
     <header class="mb-12 text-center">
-      {isPinned ? (
-        <div class="mb-6 flex justify-center">
+      <div class="mb-6 flex flex-wrap justify-center gap-3">
+        {isPinned ? (
           <FeaturedPostBanner language={language} />
-        </div>
-      ) : null}
+        ) : null}
+        {currentPost.status === "scheduled" && currentPost.scheduled_at && (
+          <span class="badge-scheduled">
+            🕐 {t(language, "scheduling.scheduledBadge", "admin")} • {new Date(currentPost.scheduled_at).toLocaleString(locale)}
+          </span>
+        )}
+      </div>
 
       <div class="flex items-center justify-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-6">
         <span class="flex items-center gap-1">

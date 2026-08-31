@@ -1204,7 +1204,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
           <input
             id="post-scheduled-at"
             type="datetime-local"
-            value={scheduledAt ?? ""}
+            value={scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : ""}
             onChange={(event) => setScheduledAt((event.currentTarget as HTMLInputElement).value || null)}
             class="input-field pointer-events-auto"
             min={utcIsoToLocalDatetime(new Date(Date.now() + 60 * 1000).toISOString())}

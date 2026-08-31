@@ -8,9 +8,10 @@ import PinnedBadge from "./PinnedBadge";
 interface Props {
   post: Post;
   language: SupportedLanguage;
+  isAdmin?: boolean;
 }
 
-const { post, language } = Astro.props;
+const { post, language, isAdmin = false } = Astro.props;
 const readTime = calculateReadTime(post.body);
 const plainExcerpt = stripMarkdown(post.excerpt || post.body);
 const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
@@ -40,11 +41,14 @@ const isPinned = Boolean(post.is_pinned);
     )}
 
     <div class="p-6 flex flex-col flex-1">
-      {isPinned ? (
-        <div class="mb-3">
-          <PinnedBadge language={language} />
-        </div>
-      ) : null}
+      <div class="mb-3 flex flex-wrap items-center gap-2">
+        {isPinned ? <PinnedBadge language={language} /> : null}
+        {isAdmin && post.status === "scheduled" && (
+          <span class="badge-scheduled">
+            🕐 {t(language, "scheduling.scheduledBadge", "admin")}
+          </span>
+        )}
+      </div>
 
       <div class="flex items-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-3">
         <span class="flex items-center gap-1">

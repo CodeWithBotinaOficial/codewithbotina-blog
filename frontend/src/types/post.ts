@@ -11,6 +11,8 @@ export interface Post {
   excerpt?: string;
   language?: Language;
   is_pinned?: boolean;
+  status?: "draft" | "scheduled" | "published";
+  scheduled_at?: string | null;
 }
 
 export interface PostTranslations {
