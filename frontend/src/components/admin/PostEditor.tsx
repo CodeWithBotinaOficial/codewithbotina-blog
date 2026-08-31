@@ -14,6 +14,7 @@ import Toast from "../ui/Toast";
 import { useToast } from "../../hooks/useToast";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "../../lib/i18n";
 import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
+import { localDatetimeToUtcIso, utcIsoToLocalDatetime } from "../../lib/scheduled-post-datetime";
 import type { TagOption } from "./TagSelector";
 import type { PostEditorLabels, TagSelectorLabels } from "../../lib/admin-editor";
 
@@ -150,37 +151,6 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     return Object.entries(data).reduce((acc, [key, value]) => {
       return acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, "g"), String(value));
     }, template);
-  };
-
-  // Convert UTC ISO string to datetime-local format
-  const utcIsoToLocalDatetime = (utcIsoString: string | null): string => {
-    if (!utcIsoString) return "";
-    const date = new Date(utcIsoString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
-  // Convert datetime-local format to UTC ISO string
-  const localDatetimeToUtcIso = (localDatetimeValue: string): string => {
-    if (!localDatetimeValue) return "";
-    const parts = localDatetimeValue.split("T");
-    if (parts.length !== 2) return "";
-    const [year, month, day] = parts[0].split("-");
-    const [hours, minutes] = parts[1].split(":");
-    const localDate = new Date(
-      parseInt(year),
-      parseInt(month) - 1,
-      parseInt(day),
-      parseInt(hours),
-      parseInt(minutes),
-      0,
-      0
-    );
-    return localDate.toISOString();
   };
 
   const { loading: sessionLoading, isAuthenticated, isAdmin } = useSession();
@@ -1237,8 +1207,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
             value={scheduledAt ?? ""}
             onChange={(event) => setScheduledAt((event.currentTarget as HTMLInputElement).value || null)}
             class="input-field pointer-events-auto"
-            min={new Date(Date.now() + 60 * 1000).toISOString().slice(0, 16)}
-            max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
+            min={utcIsoToLocalDatetime(new Date(Date.now() + 60 * 1000).toISOString())}
+            max={utcIsoToLocalDatetime(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString())}
             disabled={isSubmitting}
           />
         </div>

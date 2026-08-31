@@ -6,6 +6,7 @@ import { getAdminRoute } from "../../lib/admin-endpoints";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { t, type SupportedLanguage, LANGUAGE_NAMES, SUPPORTED_LANGUAGES as UI_LANGS } from "../../lib/i18n";
 import { getMarkdownFeatureLabels } from "../../lib/markdown-labels";
+import { utcIsoToLocalDatetime } from "../../lib/scheduled-post-datetime";
 import { pickLinkedPostImageUrl } from "../../lib/admin-linked-image";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
@@ -1095,8 +1096,8 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             value={scheduledAt ?? ""}
             onChange={(e) => setScheduledAt((e.currentTarget as HTMLInputElement).value || null)}
             class="input-field pointer-events-auto"
-            min={new Date(Date.now() + 60 * 1000).toISOString().slice(0, 16)}
-            max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)}
+            min={utcIsoToLocalDatetime(new Date(Date.now() + 60 * 1000).toISOString())}
+            max={utcIsoToLocalDatetime(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString())}
             disabled={isSubmitting}
           />
         </div>

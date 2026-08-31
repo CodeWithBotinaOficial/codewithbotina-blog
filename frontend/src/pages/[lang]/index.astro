@@ -34,6 +34,7 @@ const requestedPerPage = parsePerPage(Astro.url.searchParams.get("per_page"));
 const perPage = (requestedPerPage ?? DEFAULT_PER_PAGE) as AllowedPerPage;
 const requestedPageRaw = parsePage(Astro.url.searchParams.get("page"));
 const requestedPage = requestedPageRaw ?? 1;
+const cookieHeader = Astro.request.headers.get("cookie") ?? "";
 
 const invalidPerPageProvided = Astro.url.searchParams.has("per_page") && !requestedPerPage;
 const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageRaw === null;
@@ -75,7 +76,12 @@ if (hasOtherParams) {
   url.searchParams.set("offset", String(offset));
 
   try {
-    const res = await fetch(url.toString());
+    const res = await fetch(url.toString(), {
+      headers: {
+        Cookie: cookieHeader,
+        "Content-Type": "application/json",
+      },
+    });
     if (!res.ok) {
       error = new Error("Failed to fetch search results");
     } else {
@@ -89,27 +95,48 @@ if (hasOtherParams) {
     error = e;
   }
 } else {
-  const { count: totalPostsCount, error: countErr } = await supabase
-    .from("posts")
-    .select("id", { count: "exact", head: true })
-    .eq("language", language)
-    .eq("status", "published");
+  try {
+    const backendUrl = `${apiUrl}/api/posts?language=${encodeURIComponent(language)}&limit=${perPage}&offset=${offsetFor(requestedPage, perPage)}`;
+    const backendResponse = await fetch(backendUrl, {
+      headers: {
+        Cookie: cookieHeader,
+        "Content-Type": "application/json",
+      },
+    });
 
-  countError = countErr;
-  totalPosts = totalPostsCount ?? 0;
+    if (backendResponse.ok) {
+      const payload = await backendResponse.json();
+      const data = payload?.data ?? payload;
+      const posts = (data?.posts ?? []) as Post[];
+      totalPosts = (data?.total ?? posts.length) as number;
+      allPosts = posts;
+      error = null;
+    } else {
+      throw new Error("Failed to fetch posts from backend");
+    }
+  } catch (_backendError) {
+    const { count: totalPostsCount, error: countErr } = await supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("language", language)
+      .eq("status", "published");
 
-  const offset = offsetFor(requestedPage, perPage);
-  const { data: posts, error: postsErr } = await supabase
-    .from("posts")
-    .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status")
-    .eq("language", language)
-    .eq("status", "published")
-    .order("is_pinned", { ascending: false })
-    .order("fecha", { ascending: false })
-    .range(offset, offset + perPage - 1);
+    countError = countErr;
+    totalPosts = totalPostsCount ?? 0;
 
-  error = postsErr;
-  allPosts = (posts || []) as Post[];
+    const offset = offsetFor(requestedPage, perPage);
+    const { data: posts, error: postsErr } = await supabase
+      .from("posts")
+      .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status")
+      .eq("language", language)
+      .eq("status", "published")
+      .order("is_pinned", { ascending: false })
+      .order("fecha", { ascending: false })
+      .range(offset, offset + perPage - 1);
+
+    error = postsErr;
+    allPosts = (posts || []) as Post[];
+  }
 }
 
 const totalPages = totalPagesFor(totalPosts, perPage);
