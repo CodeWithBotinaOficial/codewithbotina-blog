@@ -331,6 +331,11 @@ const markdownLabels = getMarkdownFeatureLabels(language);
             🕐 {t(language, "scheduling.scheduledBadge", "admin")} • {new Date(currentPost.scheduled_at).toLocaleString(locale)}
           </span>
         )}
+        {currentPost.status === "draft" && (
+          <span class="badge-draft">
+            📝 {t(language, "scheduling.draftBadge", "admin")}
+          </span>
+        )}
       </div>
 
       <div class="flex items-center justify-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-6">

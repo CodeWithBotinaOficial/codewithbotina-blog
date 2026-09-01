@@ -20,6 +20,13 @@
   "postCreated": "Post created successfully!",
   "postUpdated": "Post updated successfully!",
   "postDeleted": "Post deleted successfully!",
+  "scheduling": {
+    "scheduledBadge": "Scheduled",
+    "draftBadge": "Draft",
+    "scheduledFor": "Scheduled for",
+    "cancelSchedule": "Cancel Schedule",
+    "scheduleSection": "Schedule Publication"
+  },
   "editor": {
     "accessChecking": "Checking admin access...",
     "titleLabel": "Title",

@@ -40,6 +40,13 @@
     "redirecting": "Redirecionando para a pagina inicial em {{seconds}} segundos...",
     "adminOnly": "Apenas admin"
   },
+  "scheduling": {
+    "scheduledBadge": "Agendado",
+    "draftBadge": "Rascunho",
+    "scheduledFor": "Agendado para",
+    "cancelSchedule": "Cancelar Agendamento",
+    "scheduleSection": "Agendar Publicação"
+  },
   "editor": {
     "accessChecking": "Verificando acesso de admin...",
     "titleLabel": "Titulo",

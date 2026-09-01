@@ -618,6 +618,8 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       }
 
       if (mode === "create") {
+        const hasSchedule = Boolean(scheduledAt && scheduledAt.trim() !== "");
+        const nextScheduledAt = hasSchedule && scheduledAt ? localDateTimeToIso(scheduledAt) : null;
         const posts = activeLanguages.map((lang) => ({
           titulo: sections[lang].titulo.trim(),
           slug: sections[lang].slug.trim(),
@@ -625,10 +627,8 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           imagen_url: finalImageUrlByLanguage[lang],
           language: lang,
           tag_ids: getTagIdsForLanguage(lang),
-          ...(lang === primaryLanguage && scheduledAt ? {
-            scheduled_at: localDateTimeToIso(scheduledAt),
-            status: "scheduled",
-          } : {}),
+          scheduled_at: nextScheduledAt,
+          status: nextScheduledAt ? "scheduled" : "published",
         }));
 
         const res = await fetch(`${ADMIN_API}/posts/create`, {

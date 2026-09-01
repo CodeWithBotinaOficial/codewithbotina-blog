@@ -717,20 +717,18 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         ? "/posts/create"
         : `/posts/${initialSlug}/update`;
 
+      const hasSchedule = Boolean(scheduledAt && scheduledAt.trim() !== "");
+      const nextScheduledAt = hasSchedule && scheduledAt ? localDatetimeToUtcIso(scheduledAt) : null;
       const payload: Record<string, unknown> = {
         titulo: trimmedTitle,
         slug: trimmedSlug,
         body: trimmedBody,
         imagen_url: finalImageUrl || null,
         language,
+        scheduled_at: nextScheduledAt,
+        status: nextScheduledAt ? "scheduled" : "published",
         ...(mode === "create" || tagsChanged ? { tag_ids: tags.map((tag) => tag.id) } : {}),
       };
-
-      // Add scheduling info if scheduled_at is set
-      if (scheduledAt) {
-        payload.scheduled_at = localDatetimeToUtcIso(scheduledAt);
-        payload.status = 'scheduled';
-      }
 
       const response = await fetch(`${ADMIN_API}${endpoint}`, {
         method: mode === "create" ? "POST" : "PUT",

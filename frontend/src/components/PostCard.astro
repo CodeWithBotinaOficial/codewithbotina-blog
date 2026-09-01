@@ -48,6 +48,11 @@ const isPinned = Boolean(post.is_pinned);
             🕐 {t(language, "scheduling.scheduledBadge", "admin")}
           </span>
         )}
+        {isAdmin && post.status === "draft" && (
+          <span class="badge-draft">
+            📝 {t(language, "scheduling.draftBadge", "admin")}
+          </span>
+        )}
       </div>
 
       <div class="flex items-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-3">

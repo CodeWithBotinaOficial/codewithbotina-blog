@@ -51,6 +51,26 @@ export const handler: Handlers = {
         return response;
       }
 
+      const scheduledAt = Array.isArray(body?.posts)
+        ? body.posts[0]?.scheduled_at ?? null
+        : body?.scheduled_at ?? null;
+      const status = body?.status ?? (scheduledAt ? "scheduled" : "published");
+      body = Array.isArray(body?.posts)
+        ? {
+          ...body,
+          posts: body.posts.map((post: Record<string, unknown>) => ({
+            ...post,
+            scheduled_at: post.scheduled_at ?? null,
+            status: post.status ??
+              (post.scheduled_at ? "scheduled" : "published"),
+          })),
+        }
+        : {
+          ...body,
+          scheduled_at: scheduledAt,
+          status,
+        };
+
       console.log("Create post request received", {
         titulo: body?.titulo,
         slug: body?.slug,

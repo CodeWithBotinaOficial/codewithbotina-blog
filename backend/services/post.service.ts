@@ -77,11 +77,11 @@ export class PostService {
       }
 
       // Handle scheduled_at and status
-      let status: PostStatus = "draft";
-      let scheduledAt: string | null = null;
+      let status: PostStatus = data.status ?? "published";
+      let scheduledAt: string | null = data.scheduled_at ?? null;
 
-      if (data.scheduled_at) {
-        const scheduledAtStr = String(data.scheduled_at).trim();
+      if (scheduledAt !== null && scheduledAt !== undefined) {
+        const scheduledAtStr = String(scheduledAt).trim();
         if (scheduledAtStr) {
           const validation = validateScheduledAt(scheduledAtStr);
           if (!validation.valid) {
@@ -94,7 +94,14 @@ export class PostService {
           }
           status = "scheduled";
           scheduledAt = scheduledAtStr;
+        } else {
+          scheduledAt = null;
+          status = data.status ?? "published";
         }
+      }
+
+      if (!scheduledAt && !data.status) {
+        status = "published";
       }
 
       const { data: created, error } = await supabase
@@ -159,6 +166,23 @@ export class PostService {
         };
       }
 
+      for (const post of posts) {
+        if (post.scheduled_at) {
+          const scheduledAtStr = String(post.scheduled_at).trim();
+          if (scheduledAtStr) {
+            const validation = validateScheduledAt(scheduledAtStr);
+            if (!validation.valid) {
+              return {
+                success: false,
+                error: new ValidationError(
+                  validation.error || "Invalid scheduled date",
+                ),
+              };
+            }
+          }
+        }
+      }
+
       const sanitizedPosts = posts.map((post) => {
         const fallbackLanguage = this.normalizeLanguage(post.language) ?? "es";
         return this.validateAndSanitize(post, fallbackLanguage);
@@ -205,21 +229,40 @@ export class PostService {
       }
 
       const now = new Date().toISOString();
-      const insertRows = sanitizedPosts.map((post) => ({
-        titulo: post.titulo,
-        slug: post.slug,
-        body: post.body,
-        imagen_url: post.imagen_url ?? null,
-        fecha: now,
-        language: post.language,
-        is_pinned: post.is_pinned,
-      }));
+      const insertRows = sanitizedPosts.map((post) => {
+        const source = posts.find((candidate) =>
+          candidate.language === post.language && candidate.slug === post.slug
+        ) as PostCreate | undefined ?? {
+          scheduled_at: null,
+          status: undefined,
+        } as PostCreate;
+        const hasSchedule = Boolean(
+          source.scheduled_at && String(source.scheduled_at).trim() !== "",
+        );
+        const computedStatus: PostStatus = source.status ??
+          (hasSchedule ? "scheduled" : "published");
+        const scheduledAt = hasSchedule
+          ? String(source.scheduled_at).trim()
+          : null;
+
+        return {
+          titulo: post.titulo,
+          slug: post.slug,
+          body: post.body,
+          imagen_url: post.imagen_url ?? null,
+          fecha: now,
+          language: post.language,
+          is_pinned: post.is_pinned,
+          status: computedStatus,
+          scheduled_at: scheduledAt,
+        };
+      });
 
       const { data: createdRows, error } = await supabase
         .from("posts")
         .insert(insertRows as unknown as Record<string, unknown>[])
         .select(
-          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
         );
 
       if (error || !createdRows || createdRows.length !== insertRows.length) {

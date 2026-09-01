@@ -56,7 +56,8 @@ Deno.test("Integration: GET /api/posts returns total count for pagination", asyn
     select: () => countQueryBuilder,
     eq: () => countQueryBuilder,
     or: () => countQueryBuilder,
-    then: (resolve: (value: { count: number; error: null }) => void) => resolve({ count: 42, error: null }),
+    then: (resolve: (value: { count: number; error: null }) => void) =>
+      resolve({ count: 42, error: null }),
   };
 
   const dataQueryBuilder = {
@@ -89,10 +90,13 @@ Deno.test("Integration: GET /api/posts returns total count for pagination", asyn
     return callCount === 1 ? countQueryBuilder : dataQueryBuilder;
   });
 
-  const req = new Request("http://localhost/api/posts?language=es&limit=10&offset=0", {
-    method: "GET",
-    headers: { "Origin": "http://localhost:8000" },
-  });
+  const req = new Request(
+    "http://localhost/api/posts?language=es&limit=10&offset=0",
+    {
+      method: "GET",
+      headers: { "Origin": "http://localhost:8000" },
+    },
+  );
 
   const res = await handler.GET!(req, {} as unknown as FreshContext);
   const body = await res.json();

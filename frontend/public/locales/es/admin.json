@@ -20,6 +20,13 @@
   "postCreated": "¡Publicación creada exitosamente!",
   "postUpdated": "¡Publicación actualizada exitosamente!",
   "postDeleted": "¡Publicación eliminada exitosamente!",
+  "scheduling": {
+    "scheduledBadge": "Programado",
+    "draftBadge": "Borrador",
+    "scheduledFor": "Programado para",
+    "cancelSchedule": "Cancelar Programación",
+    "scheduleSection": "Programar Publicación"
+  },
   "editor": {
     "accessChecking": "Verificando acceso de administrador...",
     "titleLabel": "Título",

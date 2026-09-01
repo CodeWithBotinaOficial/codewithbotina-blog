@@ -42,6 +42,24 @@ const invalidPageProvided = Astro.url.searchParams.has("page") && requestedPageR
 const paginationKeys = new Set(["page", "per_page"]);
 const hasOtherParams = Array.from(Astro.url.searchParams.keys()).some((key) => !paginationKeys.has(key));
 const apiUrl = getApiUrl().replace(/\/$/, "");
+const accessToken = Astro.cookies.get("cwb_access")?.value;
+let isAdmin = false;
+
+if (accessToken) {
+  try {
+    const meResponse = await fetch(`${apiUrl}/api/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (meResponse.ok) {
+      const mePayload = await meResponse.json();
+      isAdmin = Boolean(mePayload?.user?.is_admin);
+    }
+  } catch (_error) {
+    isAdmin = false;
+  }
+}
 
 const initialFilters = filtersFromUrl(Astro.url.searchParams, language);
 
@@ -270,7 +288,7 @@ const paginationLabels = {
 
                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {allPosts.map((post) => (
-                      <PostCard post={post} language={language} />
+                      <PostCard post={post} language={language} isAdmin={isAdmin} />
                     ))}
                   </div>
 
