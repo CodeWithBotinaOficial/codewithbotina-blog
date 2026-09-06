@@ -111,7 +111,7 @@ export class PostService {
           slug: sanitized.slug,
           body: sanitized.body,
           imagen_url: sanitized.imagen_url ?? null,
-          fecha: new Date().toISOString(),
+          fecha: scheduledAt ?? new Date().toISOString(),
           language: sanitized.language,
           is_pinned: sanitized.is_pinned,
           status,
@@ -239,8 +239,9 @@ export class PostService {
         const hasSchedule = Boolean(
           source.scheduled_at && String(source.scheduled_at).trim() !== "",
         );
-        const computedStatus: PostStatus = source.status ??
-          (hasSchedule ? "scheduled" : "published");
+        const computedStatus: PostStatus = hasSchedule
+          ? "scheduled"
+          : source.status ?? "published";
         const scheduledAt = hasSchedule
           ? String(source.scheduled_at).trim()
           : null;
@@ -250,7 +251,7 @@ export class PostService {
           slug: post.slug,
           body: post.body,
           imagen_url: post.imagen_url ?? null,
-          fecha: now,
+          fecha: scheduledAt ?? now,
           language: post.language,
           is_pinned: post.is_pinned,
           status: computedStatus,

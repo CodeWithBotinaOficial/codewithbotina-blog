@@ -104,6 +104,7 @@ export const handler: Handlers = {
         body: data.body,
         imagen_url: data.imagen_url,
         fecha: data.fecha,
+        status: (data as { status?: string }).status,
         scheduled_at: (data as { scheduled_at?: string | null }).scheduled_at ??
           null,
         updated_at: (data as { updated_at?: string | null }).updated_at ??
