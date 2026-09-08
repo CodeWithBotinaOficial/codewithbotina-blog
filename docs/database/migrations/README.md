@@ -75,6 +75,7 @@ Each backup directory contains exactly 2 files:
 | Date | Directory | Description |
 |------|-----------|-------------|
 | 09-08-2026 | `09-08-2026/` | Initial full backup. Includes all tables: users, posts, comments, tags, post_reactions, poll_votes, polls, poll_options, auth_sessions, cookie_consents. Includes unified reactions, unified comments across translations (translation_group_id), poll translation linking, and all RLS policies. |
+| 08-09-2026 | `08-09-2026/` | Fixed RLS policies for public post reading, added `scheduled_at` column, and updated status constraint for scheduled posts. |
 
 ---
 
