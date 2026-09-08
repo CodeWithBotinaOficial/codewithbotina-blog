@@ -28,7 +28,6 @@ Deno.test("Integration: schedulePost accepts a valid future scheduled_at and upd
                 slug: "hello",
                 status: "scheduled",
                 scheduled_at: future,
-                updated_at: new Date().toISOString(),
               },
               error: null,
             }),
@@ -48,6 +47,7 @@ Deno.test("Integration: schedulePost accepts a valid future scheduled_at and upd
 });
 
 Deno.test("Integration: publishScheduledPosts marks posts due at or before now as published", async () => {
+  let updatePayload: Record<string, unknown> | null = null;
   const queryChain = {
     select: () => ({
       eq: () => ({
@@ -58,11 +58,14 @@ Deno.test("Integration: publishScheduledPosts marks posts due at or before now a
           }),
       }),
     }),
-    update: () => ({
+    update: (payload: Record<string, unknown>) => {
+      updatePayload = payload;
+      return {
       in: () => ({
         select: () => Promise.resolve({ error: null }),
       }),
-    }),
+      };
+    },
   };
 
   stub(supabase, "from", () => queryChain);
@@ -71,6 +74,31 @@ Deno.test("Integration: publishScheduledPosts marks posts due at or before now a
 
   assertEquals(result.published, 1);
   assertEquals(result.slugs, ["hello"]);
+  assertEquals(updatePayload, { status: "published" });
+
+  restore();
+});
+
+Deno.test("Integration: publishScheduledPosts returns zero when no posts are due", async () => {
+  let updateCalled = false;
+  const queryChain = {
+    select: () => ({
+      eq: () => ({
+        lte: () => Promise.resolve({ data: [], error: null }),
+      }),
+    }),
+    update: () => {
+      updateCalled = true;
+      return {};
+    },
+  };
+
+  stub(supabase, "from", () => queryChain);
+
+  const result = await service.publishScheduledPosts();
+
+  assertEquals(result, { published: 0, slugs: [] });
+  assertEquals(updateCalled, false);
 
   restore();
 });

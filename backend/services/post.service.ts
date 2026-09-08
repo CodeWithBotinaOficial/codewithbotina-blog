@@ -1330,7 +1330,6 @@ export class PostService {
       .update({
         status: "scheduled",
         scheduled_at: scheduledAt,
-        updated_at: new Date().toISOString(),
       })
       .eq("slug", slug)
       .select()
@@ -1360,7 +1359,6 @@ export class PostService {
       .update({
         status: "draft",
         scheduled_at: null,
-        updated_at: new Date().toISOString(),
       })
       .eq("slug", slug)
       .select()
@@ -1415,7 +1413,6 @@ export class PostService {
       .from("posts")
       .update({
         status: "published",
-        updated_at: now,
       })
       .in("id", ids);
 

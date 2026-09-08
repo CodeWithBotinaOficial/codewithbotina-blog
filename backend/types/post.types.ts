@@ -7,7 +7,6 @@ export interface PostRecord {
   body: string;
   imagen_url: string | null;
   fecha: string;
-  updated_at?: string | null;
   status?: PostStatus;
   scheduled_at?: string | null;
   language: PostLanguage;
