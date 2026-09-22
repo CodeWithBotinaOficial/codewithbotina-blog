@@ -34,6 +34,7 @@ export const handler: Handlers = {
 
       const result = await postService.bulkUpdatePosts(body, user.id);
       if (!result.success || !result.data) {
+        console.error("[bulk-update] Service error:", result.error);
         const statusCode = result.error instanceof AppError
           ? result.error.statusCode
           : 500;
@@ -53,9 +54,11 @@ export const handler: Handlers = {
       headers.forEach((value, key) => response.headers.set(key, value));
       return response;
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       const statusCode = error instanceof AppError ? error.statusCode : 500;
+      console.error("[bulk-update] Real error:", message);
       const response = errorResponse(
-        error instanceof Error ? error.message : "Internal server error",
+        message || "Internal server error",
         statusCode,
       );
       headers.forEach((value, key) => response.headers.set(key, value));

@@ -199,6 +199,18 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     () => initialData?.scheduled_at ? utcIsoToLocalDatetime(initialData.scheduled_at) : null,
     [initialData?.scheduled_at]
   );
+  const scheduledAtDirty = scheduledAt !== initialScheduledAt;
+  const scheduledAtError = scheduledAt && (mode === "create" || scheduledAtDirty)
+    ? (() => {
+      const scheduledDate = new Date(scheduledAt);
+      if (Number.isNaN(scheduledDate.getTime())) return "Invalid date format";
+      if (scheduledDate <= new Date(Date.now() + 60 * 1000)) return "Scheduled date must be in the future";
+      if (scheduledDate > new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)) {
+        return "Scheduled date cannot be more than 30 days from now";
+      }
+      return "";
+    })()
+    : "";
   const initialTagIds = useMemo(
     () => (initialData?.tags ?? []).map((tag) => tag.id).sort().join(","),
     [initialData?.tags],
@@ -476,7 +488,8 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
     && languageIsValid
     && bodyIsValid
     && imageUrlIsValid
-    && imageFileIsValid;
+    && imageFileIsValid
+    && !scheduledAtError;
 
   const hasChanges = useMemo(() => {
     if (mode === "create") return true;
@@ -687,6 +700,10 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
       }
     }
 
+    if (scheduledAtError) {
+      newErrors.scheduledAt = scheduledAtError;
+    }
+
     if (errors.slug) {
       newErrors.slug = errors.slug;
     }
@@ -725,10 +742,12 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         body: trimmedBody,
         imagen_url: finalImageUrl || null,
         language,
-        scheduled_at: nextScheduledAt,
-        status: nextScheduledAt ? "scheduled" : "published",
         ...(mode === "create" || tagsChanged ? { tag_ids: tags.map((tag) => tag.id) } : {}),
       };
+      if (mode === "create" || scheduledAtDirty) {
+        payload.scheduled_at = nextScheduledAt;
+        payload.status = nextScheduledAt ? "scheduled" : "published";
+      }
 
       const response = await fetch(`${ADMIN_API}${endpoint}`, {
         method: mode === "create" ? "POST" : "PUT",
@@ -1209,6 +1228,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
             max={utcIsoToLocalDatetime(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString())}
             disabled={isSubmitting}
           />
+          {errors.scheduledAt ? <p class="text-sm text-[var(--color-error)]">{errors.scheduledAt}</p> : null}
         </div>
       </section>
 

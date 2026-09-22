@@ -136,6 +136,22 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
   const [scheduledAt, setScheduledAt] = useState<string | null>(
     initialData?.scheduled_at ? utcIsoToLocalDatetime(initialData.scheduled_at) : null,
   );
+  const initialScheduledAt = useMemo(
+    () => initialData?.scheduled_at ? utcIsoToLocalDatetime(initialData.scheduled_at) : null,
+    [initialData?.scheduled_at],
+  );
+  const scheduledAtDirty = scheduledAt !== initialScheduledAt;
+  const scheduledAtError = scheduledAt && (mode === "create" || scheduledAtDirty)
+    ? (() => {
+      const scheduledDate = new Date(scheduledAt);
+      if (Number.isNaN(scheduledDate.getTime())) return "Invalid date format";
+      if (scheduledDate <= new Date(Date.now() + 60 * 1000)) return "Scheduled date must be in the future";
+      if (scheduledDate > new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)) {
+        return "Scheduled date cannot be more than 30 days from now";
+      }
+      return "";
+    })()
+    : "";
 
   const [pinMode, setPinMode] = useState<"all" | "selected">(() => (mode === "edit" ? "selected" : "all"));
   const [pinAll, setPinAll] = useState<boolean>(Boolean((initialData as any)?.is_pinned ?? false));
@@ -497,12 +513,16 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
       if (!s) return true;
       if (!s.titulo.trim() || !s.slug.trim() || s.body.trim().length < 100) return true;
     }
-    return false;
-  }, [isSubmitting, activeLanguages.join("|"), JSON.stringify(sections), JSON.stringify(slugChecking), JSON.stringify(fieldErrors)]);
+    return Boolean(scheduledAtError);
+  }, [isSubmitting, activeLanguages.join("|"), JSON.stringify(sections), JSON.stringify(slugChecking), JSON.stringify(fieldErrors), scheduledAtError]);
 
   const handleSubmit = (event: Event) => {
     event.preventDefault();
     if (!validate()) return;
+    if (scheduledAtError) {
+      setFieldErrors((prev) => ({ ...prev, scheduledAt: scheduledAtError }));
+      return;
+    }
     setShowConfirm(true);
   };
 
@@ -692,9 +712,9 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
               language: lang,
               tag_ids: getTagIdsForLanguage(lang),
               is_pinned: getPinnedForLanguage(lang),
-              ...(isPrimary && scheduledAt ? {
-                scheduled_at: localDateTimeToIso(scheduledAt),
-                status: "scheduled",
+              ...(isPrimary && scheduledAtDirty ? {
+                scheduled_at: scheduledAt ? localDateTimeToIso(scheduledAt) : null,
+                status: scheduledAt ? "scheduled" : "published",
               } : {}),
             },
           };
@@ -1102,6 +1122,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
             max={utcIsoToLocalDatetime(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString())}
             disabled={isSubmitting}
           />
+          {fieldErrors.scheduledAt ? <p class="text-sm text-[var(--color-error)]">{fieldErrors.scheduledAt}</p> : null}
         </div>
       </section>
 

@@ -43,7 +43,7 @@ export default function Toast({ message, type, onClose, duration = 5000 }: Toast
 
   return (
     <div
-      class={`fixed right-4 top-4 z-50 transition-all duration-300 ${
+      class={`fixed right-4 top-20 z-[200] transition-all duration-300 ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
       }`}
       role="status"

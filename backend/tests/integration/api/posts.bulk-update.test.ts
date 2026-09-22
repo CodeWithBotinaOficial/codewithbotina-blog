@@ -84,3 +84,41 @@ Deno.test("Integration: PUT /api/posts/bulk-update returns 200", async () => {
 
   restore();
 });
+
+Deno.test("Integration: PUT /api/posts/bulk-update returns descriptive service errors", async () => {
+  const adminUser = {
+    id: "admin-id",
+    email: "admin@example.com",
+    full_name: "Admin",
+    avatar_url: null,
+    google_id: null,
+    created_at: new Date().toISOString(),
+    last_login: new Date().toISOString(),
+    is_admin: true,
+  };
+  stub(
+    AuthService.prototype,
+    "getUserFromToken",
+    () => Promise.resolve(adminUser),
+  );
+  stub(PostService.prototype, "bulkUpdatePosts", () =>
+    Promise.resolve({
+      success: false,
+      error: new Error("Post not found"),
+    }));
+
+  const req = new Request("http://localhost/api/posts/bulk-update", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer token",
+    },
+    body: JSON.stringify({ updates: [] }),
+  });
+  const res = await handler.PUT!(req, {} as unknown as FreshContext);
+  const body = await res.json();
+
+  assertEquals(res.status, 500);
+  assertEquals(body.error, "Post not found");
+  restore();
+});

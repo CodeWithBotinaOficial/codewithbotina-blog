@@ -61,9 +61,9 @@ Deno.test("Integration: publishScheduledPosts marks posts due at or before now a
     update: (payload: Record<string, unknown>) => {
       updatePayload = payload;
       return {
-      in: () => ({
-        select: () => Promise.resolve({ error: null }),
-      }),
+        in: () => ({
+          select: () => Promise.resolve({ error: null }),
+        }),
       };
     },
   };

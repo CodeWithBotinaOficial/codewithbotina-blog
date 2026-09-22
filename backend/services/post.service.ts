@@ -492,6 +492,23 @@ export class PostService {
           item.post as PostUpdate,
           existing.language,
         );
+        if (
+          item.post.scheduled_at !== undefined &&
+          item.post.scheduled_at !== null
+        ) {
+          const scheduledAt = String(item.post.scheduled_at).trim();
+          if (scheduledAt !== String(existing.scheduled_at ?? "").trim()) {
+            const validation = validateScheduledAt(scheduledAt);
+            if (!validation.valid) {
+              return {
+                success: false,
+                error: new ValidationError(
+                  validation.error || "Invalid scheduled date",
+                ),
+              };
+            }
+          }
+        }
 
         const key = `${sanitized.language}:${sanitized.slug}`;
         if (updateSlugKeys.has(key)) {
@@ -533,10 +550,16 @@ export class PostService {
             imagen_url: sanitized.imagen_url ?? null,
             language: sanitized.language,
             is_pinned: sanitized.is_pinned,
+            ...(item.post.scheduled_at !== undefined
+              ? {
+                scheduled_at: item.post.scheduled_at,
+                status: item.post.scheduled_at ? "scheduled" : "published",
+              }
+              : {}),
           })
           .eq("id", postId)
           .select(
-            "id, titulo, slug, body, imagen_url, fecha, language, is_pinned",
+            "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
           )
           .single();
 
@@ -733,6 +756,8 @@ export class PostService {
               is_pinned: Boolean(
                 (snapshot as { is_pinned?: boolean }).is_pinned ?? false,
               ),
+              status: snapshot.status,
+              scheduled_at: snapshot.scheduled_at ?? null,
             })
             .eq("id", postId);
 
@@ -1219,7 +1244,9 @@ export class PostService {
   ): Promise<PostRecord | null> {
     let query = supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned")
+      .select(
+        "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
+      )
       .eq("slug", slug);
 
     const normalizedLanguage = this.normalizeLanguage(language);
@@ -1251,7 +1278,9 @@ export class PostService {
     if (!postId || !this.isValidUuid(postId)) return null;
     const { data, error } = await supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned")
+      .select(
+        "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
+      )
       .eq("id", postId)
       .maybeSingle();
     if (error) {
