@@ -96,6 +96,121 @@ Deno.test("bulkUpdatePosts rejects invalid post_id", async () => {
   assertEquals(result.error instanceof ValidationError, true);
 });
 
+Deno.test("bulkUpdatePosts allows swapping slugs in one batch", async () => {
+  const adminAuth = {
+    isAdmin: () => Promise.resolve(true),
+  } as unknown as AuthService;
+  const multi = new PostService(adminAuth, {} as unknown as ImageService);
+  const firstId = "11111111-1111-4111-8111-111111111111";
+  const secondId = "22222222-2222-4222-8222-222222222222";
+  const updates: Array<Record<string, unknown>> = [];
+
+  stub(supabase, "from", (table: string) => {
+    if (table !== "posts") {
+      return {
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          }),
+        }),
+        update: () => ({ eq: () => Promise.resolve({ error: null }) }),
+      };
+    }
+    return {
+      select: () => ({
+        eq: (column: string, value: string) => ({
+          maybeSingle: () =>
+            Promise.resolve({
+              data: column === "id" && value === firstId
+                ? {
+                  id: firstId,
+                  titulo: "First",
+                  slug: "first",
+                  body: "x".repeat(120),
+                  imagen_url: null,
+                  fecha: "now",
+                  language: "en",
+                  is_pinned: false,
+                }
+                : column === "id" && value === secondId
+                ? {
+                  id: secondId,
+                  titulo: "Second",
+                  slug: "second",
+                  body: "x".repeat(120),
+                  imagen_url: null,
+                  fecha: "now",
+                  language: "pt-br",
+                  is_pinned: false,
+                }
+                : null,
+              error: null,
+            }),
+          neq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          }),
+        }),
+      }),
+      update: (payload: Record<string, unknown>) => {
+        updates.push(payload);
+        return {
+          eq: (_column: string, _value: string) => ({
+            select: () => ({
+              single: () =>
+                Promise.resolve({
+                  data: {
+                    ...payload,
+                    id: firstId,
+                    titulo: "Updated",
+                    slug: payload.slug,
+                    body: "x".repeat(120),
+                    imagen_url: null,
+                    fecha: "now",
+                    language: "en",
+                    is_pinned: false,
+                  },
+                  error: null,
+                }),
+            }),
+          }),
+        };
+      },
+    };
+  });
+
+  try {
+    const result = await multi.bulkUpdatePosts({
+      updates: [
+        {
+          post_id: firstId,
+          post: {
+            titulo: "First",
+            slug: "second",
+            body: "x".repeat(120),
+            language: "en",
+          },
+        },
+        {
+          post_id: secondId,
+          post: {
+            titulo: "Second",
+            slug: "first",
+            body: "x".repeat(120),
+            language: "pt-br",
+          },
+        },
+      ],
+    }, "admin-id");
+
+    assertEquals(result.success, true);
+    assertEquals(updates.slice(0, 2), [{ slug: `bulk-update-${firstId}` }, {
+      slug: `bulk-update-${secondId}`,
+    }]);
+  } finally {
+    restore();
+  }
+});
+
 Deno.test("createPostsBatch preserves status and scheduled_at for each post", async () => {
   const adminAuth = {
     isAdmin: () => Promise.resolve(true),

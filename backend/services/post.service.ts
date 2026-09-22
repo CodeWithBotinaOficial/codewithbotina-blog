@@ -482,7 +482,6 @@ export class PostService {
 
       // Validate all updates first (including slug uniqueness).
       const sanitizedUpdates = new Map<string, SanitizedPost>(); // normalized and validated
-      const updateSlugKeys = new Set<string>();
       for (const item of updates) {
         const postId = String(item.post_id ?? "").trim();
         if (!postId) continue;
@@ -510,28 +509,51 @@ export class PostService {
           }
         }
 
-        const key = `${sanitized.language}:${sanitized.slug}`;
-        if (updateSlugKeys.has(key)) {
+        if (
+          Array.from(sanitizedUpdates.values()).some((candidate) =>
+            candidate.slug === sanitized.slug
+          )
+        ) {
           return {
             success: false,
             error: new ValidationError("Duplicate slug detected in request"),
           };
         }
-        updateSlugKeys.add(key);
+        sanitizedUpdates.set(postId, sanitized);
+      }
 
-        const unique = await this.isSlugUnique(
-          sanitized.slug,
-          postId,
-          sanitized.language,
+      for (const [postId, sanitized] of sanitizedUpdates) {
+        const existingOwner = Array.from(postSnapshotById.entries()).find(
+          ([candidateId, candidate]) =>
+            candidateId !== postId && candidate.slug === sanitized.slug,
         );
-        if (!unique) {
+        const ownerWillMove = existingOwner &&
+          sanitizedUpdates.get(existingOwner[0])?.slug !== sanitized.slug;
+        const unique = await this.isSlugUnique(sanitized.slug, postId);
+        if (!unique && !ownerWillMove) {
           return {
             success: false,
             error: new ValidationError("Slug already exists"),
           };
         }
+      }
 
-        sanitizedUpdates.set(postId, sanitized);
+      const stagedSlugPostIds = new Set<string>();
+      for (const [postId, sanitized] of sanitizedUpdates) {
+        const existing = postSnapshotById.get(postId);
+        if (!existing || existing.slug === sanitized.slug) continue;
+
+        const temporarySlug = `bulk-update-${postId}`;
+        const { error } = await supabase
+          .from("posts")
+          .update({ slug: temporarySlug })
+          .eq("id", postId);
+        if (error) {
+          console.error("Supabase error:", error);
+          throw new DatabaseError("Failed to stage post slug update");
+        }
+        stagedSlugPostIds.add(postId);
+        updatedPostIds.push(postId);
       }
 
       // Apply updates.
@@ -568,7 +590,7 @@ export class PostService {
           throw new DatabaseError("Failed to update post");
         }
 
-        updatedPostIds.push(postId);
+        if (!stagedSlugPostIds.has(postId)) updatedPostIds.push(postId);
 
         // Sync tags if provided.
         const tagIds = Array.isArray(item.tag_ids)
