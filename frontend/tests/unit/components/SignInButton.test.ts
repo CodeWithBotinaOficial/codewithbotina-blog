@@ -21,7 +21,7 @@ describe('SignInButton', () => {
     );
     const html = await readFile(filePath, 'utf-8');
     expect(html).toContain('data-auth-maintenance role="status" hidden');
-    expect(html).toContain('This feature is temporarily unavailable.');
+    expect(html).toContain('t(currentLanguage, "maintenance.featureUnavailable", "common")');
     expect(html).toContain('button.disabled = isMaintenanceMode');
     expect(html).toContain('cwb:backend-status-change');
   });

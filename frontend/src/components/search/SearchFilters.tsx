@@ -227,7 +227,7 @@ export default function SearchFilters({
     >
       {isMaintenanceMode ? (
         <p class="mb-3 text-sm text-[var(--color-text-secondary)]" role="status">
-          This feature is temporarily unavailable.
+          {t(uiLanguage, "maintenance.featureUnavailable", "common")}
         </p>
       ) : null}
       <div class={`w-full ${compact ? "max-w-3xl" : "max-w-5xl"} mx-auto`}>

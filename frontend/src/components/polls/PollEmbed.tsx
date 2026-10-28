@@ -49,7 +49,6 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
       let pollData = null;
       let foundLang = language;
 
-      console.debug(`[Poll ${slug}] Trying languages: ${uniqueLangs.join(", ")}`);
       for (const l of uniqueLangs) {
         try {
           const body = await pollsApi.get(slug, l);
@@ -57,11 +56,9 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
           if (data && data.id) {
             pollData = data;
             foundLang = String(data.language ?? l);
-            console.debug(`[Poll ${slug}] Found in language: ${foundLang}`);
             break;
           }
         } catch (_err) {
-          console.debug(`[Poll ${slug}] Not found in language: ${l}`);
           // Try next language
         }
       }
@@ -87,8 +84,7 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
       } else {
         setVoteLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load poll', err);
+    } catch (_err) {
       setPoll(null);
     } finally {
       setLoading(false);

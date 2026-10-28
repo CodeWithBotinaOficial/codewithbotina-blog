@@ -26,10 +26,43 @@ describe("MaintenanceBanner", () => {
         reportFailure: () => undefined,
         reportSuccess: () => undefined,
       }}>
-        <MaintenanceBanner />
+        <MaintenanceBanner currentLanguage="es" />
       </BackendStatusContext.Provider>,
       container,
     );
-    expect(container.querySelector('[role="status"]')).not.toBeNull();
+    expect(container.querySelector('[role="status"]')?.textContent).toContain(
+      "Nuestros servicios no están disponibles temporalmente.",
+    );
+  });
+
+  it("updates the banner text when the page language changes", () => {
+    const context = {
+      status: "maintenance" as const,
+      isMaintenanceMode: true,
+      consecutiveFailures: 2,
+      lastChecked: null,
+      reportFailure: () => undefined,
+      reportSuccess: () => undefined,
+    };
+
+    render(
+      <BackendStatusContext.Provider value={context}>
+        <MaintenanceBanner currentLanguage="en" />
+      </BackendStatusContext.Provider>,
+      container,
+    );
+    expect(container.textContent).toContain(
+      "Our services are temporarily unavailable.",
+    );
+
+    render(
+      <BackendStatusContext.Provider value={context}>
+        <MaintenanceBanner currentLanguage="pt-br" />
+      </BackendStatusContext.Provider>,
+      container,
+    );
+    expect(container.textContent).toContain(
+      "Nossos serviços estão temporariamente indisponíveis.",
+    );
   });
 });

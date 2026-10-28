@@ -198,11 +198,6 @@ export default function CommentList({
 
   return (
     <div class="comment-list" data-post-id={postId}>
-      {isMaintenanceMode ? (
-        <p class="comment-error" role="status">
-          This feature is temporarily unavailable.
-        </p>
-      ) : null}
       {hasTranslations && sortedComments.length > 0 ? (
         <div class="unified-comments-notice">
           <span aria-hidden="true">🌐</span>

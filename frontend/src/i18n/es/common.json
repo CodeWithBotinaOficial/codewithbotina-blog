@@ -38,6 +38,10 @@
   "pinned": "Fijado",
   "pinnedPost": "Post Fijado",
   "maintenance": {
+    "banner": "Nuestros servicios no están disponibles temporalmente. Algunas funciones pueden estar limitadas.",
+    "featureUnavailable": "Esta función no está disponible temporalmente.",
+    "authRequiredToComment": "Debes iniciar sesión para dejar un comentario.",
+    "signInToContinue": "Inicia sesión para continuar",
     "bannerTitle": "Algunas funciones no están disponibles temporalmente",
     "bannerMessage": "La lectura y la navegación siguen disponibles. Inténtalo de nuevo más tarde.",
     "lastChecked": "Estado comprobado:"

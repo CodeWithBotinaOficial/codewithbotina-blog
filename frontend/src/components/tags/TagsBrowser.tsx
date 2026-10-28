@@ -317,7 +317,7 @@ export default function TagsBrowser({
         </div>
         {isMaintenanceMode ? (
           <p class="mt-4 text-sm text-[var(--color-text-secondary)]" role="status">
-            This feature is temporarily unavailable.
+            {t(uiLanguage, "maintenance.featureUnavailable", "common")}
           </p>
         ) : null}
       </div>

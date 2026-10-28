@@ -67,7 +67,7 @@
   }
 
   .btn-auth {
-    @apply inline-flex items-center justify-center bg-[var(--color-accent-primary)] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[var(--color-accent-hover)] transition-colors duration-200;
+    @apply inline-flex shrink-0 items-center justify-center whitespace-nowrap bg-[var(--color-accent-primary)] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[var(--color-accent-hover)] transition-colors duration-200;
   }
 
   .auth-profile {
@@ -95,7 +95,11 @@
   }
 
   .auth-controls {
-    @apply flex items-center gap-3;
+    @apply flex min-w-0 items-center gap-2 whitespace-nowrap;
+  }
+
+  .auth-controls .btn-auth {
+    @apply px-3 py-2;
   }
 
   .auth-name {
@@ -1404,7 +1408,15 @@
   }
 
   .comment-signin {
-    @apply text-[var(--color-text-secondary)] mb-6;
+    @apply mb-6 flex flex-col items-start gap-2 rounded-xl border border-[var(--color-border)] bg-white p-4 text-[var(--color-text-secondary)];
+  }
+
+  .comment-signin-link {
+    @apply font-semibold text-[var(--color-accent-primary)] underline;
+  }
+
+  .comment-maintenance {
+    @apply text-sm;
   }
 
   .comment-list {

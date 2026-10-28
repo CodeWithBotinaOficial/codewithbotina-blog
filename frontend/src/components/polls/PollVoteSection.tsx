@@ -119,7 +119,7 @@ export default function PollVoteSection({
     if (isMaintenanceMode) {
       return (
         <div className="poll-auth-required" role="status">
-          This feature is temporarily unavailable.
+          {t(lang, "maintenance.featureUnavailable", "common")}
         </div>
       );
     }
@@ -149,7 +149,9 @@ export default function PollVoteSection({
     return (
       <div className="poll-already-voted poll-free-text-submitted">
         {isMaintenanceMode ? (
-          <div role="status">This feature is temporarily unavailable.</div>
+          <div role="status">
+            {t(lang, "maintenance.featureUnavailable", "common")}
+          </div>
         ) : null}
         <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
         <div>
@@ -178,7 +180,9 @@ export default function PollVoteSection({
   return (
     <div className="poll-vote-section">
       {isMaintenanceMode ? (
-        <p role="status">This feature is temporarily unavailable.</p>
+        <p role="status">
+          {t(lang, "maintenance.featureUnavailable", "common")}
+        </p>
       ) : null}
       {poll.type === "free_text" ? (
         <div className="poll-free-text">

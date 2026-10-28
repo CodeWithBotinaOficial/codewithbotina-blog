@@ -38,6 +38,10 @@
   "pinned": "Fixado",
   "pinnedPost": "Post Fixado",
   "maintenance": {
+    "banner": "Nossos serviços estão temporariamente indisponíveis. Algumas funcionalidades podem estar limitadas.",
+    "featureUnavailable": "Este recurso está indisponível temporariamente.",
+    "authRequiredToComment": "Você precisa fazer login para deixar um comentário.",
+    "signInToContinue": "Faça login para continuar",
     "bannerTitle": "Alguns recursos estão temporariamente indisponíveis",
     "bannerMessage": "A leitura e a navegação continuam disponíveis. Tente novamente mais tarde.",
     "lastChecked": "Status verificado:"

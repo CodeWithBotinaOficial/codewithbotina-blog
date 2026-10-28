@@ -4,6 +4,7 @@ import { getApiUrl } from "../../lib/env";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
+import { getLanguageFromPath, t, type SupportedLanguage } from "../../lib/i18n";
 
 interface Props {
   postId: string;
@@ -11,6 +12,7 @@ interface Props {
   initialDislikes: number;
   userReaction: "like" | "dislike" | null;
   isAuthenticated: boolean;
+  currentLanguage?: SupportedLanguage;
   labels?: {
     signIn: string;
     signInSuffix: string;
@@ -27,6 +29,7 @@ export default function ReactionButtons({
   initialDislikes,
   userReaction,
   isAuthenticated,
+  currentLanguage,
   labels,
 }: Props) {
   const copy = labels ?? {
@@ -38,6 +41,10 @@ export default function ReactionButtons({
 
   const { user, loading, isAuthenticated: sessionAuth } = useSession();
   const { isMaintenanceMode } = useBackendStatus();
+  const language = currentLanguage ??
+    (typeof window === "undefined"
+      ? "en"
+      : getLanguageFromPath(window.location.pathname));
   const [likes, setLikes] = useState(initialLikes);
   const [dislikes, setDislikes] = useState(initialDislikes);
   const [currentReaction, setCurrentReaction] = useState(userReaction);
@@ -153,7 +160,7 @@ export default function ReactionButtons({
     <div class="reaction-buttons">
       {isMaintenanceMode ? (
         <p class="reaction-message" role="status">
-          This feature is temporarily unavailable.
+          {t(language, "maintenance.featureUnavailable", "common")}
         </p>
       ) : null}
       <button

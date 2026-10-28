@@ -18,6 +18,9 @@ setLanguagePreference(Astro.cookies, language);
   <section class="container-responsive py-16">
     <h1>{t(language, "signInTitle", "auth")}</h1>
     <p>{t(language, "signInDescription", "auth")}</p>
-    <SignInButton label={t(language, "signInWithGoogle", "auth")} />
+    <SignInButton
+      label={t(language, "signInWithGoogle", "auth")}
+      currentLanguage={language}
+    />
   </section>
 </BaseLayout>

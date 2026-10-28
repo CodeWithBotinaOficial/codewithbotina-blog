@@ -173,7 +173,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
       </button>
       {isMaintenanceMode ? (
         <span class="text-xs text-[var(--color-text-secondary)]" role="status">
-          This feature is temporarily unavailable.
+          {t(currentLanguage, "maintenance.featureUnavailable", "common")}
         </span>
       ) : null}
 

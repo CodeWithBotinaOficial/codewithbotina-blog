@@ -80,7 +80,9 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
   </head>
   <body class="min-h-screen flex flex-col">
     <BackendStatusProvider client:load>
-      <MaintenanceBanner currentLanguage={currentLanguage} client:load />
+      <div class="relative z-[60] isolate w-full">
+        <MaintenanceBanner currentLanguage={currentLanguage} client:load />
+      </div>
       {!hideChrome && (
         <Header currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} />
       )}

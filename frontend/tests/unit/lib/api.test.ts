@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { apiCall, backendStatusBus, isBackendCall } from "../../../src/lib/api";
+import { t } from "../../../src/lib/i18n";
 
 describe("apiCall backend status detection", () => {
   let events: string[];
@@ -20,7 +21,7 @@ describe("apiCall backend status detection", () => {
     vi.mocked(fetch).mockResolvedValue(new Response(null, { status }));
 
     await expect(apiCall("/api/posts")).rejects.toThrow(
-      "This feature is temporarily unavailable.",
+      t("es", "maintenance.featureUnavailable"),
     );
     expect(events).toEqual(["failure"]);
   });
@@ -29,7 +30,7 @@ describe("apiCall backend status detection", () => {
     vi.mocked(fetch).mockRejectedValue(new TypeError("Failed to fetch"));
 
     await expect(apiCall("/api/posts")).rejects.toThrow(
-      "This feature is temporarily unavailable.",
+      t("es", "maintenance.featureUnavailable"),
     );
     expect(events).toEqual(["failure"]);
   });

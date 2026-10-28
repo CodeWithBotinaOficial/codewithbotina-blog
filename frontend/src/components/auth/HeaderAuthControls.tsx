@@ -33,11 +33,6 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
         >
           {labels.signIn}
         </button>
-        {isMaintenanceMode ? (
-          <span class="auth-disabled" role="status">
-            This feature is temporarily unavailable.
-          </span>
-        ) : null}
       </div>
     );
   }
@@ -61,7 +56,7 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
       </a>
       <a
         href={profileHref}
-        class="auth-name hover:underline"
+        class="auth-name max-w-32 truncate hover:underline"
         aria-label={labels.openProfile}
       >
         {user.full_name || user.email}
@@ -74,11 +69,6 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
       >
         {labels.signOut}
       </button>
-      {isMaintenanceMode ? (
-        <span class="auth-disabled" role="status">
-          This feature is temporarily unavailable.
-        </span>
-      ) : null}
     </div>
   );
 }

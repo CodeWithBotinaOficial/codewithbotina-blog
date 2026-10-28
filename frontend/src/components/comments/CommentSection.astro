@@ -24,7 +24,12 @@ try {
     {labels?.title ?? "Comments"} <span class="comment-count">({initialComments.length})</span>
   </h3>
 
-  <CommentForm postId={postId} labels={labels} client:load />
+  <CommentForm
+    postId={postId}
+    currentLanguage={currentLanguage}
+    labels={labels}
+    client:load
+  />
 
   <CommentList
     postId={postId}

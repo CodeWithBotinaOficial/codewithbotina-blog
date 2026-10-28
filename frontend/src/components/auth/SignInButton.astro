@@ -1,13 +1,20 @@
 ---
-const { label = "Sign in with Google" } = Astro.props;
+import { t, type SupportedLanguage } from "../../lib/i18n";
+
+const {
+  label = "Sign in with Google",
+  currentLanguage = "en",
+} = Astro.props as { label?: string; currentLanguage?: SupportedLanguage };
 ---
 
-<button class="btn-auth" type="button" data-auth="signin">
-  {label}
-</button>
-<p data-auth-maintenance role="status" hidden>
-  This feature is temporarily unavailable.
-</p>
+<div class="flex flex-col items-start gap-2">
+  <button class="btn-auth min-w-48 whitespace-nowrap" type="button" data-auth="signin">
+    {label}
+  </button>
+  <p data-auth-maintenance role="status" hidden>
+    {t(currentLanguage, "maintenance.featureUnavailable", "common")}
+  </p>
+</div>
 
 <script>
   import { getAuthRoute } from "../../lib/auth-endpoints";

@@ -4,9 +4,11 @@ import { getApiUrl } from "../../lib/env";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
+import { getLanguageFromPath, t, type SupportedLanguage } from "../../lib/i18n";
 
 interface Props {
   postId: string;
+  currentLanguage?: SupportedLanguage;
   labels?: {
     signIn: string;
     signInSuffix: string;
@@ -22,7 +24,7 @@ interface Props {
 
 const API_URL = getApiUrl();
 
-export default function CommentForm({ postId, labels }: Props) {
+export default function CommentForm({ postId, labels, currentLanguage }: Props) {
   const copy = labels ?? {
     signIn: "Sign in",
     signInSuffix: "to leave a comment.",
@@ -37,6 +39,10 @@ export default function CommentForm({ postId, labels }: Props) {
 
   const { user, loading } = useSession();
   const { isMaintenanceMode } = useBackendStatus();
+  const language = currentLanguage ??
+    (typeof window === "undefined"
+      ? "en"
+      : getLanguageFromPath(window.location.pathname));
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -89,25 +95,36 @@ export default function CommentForm({ postId, labels }: Props) {
     return <p class="comment-loading">{copy.loading}</p>;
   }
 
-  if (!user && !isMaintenanceMode) {
+  if (!user) {
     const next = typeof window !== "undefined" ? window.location.href : "/";
     const authUrl = `${getAuthRoute("/google")}?next=${encodeURIComponent(next)}`;
     return (
-      <p class="comment-signin">
-        <a href={authUrl}>{copy.signIn}</a> {copy.signInSuffix}
+      <div class="comment-signin">
+        <p>{t(language, "maintenance.authRequiredToComment", "common")}</p>
+        <a class="comment-signin-link" href={authUrl}>
+          {t(language, "maintenance.signInToContinue", "common")}
+        </a>
+        {isMaintenanceMode ? (
+          <p class="comment-maintenance" role="status">
+            {t(language, "maintenance.featureUnavailable", "common")}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (isMaintenanceMode) {
+    return (
+      <p class="comment-error comment-maintenance" role="status">
+        {t(language, "maintenance.featureUnavailable", "common")}
       </p>
     );
   }
 
   return (
     <form class="comment-form" onSubmit={handleSubmit}>
-      {isMaintenanceMode ? (
-        <p class="comment-error" role="status">
-          This feature is temporarily unavailable.
-        </p>
-      ) : null}
       <img
-        src={user?.avatar_url || "/avatar-placeholder.png"}
+        src={user.avatar_url || "/avatar-placeholder.png"}
         alt="Your avatar"
         class="comment-avatar"
         width={40}
@@ -123,7 +140,6 @@ export default function CommentForm({ postId, labels }: Props) {
           placeholder={copy.placeholder}
           maxLength={1000}
           rows={3}
-          disabled={isMaintenanceMode}
         />
 
         <div class="comment-form-footer">
@@ -131,7 +147,7 @@ export default function CommentForm({ postId, labels }: Props) {
           <button
             type="submit"
             class="comment-submit"
-            disabled={!isValid || isSubmitting || isMaintenanceMode}
+            disabled={!isValid || isSubmitting}
           >
             {isSubmitting ? copy.submitting : copy.submit}
           </button>

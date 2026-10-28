@@ -11,6 +11,7 @@ import {
   type BackendStatus,
 } from "../../../src/context/BackendStatusContext";
 import { DEFAULT_SEARCH_FILTERS } from "../../../src/types/search";
+import { t } from "../../../src/lib/i18n";
 
 vi.mock("../../../src/hooks/useSession", () => ({
   useSession: () => ({
@@ -74,13 +75,14 @@ describe("interactive feature maintenance gates", () => {
       initialDislikes: 0,
       userReaction: null,
       isAuthenticated: true,
+      currentLanguage: "en" as const,
     };
 
     renderWithStatus(<ReactionButtons {...props} />, "maintenance");
     expect(container.querySelector(".reaction-button")?.hasAttribute("disabled"))
       .toBe(true);
     expect(container.textContent).toContain(
-      "This feature is temporarily unavailable.",
+      t("en", "maintenance.featureUnavailable"),
     );
 
     renderWithStatus(<ReactionButtons {...props} />, "online");
@@ -103,7 +105,7 @@ describe("interactive feature maintenance gates", () => {
     renderWithStatus(<PollVoteSection {...props} />, "maintenance");
     expect(container.querySelector("fieldset")?.disabled).toBe(true);
     expect(container.textContent).toContain(
-      "This feature is temporarily unavailable.",
+      t("en", "maintenance.featureUnavailable"),
     );
 
     renderWithStatus(<PollVoteSection {...props} />, "online");
@@ -116,7 +118,7 @@ describe("interactive feature maintenance gates", () => {
       'button[aria-label="Search"]',
     )?.disabled).toBe(true);
     expect(container.textContent).toContain(
-      "This feature is temporarily unavailable.",
+      t("en", "maintenance.featureUnavailable"),
     );
 
     renderWithStatus(<GlobalSearchModal currentLanguage="en" />, "online");
@@ -137,7 +139,7 @@ describe("interactive feature maintenance gates", () => {
     renderWithStatus(<SearchFilters {...props} />, "maintenance");
     expect(container.querySelector("fieldset")?.disabled).toBe(true);
     expect(container.textContent).toContain(
-      "This feature is temporarily unavailable.",
+      t("en", "maintenance.featureUnavailable"),
     );
 
     renderWithStatus(<SearchFilters {...props} />, "online");
@@ -171,7 +173,7 @@ describe("interactive feature maintenance gates", () => {
     expect(container.querySelector<HTMLInputElement>('input[type="text"]')?.disabled)
       .toBe(true);
     expect(container.textContent).toContain(
-      "This feature is temporarily unavailable.",
+      t("en", "maintenance.featureUnavailable"),
     );
 
     renderWithStatus(<TagsBrowser {...props} />, "online");
@@ -195,9 +197,7 @@ describe("interactive feature maintenance gates", () => {
     expect(container.querySelector<HTMLButtonElement>("button")?.disabled).toBe(
       true,
     );
-    expect(container.textContent).toContain(
-      "This feature is temporarily unavailable.",
-    );
+    expect(container.textContent).not.toContain("temporarily unavailable");
 
     renderWithStatus(<HeaderAuthControls {...props} />, "online");
     expect(container.querySelector<HTMLButtonElement>("button")?.disabled).toBe(

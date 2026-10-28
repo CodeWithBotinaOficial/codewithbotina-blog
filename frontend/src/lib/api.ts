@@ -1,4 +1,5 @@
 import { getApiUrl } from "./env";
+import { getLanguageFromPath, isSupportedLanguage, t } from "./i18n";
 
 type Json =
   Record<string, unknown> | unknown[] | string | number | boolean | null;
@@ -11,7 +12,16 @@ const BACKEND_URL = import.meta.env.PUBLIC_API_URL || getApiUrl();
 
 class ServiceUnavailableError extends Error {
   constructor() {
-    super("This feature is temporarily unavailable.");
+    const documentLanguage =
+      typeof document === "undefined"
+        ? ""
+        : document.documentElement.lang.toLowerCase();
+    const language = isSupportedLanguage(documentLanguage)
+      ? documentLanguage
+      : typeof window === "undefined"
+      ? "en"
+      : getLanguageFromPath(window.location.pathname);
+    super(t(language, "maintenance.featureUnavailable", "common"));
     this.name = "ServiceUnavailableError";
   }
 }

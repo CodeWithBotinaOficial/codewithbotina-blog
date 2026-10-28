@@ -23,13 +23,13 @@ const isHome = currentPath === `/${currentLanguage}/` || currentPath === `/${cur
 ---
 
 <header class="sticky top-0 z-50 w-full bg-[var(--color-bg-base)]/90 backdrop-blur-md border-b border-[var(--color-border)]">
-    <div class="container-responsive h-16 flex items-center justify-between gap-6">
+    <div class="container-responsive h-16 flex items-center justify-between gap-3 md:gap-4">
     <a href={`/${currentLanguage}/`} class="text-xl font-bold text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors">
       CodeWithBotina
     </a>
 
     <!-- Desktop Navigation -->
-    <nav class="hidden md:flex items-center gap-8">
+    <nav class="hidden lg:flex items-center gap-4 lg:gap-8">
       {navLinks.map((link) => (
         <a
           href={link.href}
@@ -40,7 +40,7 @@ const isHome = currentPath === `/${currentLanguage}/` || currentPath === `/${cur
       ))}
     </nav>
 
-    <div class="hidden md:flex items-center gap-4">
+    <div class="hidden min-w-0 shrink-0 md:flex items-center gap-2 lg:gap-4">
       {!isHome ? <GlobalSearchModal currentLanguage={currentLanguage} client:load /> : null}
       <LanguageSwitcher currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} client:load />
       <HeaderAuth currentLanguage={currentLanguage} />
