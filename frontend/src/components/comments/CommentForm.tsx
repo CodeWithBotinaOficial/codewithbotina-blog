@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
@@ -50,7 +51,7 @@ export default function CommentForm({ postId, labels }: Props) {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/comments/${postId}`, {
+      const response = await apiCall(`${API_URL}/api/comments/${postId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Search as SearchIcon, X, Calendar, SlidersHorizontal } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { clearFiltersFromStorage, loadFiltersFromStorage, saveFiltersToStorage } from "../../lib/search-filters";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, t } from "../../lib/i18n";
@@ -90,7 +91,7 @@ export default function SearchFilters({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API_URL}/api/tags?sort=most_used&limit=10&offset=0`);
+        const res = await apiCall(`${API_URL}/api/tags?sort=most_used&limit=10&offset=0`);
         if (!res.ok) return;
         const payload = await res.json();
         const tags = (payload?.data?.tags ?? payload?.tags ?? []) as Tag[];
@@ -116,7 +117,7 @@ export default function SearchFilters({
 
     tagDebounceRef.current = window.setTimeout(async () => {
       try {
-        const res = await fetch(`${API_URL}/api/tags/autocomplete?q=${encodeURIComponent(q)}`);
+        const res = await apiCall(`${API_URL}/api/tags/autocomplete?q=${encodeURIComponent(q)}`);
         if (!res.ok) return;
         const payload = await res.json();
         const tags = (payload?.data?.tags ?? payload?.tags ?? []) as Tag[];

@@ -1,3 +1,4 @@
+import { apiCall } from "./api";
 import { setAuthState } from "./auth-state";
 import { getAuthRoute } from "./auth-endpoints";
 
@@ -6,7 +7,7 @@ export function initAuthListener() {
 }
 
 export async function getCurrentUser() {
-  const response = await fetch(getAuthRoute("/me"), {
+  const response = await apiCall(getAuthRoute("/me"), {
     credentials: "include",
   });
   if (!response.ok) return null;
@@ -15,7 +16,7 @@ export async function getCurrentUser() {
 }
 
 export async function signOut() {
-  await fetch(getAuthRoute("/signout"), {
+  await apiCall(getAuthRoute("/signout"), {
     method: "POST",
     credentials: "include",
   });

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { getAuthRoute } from "../../lib/auth-endpoints";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
@@ -50,7 +51,7 @@ export default function ReactionButtons({
     const fetchUserReaction = async () => {
       if (!authenticated || !user) return;
 
-      const response = await fetch(`${API_URL}/api/reactions/user/${postId}`, {
+      const response = await apiCall(`${API_URL}/api/reactions/user/${postId}`, {
         credentials: "include",
       });
 
@@ -113,7 +114,7 @@ export default function ReactionButtons({
     setCurrentReaction(nextReaction);
 
     try {
-      const response = await fetch(
+      const response = await apiCall(
         `${API_URL}/api/reactions/${postId}/${type}`,
         {
           method: "POST",

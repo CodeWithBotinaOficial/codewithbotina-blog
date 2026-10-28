@@ -3,11 +3,66 @@ import { getApiUrl } from "./env";
 type Json =
   Record<string, unknown> | unknown[] | string | number | boolean | null;
 
-function notifyBackendStatus(type: "success" | "failure") {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(
-    new CustomEvent("cwb:backend-status", { detail: { type } }),
-  );
+type BackendStatusEvent = "success" | "failure";
+
+type BackendStatusListener = (_event: BackendStatusEvent) => void;
+
+const BACKEND_URL = import.meta.env.PUBLIC_API_URL ?? "";
+
+export function isBackendCall(url: string): boolean {
+  const target = String(url ?? "");
+  return target.startsWith(BACKEND_URL) || target.startsWith("/api/");
+}
+
+export const backendStatusBus = {
+  listeners: new Set<BackendStatusListener>(),
+  emit(event: BackendStatusEvent) {
+    for (const listener of this.listeners) {
+      listener(event);
+    }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("cwb:backend-status", { detail: { type: event } }),
+      );
+    }
+  },
+  subscribe(listener: BackendStatusListener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  },
+};
+
+export async function apiCall(
+  url: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  try {
+    const response = await fetch(url, options);
+
+    if (response.status === 503 || response.status === 502) {
+      backendStatusBus.emit("failure");
+      throw new Error("SERVICE_UNAVAILABLE");
+    }
+
+    if (isBackendCall(url)) {
+      backendStatusBus.emit("success");
+    }
+
+    return response;
+  } catch (error) {
+    if (error instanceof Error && error.message === "SERVICE_UNAVAILABLE") {
+      throw error;
+    }
+
+    if (error instanceof TypeError && isBackendCall(url)) {
+      console.warn("[api] Network/CORS failure for backend call:", url);
+      backendStatusBus.emit("failure");
+      throw new Error("SERVICE_UNAVAILABLE");
+    }
+
+    throw error;
+  }
 }
 
 function joinUrl(base: string, path: string) {
@@ -30,17 +85,13 @@ export async function apiFetch<T = Json>(
   if (hasBody && !headers.has("Content-Type"))
     headers.set("Content-Type", "application/json");
 
-  const res = await fetch(url, {
+  const res = await apiCall(url, {
     credentials: "include",
     ...options,
     headers,
   });
 
   if (!res.ok) {
-    if (res.status === 503) {
-      notifyBackendStatus("failure");
-    }
-
     let message = `${res.status} ${res.statusText}`.trim();
     try {
       const body = await res.json();
@@ -52,8 +103,6 @@ export async function apiFetch<T = Json>(
     }
     throw new Error(message);
   }
-
-  notifyBackendStatus("success");
 
   // Some endpoints may return empty bodies.
   const text = await res.text();

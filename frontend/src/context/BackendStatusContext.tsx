@@ -1,5 +1,6 @@
 import { createContext, type ComponentChildren } from "preact";
 import { useCallback, useContext, useEffect, useRef, useState } from "preact/hooks";
+import { backendStatusBus } from "../lib/api";
 
 export type BackendStatus = "online" | "maintenance" | "unknown";
 
@@ -96,7 +97,16 @@ export function BackendStatusProvider({ children }: { children: ComponentChildre
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const unsubscribe = backendStatusBus.subscribe((event) => {
+      if (event === "failure") {
+        reportFailure();
+      }
+      if (event === "success") {
+        reportSuccess();
+      }
+    });
+
+    if (typeof window === "undefined") return unsubscribe;
 
     const handleBackendStatus = (event: Event) => {
       const detail = (event as CustomEvent<{ type?: "success" | "failure" }>).detail;
@@ -110,6 +120,7 @@ export function BackendStatusProvider({ children }: { children: ComponentChildre
 
     window.addEventListener("cwb:backend-status", handleBackendStatus);
     return () => {
+      unsubscribe();
       window.removeEventListener("cwb:backend-status", handleBackendStatus);
     };
   }, [reportFailure, reportSuccess]);

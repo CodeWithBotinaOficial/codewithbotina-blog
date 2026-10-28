@@ -1,3 +1,4 @@
+import { apiCall } from "../lib/api";
 import { setAuthState } from "../lib/auth-state";
 import { getAuthRoute } from "../lib/auth-endpoints";
 
@@ -11,7 +12,7 @@ export function useAuth() {
   };
 
   const signOut = async () => {
-    await fetch(getAuthRoute("/signout"), {
+    await apiCall(getAuthRoute("/signout"), {
       method: "POST",
       credentials: "include",
     });
@@ -23,7 +24,7 @@ export function useAuth() {
   };
 
   const refresh = async () => {
-    const res = await fetch(getAuthRoute("/refresh"), {
+    const res = await apiCall(getAuthRoute("/refresh"), {
       method: "POST",
       credentials: "include",
     });

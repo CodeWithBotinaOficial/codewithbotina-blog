@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { apiCall } from "../lib/api";
 import {
   AUTH_STATE_KEY,
   clearAuthState,
@@ -26,7 +27,7 @@ let sharedPromise: Promise<AuthUser | null> | null = null;
 let backgroundRefreshTimer: number | null = null;
 
 async function fetchProfile(): Promise<AuthUser | null> {
-  const res = await fetch(getAuthRoute("/me"), {
+  const res = await apiCall(getAuthRoute("/me"), {
     credentials: "include",
   });
 
@@ -36,7 +37,7 @@ async function fetchProfile(): Promise<AuthUser | null> {
 }
 
 async function refreshSession(): Promise<boolean> {
-  const res = await fetch(getAuthRoute("/refresh"), {
+  const res = await apiCall(getAuthRoute("/refresh"), {
     method: "POST",
     credentials: "include",
   });

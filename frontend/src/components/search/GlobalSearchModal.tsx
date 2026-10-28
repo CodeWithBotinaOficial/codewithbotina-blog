@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Search as SearchIcon } from "lucide-preact";
 import Modal from "../ui/Modal";
 import SearchFilters from "./SearchFilters";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { DEFAULT_SEARCH_FILTERS } from "../../types/search";
 import type { SupportedLanguage } from "../../lib/i18n";
@@ -121,7 +122,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
       headers.set("Accept", "application/json");
       headers.set("X-Requested-With", "XMLHttpRequest");
 
-      const res = await fetch(`${API_URL}/api/posts/search?${params.toString()}`, { credentials: "same-origin", headers });
+      const res = await apiCall(`${API_URL}/api/posts/search?${params.toString()}`, { credentials: "same-origin", headers });
       if (!res.ok) throw new Error(`Search failed (${res.status})`);
       const contentType = res.headers.get("content-type") ?? "";
       if (!contentType.includes("application/json")) {

@@ -1,7 +1,8 @@
+import { apiCall } from "../lib/api";
 import { getAuthRoute } from "../lib/auth-endpoints";
 
 export async function requireAuth(): Promise<boolean> {
-  const response = await fetch(getAuthRoute("/me"), {
+  const response = await apiCall(getAuthRoute("/me"), {
     credentials: "include",
   });
   if (!response.ok) {

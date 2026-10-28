@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Search as SearchIcon, ChevronLeft, ChevronRight } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import type { SupportedLanguage } from "../../lib/i18n";
 import { SUPPORTED_LANGUAGES, t } from "../../lib/i18n";
@@ -198,7 +199,7 @@ export default function TagsBrowser({
         api.searchParams.set("limit", String(perPage));
         api.searchParams.set("offset", String(offsetFor(page, perPage)));
 
-        const res = await fetch(api.toString(), {
+        const res = await apiCall(api.toString(), {
           signal: ac.signal,
           headers: { Accept: "application/json" },
         });
