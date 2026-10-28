@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { BarChart3, Lock, ShieldX, Star, X } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import TranslationLinker, { type TranslationPost } from "./TranslationLinker";
 import { getApiUrl } from "../../lib/env";
 import { getAdminRoute } from "../../lib/admin-endpoints";
@@ -82,7 +83,7 @@ function defaultImageValue(initialUrl?: string | null): ImageValue {
 }
 
 async function checkSlugExists(slug: string, language: string): Promise<boolean> {
-  const response = await fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}/exists?language=${encodeURIComponent(language)}`);
+  const response = await apiCall(`${API_URL}/api/posts/${encodeURIComponent(slug)}/exists?language=${encodeURIComponent(language)}`);
   if (!response.ok) throw new Error("Slug check failed");
   const payload = await response.json();
   return Boolean(payload?.exists);
@@ -93,7 +94,7 @@ async function uploadImage(file: File, title: string, slug: string): Promise<str
   formData.append("image", file);
   formData.append("title", title);
   formData.append("slug", slug);
-  const response = await fetch(`${ADMIN_API}/posts/upload-image`, {
+  const response = await apiCall(`${ADMIN_API}/posts/upload-image`, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -203,19 +204,10 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     const embed = `[${title}](poll:${slug})`;
 
     try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(embed);
-      } else {
-        const el = document.createElement("textarea");
-        el.value = embed;
-        el.setAttribute("readonly", "true");
-        el.style.position = "fixed";
-        el.style.left = "-9999px";
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard access is unavailable.");
       }
+      await navigator.clipboard.writeText(embed);
       showToast(embed, "success");
     } catch (_err) {
       showToast("Failed to copy poll embed", "error");
@@ -338,7 +330,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
 
     (async () => {
       try {
-        const res = await fetch(`${API_URL}/api/posts/${encodeURIComponent(postId)}/translations`, {
+        const res = await apiCall(`${API_URL}/api/posts/${encodeURIComponent(postId)}/translations`, {
           credentials: "include",
         });
         if (!res.ok) return;
@@ -363,7 +355,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         const loadedLanguages: string[] = [];
         const loadedLinkedPosts: TranslationPost[] = [];
         for (const row of others) {
-          const details = await fetch(`${API_URL}/api/posts/${encodeURIComponent(row.slug)}?language=${encodeURIComponent(row.language)}`, { credentials: "include" });
+          const details = await apiCall(`${API_URL}/api/posts/${encodeURIComponent(row.slug)}?language=${encodeURIComponent(row.language)}`, { credentials: "include" });
           if (!details.ok) continue;
           const postPayload = await details.json();
           const post = postPayload?.data ?? postPayload?.post ?? null;
@@ -571,7 +563,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     const uniqueInitial = Array.from(new Set((args.initial ?? []).map((id) => String(id).trim()).filter(Boolean)));
 
     const postLink = async (linkedIds: string[]) => {
-      const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
+      const res = await apiCall(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -583,7 +575,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
     const unlinkOne = async (linkedPostId: string) => {
       const id = String(linkedPostId ?? "").trim();
       if (!id) return;
-      const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(id)}`, { method: "DELETE", credentials: "include" });
+      const res = await apiCall(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(id)}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Failed to unlink translation");
     };
 
@@ -651,7 +643,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
           status: nextScheduledAt ? "scheduled" : "published",
         }));
 
-        const res = await fetch(`${ADMIN_API}/posts/create`, {
+        const res = await apiCall(`${ADMIN_API}/posts/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -740,7 +732,7 @@ export default function MultiLanguagePostEditor({ mode, uiLanguage, initialData,
         })
         .filter(Boolean);
 
-      const res = await fetch(`${ADMIN_API}/posts/bulk-update`, {
+      const res = await apiCall(`${ADMIN_API}/posts/bulk-update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

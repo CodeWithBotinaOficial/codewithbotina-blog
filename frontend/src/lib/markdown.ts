@@ -195,7 +195,7 @@ export function renderMarkdownHtml(markdown: string): string {
 export function parsePollLinks(content: string): string {
   const pollLinkRegex = /\[([^\]]+)\]\(poll:([a-z0-9-]+)(?:\|([a-z-]+))?\)/g;
 
-  return content.replace(pollLinkRegex, (match, text, slug, lang) => {
+  return content.replace(pollLinkRegex, (_match, text, slug, lang) => {
     const safeSlug = String(slug ?? "").trim();
     const safeText = escapeHtml(String(text ?? ""));
     const safeLang = lang ? String(lang).trim() : "";

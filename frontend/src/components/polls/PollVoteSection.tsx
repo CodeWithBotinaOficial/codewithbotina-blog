@@ -53,6 +53,7 @@ export default function PollVoteSection({
   }, [poll?.type, userVote]);
 
   async function handleVote() {
+    if (isMaintenanceMode) return;
     if (!user) {
       showToast(t(lang, "polls.form.signInToVote", "post"), "error");
       return;
@@ -96,6 +97,7 @@ export default function PollVoteSection({
   }
 
   async function handleRemove() {
+    if (isMaintenanceMode) return;
     if (!confirm(t(lang, "polls.form.confirmRemove", "post"))) return;
     setSubmitting(true);
     try {
@@ -113,15 +115,15 @@ export default function PollVoteSection({
     }
   }
 
-  if (isMaintenanceMode) {
-    return (
-      <div className="poll-auth-required">
-        <div>Maintenance mode is active. Poll voting is temporarily unavailable.</div>
-      </div>
-    );
-  }
-
   if (!user) {
+    if (isMaintenanceMode) {
+      return (
+        <div className="poll-auth-required" role="status">
+          This feature is temporarily unavailable.
+        </div>
+      );
+    }
+
     const next =
       typeof window !== "undefined"
         ? encodeURIComponent(window.location.pathname)
@@ -146,6 +148,9 @@ export default function PollVoteSection({
     const votedLanguage = String(userVote[0]?.voted_language ?? "");
     return (
       <div className="poll-already-voted poll-free-text-submitted">
+        {isMaintenanceMode ? (
+          <div role="status">This feature is temporarily unavailable.</div>
+        ) : null}
         <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
         <div>
           <div className="poll-voted-title">
@@ -172,6 +177,9 @@ export default function PollVoteSection({
 
   return (
     <div className="poll-vote-section">
+      {isMaintenanceMode ? (
+        <p role="status">This feature is temporarily unavailable.</p>
+      ) : null}
       {poll.type === "free_text" ? (
         <div className="poll-free-text">
           <label className="poll-form-label">
@@ -186,7 +194,7 @@ export default function PollVoteSection({
             rows={4}
             maxLength={500}
             placeholder={t(lang, "polls.form.responsePlaceholder", "post")}
-            disabled={submitting}
+            disabled={submitting || isMaintenanceMode}
           />
           <div className="poll-char-count">{freeText.length}/500</div>
           <div className="poll-actions">
@@ -194,7 +202,7 @@ export default function PollVoteSection({
               type="button"
               className="btn-primary poll-submit"
               onClick={handleVote}
-              disabled={!freeText.trim() || submitting}
+              disabled={!freeText.trim() || submitting || isMaintenanceMode}
             >
               <Send className="h-4 w-4" aria-hidden="true" />
               {submitting
@@ -210,7 +218,7 @@ export default function PollVoteSection({
           <div className="poll-form-label">
             {t(lang, "polls.form.selectOneOption", "post")}
           </div>
-          <fieldset disabled={submitting}>
+          <fieldset disabled={submitting || isMaintenanceMode}>
             {pollOptions.map((opt: any) => (
               <label
                 key={opt.id}
@@ -233,7 +241,7 @@ export default function PollVoteSection({
               type="button"
               className="btn-primary"
               onClick={handleVote}
-              disabled={selectedOptions.length === 0 || submitting}
+              disabled={selectedOptions.length === 0 || submitting || isMaintenanceMode}
             >
               <Send className="h-4 w-4" aria-hidden="true" />
               {submitting
@@ -245,7 +253,7 @@ export default function PollVoteSection({
                 type="button"
                 className="btn-secondary poll-remove"
                 onClick={handleRemove}
-                disabled={submitting}
+                disabled={submitting || isMaintenanceMode}
               >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                 {t(lang, "polls.form.removeResponse", "post")}
@@ -260,7 +268,7 @@ export default function PollVoteSection({
           <div className="poll-form-label">
             {t(lang, "polls.form.selectMultipleOptions", "post")}
           </div>
-          <fieldset disabled={submitting}>
+          <fieldset disabled={submitting || isMaintenanceMode}>
             {pollOptions.map((opt: any) => (
               <label
                 key={opt.id}
@@ -290,7 +298,7 @@ export default function PollVoteSection({
               type="button"
               className="btn-primary"
               onClick={handleVote}
-              disabled={selectedOptions.length === 0 || submitting}
+              disabled={selectedOptions.length === 0 || submitting || isMaintenanceMode}
             >
               <Send className="h-4 w-4" aria-hidden="true" />
               {submitting
@@ -302,7 +310,7 @@ export default function PollVoteSection({
                 type="button"
                 className="btn-secondary poll-remove"
                 onClick={handleRemove}
-                disabled={submitting}
+                disabled={submitting || isMaintenanceMode}
               >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                 {t(lang, "polls.form.removeResponse", "post")}

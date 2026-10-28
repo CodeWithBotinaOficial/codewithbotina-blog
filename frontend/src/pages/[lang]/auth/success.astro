@@ -29,7 +29,7 @@ setLanguagePreference(Astro.cookies, language);
     </p>
   </section>
 
-  <script type="module" define:vars={{ language }}>
+  <script type="module" is:inline define:vars={{ language }}>
     import { setAuthState } from "../../../lib/auth-state";
 
     const params = new URLSearchParams(window.location.search);

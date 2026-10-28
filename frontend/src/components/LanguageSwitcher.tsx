@@ -1,5 +1,6 @@
 import { Globe } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
+import { apiCall } from "../lib/api";
 import { getApiUrl } from "../lib/env";
 import { getLocalizedPath, LANGUAGE_NAMES, SUPPORTED_LANGUAGES, t } from "../lib/i18n";
 import type { SupportedLanguage } from "../lib/i18n";
@@ -28,7 +29,7 @@ export default function LanguageSwitcher({ currentLanguage, currentPath, current
     // On post pages, attempt to resolve an equivalent post before redirecting.
     if (currentPostId && currentPath.includes("/posts/")) {
       try {
-        const res = await fetch(
+        const res = await apiCall(
           `${API_URL}/api/posts/${encodeURIComponent(currentPostId)}/translation/${encodeURIComponent(newLang)}`,
         );
         if (res.ok) {

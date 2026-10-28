@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { apiCall } from "../lib/api";
 import { getApiUrl } from "../lib/env";
 import { DEFAULT_LANGUAGE, getLanguageFromPath, getRoutePath, isSupportedLanguage, t, type SupportedLanguage } from "../lib/i18n";
 
@@ -115,7 +116,7 @@ export default function CookieConsent({ language }: Props) {
     }
 
     try {
-      await fetch(`${API_URL}/api/cookies/consent`, {
+      await apiCall(`${API_URL}/api/cookies/consent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -22,16 +22,22 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
     return <div class="auth-loading">{labels.loading}</div>;
   }
 
-  if (isMaintenanceMode && !user) {
-    return <div class="auth-controls"><span class="auth-disabled">Maintenance mode</span></div>;
-  }
-
   if (!user) {
     return (
       <div class="auth-controls">
-        <button class="btn-auth" type="button" onClick={signIn} disabled={isMaintenanceMode}>
+        <button
+          class="btn-auth"
+          type="button"
+          onClick={signIn}
+          disabled={isMaintenanceMode}
+        >
           {labels.signIn}
         </button>
+        {isMaintenanceMode ? (
+          <span class="auth-disabled" role="status">
+            This feature is temporarily unavailable.
+          </span>
+        ) : null}
       </div>
     );
   }
@@ -60,9 +66,19 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
       >
         {user.full_name || user.email}
       </a>
-      <button class="btn-auth" type="button" onClick={signOut} disabled={isMaintenanceMode}>
+      <button
+        class="btn-auth"
+        type="button"
+        onClick={signOut}
+        disabled={isMaintenanceMode}
+      >
         {labels.signOut}
       </button>
+      {isMaintenanceMode ? (
+        <span class="auth-disabled" role="status">
+          This feature is temporarily unavailable.
+        </span>
+      ) : null}
     </div>
   );
 }

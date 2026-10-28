@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { apiCall } from "../../lib/api";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 import ImageThumbnail from "./ImageThumbnail";
 import ImagePreviewPanel from "./ImagePreviewPanel";
@@ -64,7 +65,7 @@ export default function StorageImageGallery({ labels, appliedImage, onUse, disab
       url.searchParams.set("offset", String(nextOffset));
       if (q) url.searchParams.set("q", q);
 
-      const res = await fetch(url.toString(), { credentials: "include" });
+      const res = await apiCall(url.toString(), { credentials: "include" });
       if (!res.ok) {
         throw new Error("Failed to load images");
       }

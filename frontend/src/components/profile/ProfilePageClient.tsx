@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { ThumbsDown, ThumbsUp, MessageSquare } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { useSession } from "../../hooks/useSession";
 import type { SupportedLanguage } from "../../lib/i18n";
@@ -94,7 +95,7 @@ export default function ProfilePageClient({ language, labels }: Props) {
       setError("");
       try {
         const limit = showAllLikes ? 200 : 20;
-        const res = await fetch(`${API_URL}/api/users/profile?limit=${limit}`, {
+        const res = await apiCall(`${API_URL}/api/users/profile?limit=${limit}`, {
           credentials: "include",
           signal: controller.signal,
         });

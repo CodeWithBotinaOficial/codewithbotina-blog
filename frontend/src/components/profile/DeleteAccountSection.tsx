@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { AlertTriangle, Trash2 } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { setAuthState } from "../../lib/auth-state";
 import type { SupportedLanguage } from "../../lib/i18n";
@@ -81,7 +82,7 @@ export default function DeleteAccountSection({ language, labels }: Props) {
     setError("");
 
     try {
-      const res = await fetch(`${API_URL}/api/users/delete-account`, {
+      const res = await apiCall(`${API_URL}/api/users/delete-account`, {
         method: "POST",
         credentials: "include",
       });
@@ -220,4 +221,3 @@ export default function DeleteAccountSection({ language, labels }: Props) {
     </section>
   );
 }
-

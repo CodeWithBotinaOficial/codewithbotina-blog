@@ -4,6 +4,7 @@ import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import type { SupportedLanguage } from "../../lib/i18n";
 import { SUPPORTED_LANGUAGES, t } from "../../lib/i18n";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 import {
   ALLOWED_TAGS_PER_PAGE,
   DEFAULT_TAGS_PER_PAGE,
@@ -87,6 +88,7 @@ export default function TagsBrowser({
   initialPerPage,
   labels,
 }: Props) {
+  const { isMaintenanceMode } = useBackendStatus();
   const [queryInput, setQueryInput] = useState(initialQuery);
   const [query, setQuery] = useState(initialQuery);
   const [sort, setSort] = useState<Sort>(initialSort);
@@ -121,6 +123,10 @@ export default function TagsBrowser({
   // Debounced apply for the query input.
   useEffect(() => {
     if (!didMountRef.current) return;
+    if (isMaintenanceMode) {
+      setLoading(false);
+      return;
+    }
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
     const trimmed = queryInput.trim();
     if (!trimmed) {
@@ -222,7 +228,7 @@ export default function TagsBrowser({
     })();
 
     return () => ac.abort();
-  }, [query, sort, language, page, perPage, basePath, uiLanguage]);
+  }, [query, sort, language, page, perPage, basePath, uiLanguage, isMaintenanceMode]);
 
   // If the total changes such that the current page is out of range, clamp.
   useEffect(() => {
@@ -258,6 +264,7 @@ export default function TagsBrowser({
                 }
               }}
               placeholder={t(uiLanguage, "tagPage.searchTags")}
+              disabled={isMaintenanceMode}
               class="w-full rounded-lg border border-[var(--color-border)] bg-white pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             />
           </div>
@@ -271,6 +278,7 @@ export default function TagsBrowser({
             }}
             class="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--color-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             aria-label={t(uiLanguage, "tagPage.sortBy")}
+            disabled={isMaintenanceMode}
           >
             <option value="most_used">{t(uiLanguage, "tagPage.mostUsed")}</option>
             <option value="az">{t(uiLanguage, "tagPage.alphabeticalAZ")}</option>
@@ -287,6 +295,7 @@ export default function TagsBrowser({
             }}
             class="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--color-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             aria-label={t(uiLanguage, "tagPage.language")}
+            disabled={isMaintenanceMode}
           >
             <option value={uiLanguage}>{t(uiLanguage, "tagPage.currentLanguage")}</option>
             <option value="all">{t(uiLanguage, "tagPage.allLanguages")}</option>
@@ -300,11 +309,17 @@ export default function TagsBrowser({
           <button
             type="button"
             onClick={() => applyNow()}
+            disabled={isMaintenanceMode}
             class="rounded-lg border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)]"
           >
             {t(uiLanguage, "search.apply")}
           </button>
         </div>
+        {isMaintenanceMode ? (
+          <p class="mt-4 text-sm text-[var(--color-text-secondary)]" role="status">
+            This feature is temporarily unavailable.
+          </p>
+        ) : null}
       </div>
 
       {error ? (
@@ -354,7 +369,7 @@ export default function TagsBrowser({
                     if (!hasPrev) return;
                     setPage((p) => Math.max(1, p - 1));
                   }}
-                  disabled={!hasPrev}
+                  disabled={!hasPrev || isMaintenanceMode}
                   aria-label={labels.previous}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -382,6 +397,7 @@ export default function TagsBrowser({
                             : "border-[var(--color-border)] bg-white text-[var(--color-text-primary)] hover:border-[var(--color-accent-primary)]/40 hover:bg-[var(--color-bg-subtle)]"
                         }`}
                         aria-current={isCurrent ? "page" : undefined}
+                        disabled={isMaintenanceMode}
                         aria-label={isCurrent
                           ? formatTemplate(labels.currentPage, { page: item })
                           : formatTemplate(labels.goToPage, { page: item })}
@@ -411,7 +427,7 @@ export default function TagsBrowser({
                     if (!hasNext) return;
                     setPage((p) => Math.min(totalPages, p + 1));
                   }}
-                  disabled={!hasNext}
+                  disabled={!hasNext || isMaintenanceMode}
                   aria-label={labels.next}
                 >
                   <span class="hidden sm:inline">{labels.next}</span>
@@ -437,6 +453,7 @@ export default function TagsBrowser({
                     setPage(1);
                   }}
                   aria-label={labels.perPage}
+                  disabled={isMaintenanceMode}
                 >
                   {ALLOWED_TAGS_PER_PAGE.map((value) => (
                     <option key={value} value={String(value)}>

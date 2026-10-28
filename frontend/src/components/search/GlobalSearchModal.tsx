@@ -7,6 +7,7 @@ import { getApiUrl } from "../../lib/env";
 import { DEFAULT_SEARCH_FILTERS } from "../../types/search";
 import type { SupportedLanguage } from "../../lib/i18n";
 import { t } from "../../lib/i18n";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 
 interface Props {
   currentLanguage: SupportedLanguage;
@@ -74,6 +75,7 @@ function formatDateShort(iso: string | null, locale: string): string {
 }
 
 export default function GlobalSearchModal({ currentLanguage }: Props) {
+  const { isMaintenanceMode } = useBackendStatus();
   const locale = currentLanguage === "es" ? "es-ES" : currentLanguage === "pt-br" ? "pt-BR" : "en-US";
   const [open, setOpen] = useState(false);
   const initial = useMemo(() => DEFAULT_SEARCH_FILTERS(currentLanguage), [currentLanguage]);
@@ -81,6 +83,10 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    if (isMaintenanceMode) setOpen(false);
+  }, [isMaintenanceMode]);
 
   useEffect(() => {
     if (!open) return;
@@ -92,6 +98,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
   }, [open]);
 
   const runSearch = async (filters: ReturnType<typeof DEFAULT_SEARCH_FILTERS>) => {
+    if (isMaintenanceMode) return;
     const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
@@ -158,11 +165,17 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        disabled={isMaintenanceMode}
         class="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)]"
         aria-label={t(currentLanguage, "actions.search")}
       >
         <SearchIcon className="h-5 w-5" />
       </button>
+      {isMaintenanceMode ? (
+        <span class="text-xs text-[var(--color-text-secondary)]" role="status">
+          This feature is temporarily unavailable.
+        </span>
+      ) : null}
 
       <Modal
         isOpen={open}

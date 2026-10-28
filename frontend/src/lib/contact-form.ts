@@ -1,3 +1,5 @@
+import { apiCall } from "./api";
+
 export function handleContactForm(form: HTMLFormElement, apiUrl: string) {
   const submitBtn = form.querySelector('#submit-btn') as HTMLButtonElement;
   const loadingIcon = form.querySelector('.loading-icon');
@@ -40,7 +42,7 @@ export function handleContactForm(form: HTMLFormElement, apiUrl: string) {
     const errorMessage = form.dataset.errorMessage ?? "Failed to send message. Please try again later.";
 
     try {
-      const response = await fetch(`${apiUrl}/api/contact`, {
+      const response = await apiCall(`${apiUrl}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

@@ -4,6 +4,7 @@ export const prerender = false;
 import BaseLayout from "../../../../components/BaseLayout.astro";
 import MultiLanguagePostEditor from "../../../../components/admin/MultiLanguagePostEditor";
 import { supabase } from "../../../../lib/supabase";
+import { apiCall } from "../../../../lib/api";
 import { formatDate } from "../../../../lib/utils";
 import { getApiUrl } from "../../../../lib/env";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, t, type SupportedLanguage } from "../../../../lib/i18n";
@@ -22,7 +23,7 @@ let postError: any = null;
 const apiUrl = getApiUrl().replace(/\/$/, "");
 
 try {
-  const response = await fetch(
+  const response = await apiCall(
     `${apiUrl}/api/posts/${encodeURIComponent(slug ?? "")}?language=${encodeURIComponent(language)}`,
     {
       headers: {
@@ -122,4 +123,3 @@ const pageTitle = t(language, "editPost", "admin");
     gap: 2rem;
   }
 </style>
-

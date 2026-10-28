@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Calendar, Clock, Eye, Edit, Trash2, AlertCircle, ChevronDown } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { t, type SupportedLanguage } from "../../lib/i18n";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 
@@ -119,7 +120,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(slug)}`, {
+      const response = await apiCall(`${ADMIN_API}/posts/${encodeURIComponent(slug)}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -383,4 +384,3 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
     </div>
   );
 }
-

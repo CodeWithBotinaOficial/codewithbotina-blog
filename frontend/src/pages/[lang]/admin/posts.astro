@@ -2,9 +2,9 @@
 export const prerender = false;
 
 import BaseLayout from "../../../components/BaseLayout.astro";
+import { apiCall } from "../../../lib/api";
 import AdminPostsList from "../../../components/admin/AdminPostsList";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, t, type SupportedLanguage } from "../../../lib/i18n";
-import { getApiUrl } from "../../../lib/env";
 
 const { lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
@@ -17,12 +17,11 @@ const pageTitle = t(language, "posts", "admin") || "Posts";
 const pageDescription = "View, edit, and manage your blog posts";
 
 // Fetch posts for the current language
-const apiUrl = getApiUrl().replace(/\/$/, "");
 let posts: any[] = [];
 let postsError: string | null = null;
 
 try {
-  const response = await fetch(
+  const response = await apiCall(
     `/api/admin/posts?language=${encodeURIComponent(language)}&limit=100`,
     {
       headers: {
@@ -102,4 +101,3 @@ posts.sort((a, b) => {
     gap: 2rem;
   }
 </style>
-

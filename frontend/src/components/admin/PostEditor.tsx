@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Lock, ShieldX } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 import { getAuthRoute } from "../../lib/auth-endpoints";
@@ -259,7 +260,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
 
     (async () => {
       try {
-        const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
+        const res = await apiCall(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
           credentials: "include",
         });
         if (!res.ok) return;
@@ -749,7 +750,7 @@ export default function PostEditor({ mode, initialData, cancelHref, labels, tagL
         payload.status = nextScheduledAt ? "scheduled" : "published";
       }
 
-      const response = await fetch(`${ADMIN_API}${endpoint}`, {
+      const response = await apiCall(`${ADMIN_API}${endpoint}`, {
         method: mode === "create" ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -1310,7 +1311,7 @@ function getStorageFilenameFromUrl(url: string): string | null {
 }
 
 async function checkSlugExists(slug: string, language: string): Promise<boolean> {
-  const response = await fetch(`${API_URL}/api/posts/${slug}/exists?language=${encodeURIComponent(language)}`);
+  const response = await apiCall(`${API_URL}/api/posts/${slug}/exists?language=${encodeURIComponent(language)}`);
   if (!response.ok) {
     throw new Error("Slug check failed");
   }
@@ -1328,7 +1329,7 @@ async function uploadImage(
   formData.append("title", title);
   formData.append("slug", slug);
 
-  const response = await fetch(`${ADMIN_API}/posts/upload-image`, {
+  const response = await apiCall(`${ADMIN_API}/posts/upload-image`, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -1361,7 +1362,7 @@ async function syncTranslations(args: {
   const uniqueInitial = Array.from(new Set((initial ?? []).map((id) => String(id).trim()).filter(Boolean)));
 
   const postLink = async (linkedIds: string[]) => {
-    const res = await fetch(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
+    const res = await apiCall(`${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -1373,7 +1374,7 @@ async function syncTranslations(args: {
   };
 
   const unlinkOne = async (linkedPostId: string) => {
-    const res = await fetch(
+    const res = await apiCall(
       `${ADMIN_API}/posts/${encodeURIComponent(postId)}/translations/${encodeURIComponent(linkedPostId)}`,
       {
         method: "DELETE",

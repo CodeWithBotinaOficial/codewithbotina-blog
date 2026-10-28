@@ -18,12 +18,25 @@ const refreshRoute = getAuthRoute("/refresh");
   currentPath={Astro.url.pathname}
   hideChrome={true}
 >
-  <section class="container-responsive py-16">
+  <section
+    class="container-responsive py-16"
+    id="auth-callback"
+    data-callback-route={callbackRoute}
+    data-language={language}
+    data-refresh-route={refreshRoute}
+  >
     <h1>{language === "es" ? "Iniciando sesión..." : "Signing you in..."}</h1>
     <p>{language === "es" ? "Completando autenticación. Espera un momento." : "Completing authentication. Please wait."}</p>
   </section>
 
-  <script type="module" define:vars={{ callbackRoute, language, refreshRoute }}>
+  <script>
+    import { apiCall } from "../../../lib/api";
+
+    const callbackConfig = document.getElementById("auth-callback")?.dataset;
+    const callbackRoute = callbackConfig?.callbackRoute ?? "";
+    const language = callbackConfig?.language ?? "en";
+    const refreshRoute = callbackConfig?.refreshRoute ?? "";
+
     const searchParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const code = searchParams.get("code") || hashParams.get("code");
@@ -42,7 +55,7 @@ const refreshRoute = getAuthRoute("/refresh");
       errorUrl.searchParams.set("next", next);
     }
 
-    const redirectToError = (errorCode, description) => {
+    const redirectToError = (errorCode: string, description: string | null) => {
       errorUrl.searchParams.set("error", errorCode);
       if (description) {
         errorUrl.searchParams.set("error_description", description);
@@ -72,7 +85,7 @@ const refreshRoute = getAuthRoute("/refresh");
       }
 
       if (refreshToken || accessToken) {
-        await fetch(refreshRoute, {
+        await apiCall(refreshRoute, {
           method: "POST",
           headers: refreshToken ? { "Content-Type": "application/json" } : undefined,
           credentials: "include",

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
+import { apiCall } from "../../lib/api";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
 import CommentItem from "./CommentItem";
 
@@ -112,6 +114,7 @@ export default function CommentList({
 
   const [comments, setComments] = useState<Comment[]>(initialComments || []);
   const { user, isAdmin: sessionIsAdmin } = useSession();
+  const { isMaintenanceMode } = useBackendStatus();
   const effectiveUserId = currentUserId ?? user?.id ?? null;
   const effectiveIsAdmin = isAdmin ?? sessionIsAdmin;
 
@@ -133,7 +136,8 @@ export default function CommentList({
   }, [comments]);
 
   const handleDelete = async (commentId: string) => {
-    const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
+    if (isMaintenanceMode) return;
+    const response = await apiCall(`${API_URL}/api/comments/${commentId}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -144,7 +148,8 @@ export default function CommentList({
   };
 
   const handleUpdate = async (commentId: string, content: string) => {
-    const response = await fetch(`${API_URL}/api/comments/${commentId}`, {
+    if (isMaintenanceMode) return null;
+    const response = await apiCall(`${API_URL}/api/comments/${commentId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -163,8 +168,9 @@ export default function CommentList({
   };
 
   const handleTogglePin = async (commentId: string, nextPinned: boolean) => {
+    if (isMaintenanceMode) return;
     const endpoint = nextPinned ? "pin" : "unpin";
-    const response = await fetch(
+    const response = await apiCall(
       `${API_URL}/api/comments/${commentId}/${endpoint}`,
       {
         method: "POST",
@@ -192,6 +198,11 @@ export default function CommentList({
 
   return (
     <div class="comment-list" data-post-id={postId}>
+      {isMaintenanceMode ? (
+        <p class="comment-error" role="status">
+          This feature is temporarily unavailable.
+        </p>
+      ) : null}
       {hasTranslations && sortedComments.length > 0 ? (
         <div class="unified-comments-notice">
           <span aria-hidden="true">🌐</span>
@@ -211,6 +222,7 @@ export default function CommentList({
             isAdmin={effectiveIsAdmin}
             labels={copy}
             dateLocale={dateLocale}
+            disabled={isMaintenanceMode}
             onDelete={handleDelete}
             onUpdate={handleUpdate}
             onTogglePin={handleTogglePin}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { MoreVertical, Pencil, Star, Trash2 } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 import { useSession } from "../../hooks/useSession";
 import ConfirmDialog from "../ui/ConfirmDialog";
@@ -91,7 +92,7 @@ export default function AdminPostMenu(
     setIsOpen(false);
     try {
       const query = language ? `?language=${encodeURIComponent(language)}` : "";
-      const response = await fetch(
+      const response = await apiCall(
         `${ADMIN_API}/posts/${encodeURIComponent(slug)}/pin${query}`,
         { method: "POST", credentials: "include" },
       );
@@ -118,7 +119,7 @@ export default function AdminPostMenu(
 
   const fetchDeleteInfo = async () => {
     const query = language ? `?language=${encodeURIComponent(language)}` : "";
-    const response = await fetch(
+    const response = await apiCall(
       `${ADMIN_API}/posts/${slug}/delete${query}`,
       {
         method: "DELETE",
@@ -161,7 +162,7 @@ export default function AdminPostMenu(
 
     try {
       const query = language ? `?language=${encodeURIComponent(language)}&confirm=true` : "?confirm=true";
-      const response = await fetch(
+      const response = await apiCall(
         `${ADMIN_API}/posts/${slug}/delete${query}`,
         {
           method: "DELETE",

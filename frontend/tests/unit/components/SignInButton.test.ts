@@ -13,4 +13,16 @@ describe('SignInButton', () => {
     expect(html).toContain('getAuthRoute("/google")');
     expect(html).not.toContain('api.codewithbotina.com');
   });
+
+  it('disables sign-in and shows a generic message during maintenance', async () => {
+    const filePath = resolve(
+      dirname(fileURLToPath(import.meta.url)),
+      '../../../src/components/auth/SignInButton.astro',
+    );
+    const html = await readFile(filePath, 'utf-8');
+    expect(html).toContain('data-auth-maintenance role="status" hidden');
+    expect(html).toContain('This feature is temporarily unavailable.');
+    expect(html).toContain('button.disabled = isMaintenanceMode');
+    expect(html).toContain('cwb:backend-status-change');
+  });
 });

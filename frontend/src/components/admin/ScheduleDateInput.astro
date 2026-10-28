@@ -21,8 +21,6 @@ const {
   currentStatus = 'draft',
   scheduledAt = null,
   isLoading = false,
-  onSchedule,
-  onUnschedule,
   locale = 'es',
 } = Astro.props;
 
@@ -34,23 +32,6 @@ function utcIsoToLocalDatetime(utcIsoString: string): string {
 
   const pad = (value: number) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function localDatetimeToUtcIso(localDatetimeValue: string): string {
-  if (!localDatetimeValue) return '';
-
-  const [datePart, timePart] = localDatetimeValue.split('T');
-  if (!datePart || !timePart) return '';
-
-  const [year, month, day] = datePart.split('-').map(Number);
-  const [hours, minutes] = timePart.split(':').map(Number);
-
-  if ([year, month, day, hours, minutes].some((value) => Number.isNaN(value))) {
-    return '';
-  }
-
-  const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
-  return Number.isNaN(localDate.getTime()) ? '' : localDate.toISOString();
 }
 
 /**
@@ -182,6 +163,8 @@ const initialDatetimeValue = scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : 
 
 <!-- Client-side interactivity -->
 <script>
+  import { apiCall } from '../../lib/api';
+
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeScheduler);
@@ -212,16 +195,6 @@ const initialDatetimeValue = scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : 
         });
       }
     });
-  }
-
-  function utcIsoToLocalDatetime(utcIsoString: string): string {
-    if (!utcIsoString) return '';
-
-    const date = new Date(utcIsoString);
-    if (Number.isNaN(date.getTime())) return '';
-
-    const pad = (value: number) => String(value).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
   function localDatetimeToUtcIso(localDatetimeValue: string): string {
@@ -260,7 +233,7 @@ const initialDatetimeValue = scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : 
       setLoading(postSlug, true);
       clearMessages(postSlug);
 
-      const response = await fetch(`/api/posts/${postSlug}/schedule`, {
+      const response = await apiCall(`/api/posts/${postSlug}/schedule`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduled_at: utcIsoString }),
@@ -290,7 +263,7 @@ const initialDatetimeValue = scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : 
       setLoading(postSlug, true);
       clearMessages(postSlug);
 
-      const response = await fetch(`/api/posts/${postSlug}/schedule`, {
+      const response = await apiCall(`/api/posts/${postSlug}/schedule`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -563,4 +536,3 @@ const initialDatetimeValue = scheduledAt ? utcIsoToLocalDatetime(scheduledAt) : 
     }
   }
 </style>
-

@@ -2,34 +2,24 @@ import type { APIRoute } from "astro";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async () => {
   const apiKey = import.meta.env.RESEND_API_KEY;
   const fromEmail = import.meta.env.RESEND_FROM_EMAIL || "noreply@codewithbotina.com";
   const toEmail = import.meta.env.RESEND_TO_EMAIL || "support@codewithbotina.com";
 
   if (!apiKey) {
     return new Response(
-      JSON.stringify({ ok: false, message: "Missing Resend API key." }),
+      JSON.stringify({ ok: false, message: "Service temporarily unavailable." }),
       {
-        status: 500,
+        status: 503,
         headers: { "Content-Type": "application/json" },
       },
     );
   }
 
-  let payload: Record<string, unknown> = {};
+  let response: Response;
   try {
-    payload = (await request.json()) as Record<string, unknown>;
-  } catch (_error) {
-    payload = {};
-  }
-
-  const detectedAt =
-    typeof payload.detectedAt === "string" ? payload.detectedAt : new Date().toISOString();
-  const userAgent =
-    typeof payload.userAgent === "string" ? payload.userAgent : "Unknown user agent";
-
-  const response = await fetch("https://api.resend.com/emails", {
+    response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -41,26 +31,32 @@ export const POST: APIRoute = async ({ request }) => {
       subject: "CodeWithBotina backend maintenance detected",
       html: `
         <h2>CodeWithBotina backend maintenance detected</h2>
-        <p><strong>Detected at:</strong> ${detectedAt}</p>
-        <p><strong>User Agent:</strong> ${userAgent}</p>
+        <p><strong>Detected at:</strong> ${new Date().toISOString()}</p>
         <p>The backend is currently unavailable and the site entered maintenance mode.</p>
       `,
     }),
-  });
-
-  const body = await response.json().catch(() => ({ ok: false }));
-
-  if (!response.ok) {
+    });
+  } catch {
     return new Response(
-      JSON.stringify({ ok: false, message: "Email delivery failed.", details: body }),
+      JSON.stringify({ ok: false, message: "Service temporarily unavailable." }),
       {
-        status: response.status,
+        status: 502,
         headers: { "Content-Type": "application/json" },
       },
     );
   }
 
-  return new Response(JSON.stringify({ ok: true, data: body }), {
+  if (!response.ok) {
+    return new Response(
+      JSON.stringify({ ok: false, message: "Service temporarily unavailable." }),
+      {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });

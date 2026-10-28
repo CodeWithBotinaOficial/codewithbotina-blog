@@ -3,6 +3,7 @@ export const prerender = false;
 
 import BaseLayout from "../../../components/BaseLayout.astro";
 import { supabase } from "../../../lib/supabase";
+import { apiCall } from "../../../lib/api";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../../lib/i18n";
 import TagsBrowser from "../../../components/tags/TagsBrowser";
@@ -58,7 +59,7 @@ try {
   url.searchParams.set("limit", String(perPage));
   url.searchParams.set("offset", String(offset));
 
-  const response = await fetch(url.toString());
+  const response = await apiCall(url.toString());
   if (!response.ok) throw new Error("Failed to fetch tags");
   const payload = await response.json();
   const data = payload?.data ?? payload;
@@ -91,7 +92,9 @@ const canonicalizeBase = currentPage === 1 && perPage === 20 &&
   (Astro.url.searchParams.has("page") || Astro.url.searchParams.has("per_page"));
 
 if (!hasError && (invalidPerPageProvided || invalidPageProvided || outOfRange || missingPageForCustomPerPage || canonicalizeBase)) {
-  return Astro.redirect(buildTagsPageHref(`/${language}/tags`, currentPage, perPage, Astro.url.searchParams), 302);
+  const redirectPath = buildTagsPageHref(`/${language}/tags`, currentPage, perPage, Astro.url.searchParams);
+  void redirectPath;
+  return Astro.redirect(redirectPath, 302);
 }
 
 const canonicalUrl = `${siteUrl}/${language}/tags`;
@@ -148,9 +151,11 @@ const paginationLabels = {
   currentPath={Astro.url.pathname}
 >
   <Fragment slot="head">
-    <script type="application/ld+json">
-      {JSON.stringify(structuredData)}
-    </script>
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(structuredData)}
+    />
   </Fragment>
 
   <section class="container-responsive py-12">

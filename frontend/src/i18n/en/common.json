@@ -38,9 +38,9 @@
   "pinned": "Pinned",
   "pinnedPost": "Pinned Post",
   "maintenance": {
-    "bannerTitle": "Maintenance mode active",
-    "bannerMessage": "Some interactive features are temporarily unavailable while the backend is being restored.",
-    "lastChecked": "Last checked:"
+    "bannerTitle": "Some features are temporarily unavailable",
+    "bannerMessage": "Reading and navigation are still available. Please try again later.",
+    "lastChecked": "Status checked:"
   },
   "language": {
     "switchTo": "Switch to {{language}}",

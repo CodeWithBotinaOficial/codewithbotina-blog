@@ -5,6 +5,7 @@ import { getApiUrl } from "../../lib/env";
 import { clearFiltersFromStorage, loadFiltersFromStorage, saveFiltersToStorage } from "../../lib/search-filters";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, t } from "../../lib/i18n";
 import { DEFAULT_SEARCH_FILTERS, type SearchFilters as SearchFiltersType } from "../../types/search";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 
 type Tag = { id?: string; name: string; slug: string; usage_count?: number | null };
 
@@ -55,6 +56,7 @@ export default function SearchFilters({
   autoApplySearch = true,
   defaultFiltersOpen,
 }: SearchFiltersProps) {
+  const { isMaintenanceMode } = useBackendStatus();
   const uiLanguage = initialFilters?.uiLanguage ?? "en";
   const defaultFilters = useMemo(() => DEFAULT_SEARCH_FILTERS(uiLanguage), [uiLanguage]);
 
@@ -87,7 +89,7 @@ export default function SearchFilters({
   }, []);
 
   useEffect(() => {
-    if (!showTagFilter) return;
+    if (!showTagFilter || isMaintenanceMode) return;
     let cancelled = false;
     (async () => {
       try {
@@ -103,10 +105,10 @@ export default function SearchFilters({
     return () => {
       cancelled = true;
     };
-  }, [showTagFilter]);
+  }, [isMaintenanceMode, showTagFilter]);
 
   useEffect(() => {
-    if (!showTagFilter) return;
+    if (!showTagFilter || isMaintenanceMode) return;
     if (tagDebounceRef.current) window.clearTimeout(tagDebounceRef.current);
 
     const q = tagQuery.trim();
@@ -130,11 +132,11 @@ export default function SearchFilters({
     return () => {
       if (tagDebounceRef.current) window.clearTimeout(tagDebounceRef.current);
     };
-  }, [tagQuery, showTagFilter]);
+  }, [isMaintenanceMode, tagQuery, showTagFilter]);
 
   // Debounced auto-apply for the main search input (matches prior UX, but now searches the full dataset).
   useEffect(() => {
-    if (!autoApplySearch) return;
+    if (!autoApplySearch || isMaintenanceMode) return;
     if (!didMountRef.current) {
       didMountRef.current = true;
       return;
@@ -152,7 +154,7 @@ export default function SearchFilters({
     return () => {
       if (searchDebounceRef.current) window.clearTimeout(searchDebounceRef.current);
     };
-  }, [filters.search, autoApplySearch]);
+  }, [filters.search, autoApplySearch, isMaintenanceMode]);
 
   const validate = (next: SearchFiltersType): boolean => {
     const from = next.from;
@@ -180,12 +182,14 @@ export default function SearchFilters({
   };
 
   const commitSearch = (next: SearchFiltersType) => {
+    if (isMaintenanceMode) return;
     if (!validate(next)) return;
     saveFiltersToStorage(next);
     onSearch(next);
   };
 
   const resetAll = () => {
+    if (isMaintenanceMode) return;
     const next = DEFAULT_SEARCH_FILTERS(uiLanguage);
     setFilters(next);
     setSelectedTags([]);
@@ -193,7 +197,7 @@ export default function SearchFilters({
     setTagSuggestions([]);
     setErrors({});
     clearFiltersFromStorage();
-    onSearch(next);
+    if (!isMaintenanceMode) onSearch(next);
   };
 
   const updateTags = (nextSelected: Tag[]) => {
@@ -217,7 +221,16 @@ export default function SearchFilters({
   const tagOptions = showPopular ? popularTags : tagSuggestions;
 
   return (
-    <div class={`w-full ${compact ? "max-w-3xl" : "max-w-5xl"} mx-auto`}>
+    <fieldset
+      disabled={isMaintenanceMode}
+      class={`w-full min-w-0 border-0 p-0 ${compact ? "max-w-3xl" : "max-w-5xl"} mx-auto`}
+    >
+      {isMaintenanceMode ? (
+        <p class="mb-3 text-sm text-[var(--color-text-secondary)]" role="status">
+          This feature is temporarily unavailable.
+        </p>
+      ) : null}
+      <div class={`w-full ${compact ? "max-w-3xl" : "max-w-5xl"} mx-auto`}>
       <div class="relative">
         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] pointer-events-none">
           <SearchIcon className="h-5 w-5" />
@@ -506,6 +519,7 @@ export default function SearchFilters({
           ) : null}
         </div>
       ) : null}
-    </div>
+      </div>
+    </fieldset>
   );
 }

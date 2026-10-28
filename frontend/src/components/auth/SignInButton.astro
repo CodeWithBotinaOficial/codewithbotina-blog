@@ -5,10 +5,26 @@ const { label = "Sign in with Google" } = Astro.props;
 <button class="btn-auth" type="button" data-auth="signin">
   {label}
 </button>
+<p data-auth-maintenance role="status" hidden>
+  This feature is temporarily unavailable.
+</p>
 
 <script>
   import { getAuthRoute } from "../../lib/auth-endpoints";
-  const button = document.querySelector('[data-auth="signin"]');
+  const button = document.querySelector<HTMLButtonElement>('[data-auth="signin"]');
+  const maintenanceMessage = document.querySelector<HTMLElement>(
+    "[data-auth-maintenance]",
+  );
+
+  const updateAvailability = () => {
+    const isMaintenanceMode =
+      document.documentElement.dataset.backendStatus === "maintenance";
+    if (button) button.disabled = isMaintenanceMode;
+    if (maintenanceMessage) maintenanceMessage.hidden = !isMaintenanceMode;
+  };
+
+  updateAvailability();
+  window.addEventListener("cwb:backend-status-change", updateAvailability);
 
   const resolveNext = () => {
     const params = new URLSearchParams(window.location.search);
@@ -25,6 +41,7 @@ const { label = "Sign in with Google" } = Astro.props;
 
   if (button) {
     button.addEventListener("click", () => {
+      if (button.disabled) return;
       const next = encodeURIComponent(resolveNext());
       window.location.assign(`${getAuthRoute("/google")}?next=${next}`);
     });

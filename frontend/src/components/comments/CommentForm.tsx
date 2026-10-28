@@ -45,7 +45,7 @@ export default function CommentForm({ postId, labels }: Props) {
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
-    if (!user || !isValid || isSubmitting) return;
+    if (isMaintenanceMode || !user || !isValid || isSubmitting) return;
 
     setIsSubmitting(true);
     setError("");
@@ -89,15 +89,7 @@ export default function CommentForm({ postId, labels }: Props) {
     return <p class="comment-loading">{copy.loading}</p>;
   }
 
-  if (isMaintenanceMode) {
-    return (
-      <p class="comment-error">
-        Maintenance mode is active. Commenting is temporarily unavailable.
-      </p>
-    );
-  }
-
-  if (!user) {
+  if (!user && !isMaintenanceMode) {
     const next = typeof window !== "undefined" ? window.location.href : "/";
     const authUrl = `${getAuthRoute("/google")}?next=${encodeURIComponent(next)}`;
     return (
@@ -109,8 +101,13 @@ export default function CommentForm({ postId, labels }: Props) {
 
   return (
     <form class="comment-form" onSubmit={handleSubmit}>
+      {isMaintenanceMode ? (
+        <p class="comment-error" role="status">
+          This feature is temporarily unavailable.
+        </p>
+      ) : null}
       <img
-        src={user.avatar_url || "/avatar-placeholder.png"}
+        src={user?.avatar_url || "/avatar-placeholder.png"}
         alt="Your avatar"
         class="comment-avatar"
         width={40}
@@ -126,6 +123,7 @@ export default function CommentForm({ postId, labels }: Props) {
           placeholder={copy.placeholder}
           maxLength={1000}
           rows={3}
+          disabled={isMaintenanceMode}
         />
 
         <div class="comment-form-footer">
@@ -133,7 +131,7 @@ export default function CommentForm({ postId, labels }: Props) {
           <button
             type="submit"
             class="comment-submit"
-            disabled={!isValid || isSubmitting}
+            disabled={!isValid || isSubmitting || isMaintenanceMode}
           >
             {isSubmitting ? copy.submitting : copy.submit}
           </button>

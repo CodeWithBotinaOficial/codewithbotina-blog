@@ -1,6 +1,11 @@
 import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
 
+process.env.NODE_OPTIONS = [
+  process.env.NODE_OPTIONS,
+  '--no-experimental-webstorage',
+].filter(Boolean).join(' ');
+
 export default defineConfig({
   esbuild: {
     jsx: "automatic",

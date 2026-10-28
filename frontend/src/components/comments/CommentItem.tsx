@@ -6,6 +6,7 @@ interface Props {
   currentLanguage: string;
   currentUserId: string | null;
   isAdmin: boolean;
+  disabled?: boolean;
   onDelete: (_commentId: string) => void;
   onUpdate: (_commentId: string, _content: string) => Promise<Comment | null>;
   onTogglePin: (_commentId: string, _nextPinned: boolean) => void;
@@ -56,6 +57,7 @@ export default function CommentItem({
   currentLanguage,
   currentUserId,
   isAdmin,
+  disabled = false,
   onDelete,
   onUpdate,
   onTogglePin,
@@ -92,7 +94,7 @@ export default function CommentItem({
     editedContent.trim().length >= 10 && editedContent.trim().length <= 1000;
 
   const handleSave = async () => {
-    if (!isValid || isSaving) return;
+    if (disabled || !isValid || isSaving) return;
     setIsSaving(true);
     setError("");
     const updated = await onUpdate(comment.id, editedContent);
@@ -152,6 +154,7 @@ export default function CommentItem({
             }
             rows={3}
             maxLength={1000}
+            disabled={disabled}
           />
         ) : (
           <p>{comment.content}</p>
@@ -166,13 +169,14 @@ export default function CommentItem({
                 type="button"
                 class="comment-action"
                 onClick={handleSave}
-                disabled={!isValid || isSaving}
+                disabled={!isValid || isSaving || disabled}
               >
                 {isSaving ? copy.saving : copy.save}
               </button>
               <button
                 type="button"
                 class="comment-action"
+                disabled={disabled}
                 onClick={() => {
                   setIsEditing(false);
                   setEditedContent(comment.content);
@@ -186,6 +190,7 @@ export default function CommentItem({
             <button
               type="button"
               class="comment-action"
+              disabled={disabled}
               onClick={() => setIsEditing(true)}
             >
               {copy.edit}
@@ -197,6 +202,7 @@ export default function CommentItem({
           <button
             type="button"
             class="comment-action danger"
+            disabled={disabled}
             onClick={() => onDelete(comment.id)}
           >
             {copy.delete}
@@ -207,6 +213,7 @@ export default function CommentItem({
           <button
             type="button"
             class="comment-action"
+            disabled={disabled}
             onClick={() => onTogglePin(comment.id, !comment.is_pinned)}
           >
             {comment.is_pinned ? copy.unpin : copy.pin}
@@ -227,6 +234,7 @@ export default function CommentItem({
               isAdmin={isAdmin}
               labels={copy}
               dateLocale={dateLocale}
+              disabled={disabled}
               onDelete={onDelete}
               onUpdate={onUpdate}
               onTogglePin={onTogglePin}

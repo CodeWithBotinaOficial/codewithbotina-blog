@@ -8,6 +8,7 @@ import PaginationControls from "../../components/pagination/PaginationControls";
 import SearchFiltersController from "../../components/search/SearchFiltersController";
 import StructuredData from "../../components/StructuredData.astro";
 import { supabase } from "../../lib/supabase";
+import { apiCall } from "../../lib/api";
 import { getApiUrl, getSiteUrl } from "../../lib/env";
 import type { Post } from "../../types/post";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../lib/i18n";
@@ -47,7 +48,7 @@ let isAdmin = false;
 
 if (accessToken) {
   try {
-    const meResponse = await fetch(`${apiUrl}/api/auth/me`, {
+    const meResponse = await apiCall(`${apiUrl}/api/auth/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -94,7 +95,7 @@ if (hasOtherParams) {
   url.searchParams.set("offset", String(offset));
 
   try {
-    const res = await fetch(url.toString(), {
+    const res = await apiCall(url.toString(), {
       headers: {
         Cookie: cookieHeader,
         "Content-Type": "application/json",
@@ -115,7 +116,7 @@ if (hasOtherParams) {
 } else {
   try {
     const backendUrl = `${apiUrl}/api/posts?language=${encodeURIComponent(language)}&limit=${perPage}&offset=${offsetFor(requestedPage, perPage)}`;
-    const backendResponse = await fetch(backendUrl, {
+    const backendResponse = await apiCall(backendUrl, {
       headers: {
         Cookie: cookieHeader,
         "Content-Type": "application/json",

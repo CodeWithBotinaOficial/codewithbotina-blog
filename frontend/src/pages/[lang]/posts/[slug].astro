@@ -9,6 +9,7 @@ import AdminPostMenu from "../../../components/admin/AdminPostMenu";
 import FeaturedPostBanner from "../../../components/FeaturedPostBanner";
 import StructuredData from "../../../components/StructuredData.astro";
 import { supabase } from "../../../lib/supabase";
+import { apiCall } from "../../../lib/api";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { formatDate, calculateReadTime, stripMarkdown, truncateText } from "../../../lib/utils";
 import { Calendar, Clock, ArrowLeft, Share2 } from "lucide-astro";
@@ -28,7 +29,6 @@ if (!lang || !isSupportedLanguage(lang)) {
 const apiUrl = getApiUrl().replace(/\/$/, "");
 
 let post: any = null;
-let postError: any = null;
 
 // Try backend API first (has proper authorization for admins to access draft/scheduled posts)
 try {
@@ -42,7 +42,7 @@ try {
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
   
-  const response = await fetch(
+  const response = await apiCall(
     `${apiUrl}/api/posts/${encodeURIComponent(slug ?? "")}?language=${encodeURIComponent(language)}`,
     {
       headers,
@@ -84,7 +84,6 @@ if (!post) {
       .eq("status", "published")
       .single();
     post = fallback.data;
-    postError = fallback.error;
   } else {
     post = joinedResult.data;
   }
@@ -96,7 +95,7 @@ if (!post) {
 
 let reactions = { likes: 0, dislikes: 0, total: 0 };
 try {
-  const reactionResponse = await fetch(`${apiUrl}/api/reactions/${post.id}`);
+  const reactionResponse = await apiCall(`${apiUrl}/api/reactions/${post.id}`);
   if (reactionResponse.ok) {
     const body = await reactionResponse.json();
     reactions = body?.data ?? reactions;
@@ -184,7 +183,7 @@ let tagList = normalizeTags([...joinedTags, ...legacyTags]);
 
 if (tagList.length === 0 && slug) {
   try {
-    const response = await fetch(`${apiUrl}/api/posts/${encodeURIComponent(slug)}/tags`);
+    const response = await apiCall(`${apiUrl}/api/posts/${encodeURIComponent(slug)}/tags`);
     if (response.ok) {
       const payload = await response.json();
       const fallbackTags = payload?.data?.tags ?? payload?.tags ?? [];

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Search, X } from "lucide-preact";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 
 export interface TranslationPost {
@@ -88,14 +89,14 @@ export default function TranslationLinker(
         // `/api/search` endpoint if the first one returns non-JSON (some deployments
         // may proxy legacy paths differently). This avoids throwing raw HTML parse
         // errors in the admin UI.
-        let res = await fetch(`${API_URL}/api/posts?q=${encodeURIComponent(q)}&limit=12`, {
+        let res = await apiCall(`${API_URL}/api/posts?q=${encodeURIComponent(q)}&limit=12`, {
           credentials: "include",
         });
         let contentType = res.headers.get("content-type") ?? "";
         if (!res.ok || !contentType.includes("application/json")) {
           // Attempt compatibility path
           try {
-            const fallback = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(q)}&limit=12`, {
+            const fallback = await apiCall(`${API_URL}/api/search?q=${encodeURIComponent(q)}&limit=12`, {
               credentials: "include",
             });
             if (fallback.ok) {

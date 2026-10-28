@@ -11,10 +11,11 @@ if (hasOAuthParams) {
   return Astro.redirect(`/auth/callback${Astro.url.search}`, 302);
 }
 
-const language = detectLanguage(
+const redirectPath = `/${detectLanguage(
   Astro.cookies,
   Astro.request.headers.get("accept-language"),
-);
+)}/`;
 
-return Astro.redirect(`/${language}/`, 302);
+void redirectPath;
+return Astro.redirect(redirectPath, 302);
 ---

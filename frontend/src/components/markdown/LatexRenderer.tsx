@@ -18,20 +18,10 @@ async function loadKaTeX(): Promise<KaTeXModule> {
 }
 
 async function writeToClipboardText(text: string) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
+  if (!navigator.clipboard?.writeText) {
+    throw new Error("Clipboard access is unavailable.");
   }
-
-  const el = document.createElement("textarea");
-  el.value = text;
-  el.setAttribute("readonly", "true");
-  el.style.position = "fixed";
-  el.style.left = "-9999px";
-  document.body.appendChild(el);
-  el.select();
-  document.execCommand("copy");
-  document.body.removeChild(el);
+  await navigator.clipboard.writeText(text);
 }
 
 async function renderElementToPngBlob(element: HTMLElement): Promise<Blob | null> {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 import { getAdminRoute } from "../../lib/admin-endpoints";
 import type { TagSelectorLabels } from "../../lib/admin-editor";
@@ -71,7 +72,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
       setLoadingSuggestions(true);
       setErrorMessage(null);
       try {
-        const response = await fetch(`${API_URL}/api/tags/suggest`, {
+        const response = await apiCall(`${API_URL}/api/tags/suggest`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -113,7 +114,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(
+        const response = await apiCall(
           `${API_URL}/api/tags/autocomplete?q=${encodeURIComponent(inputValue.trim())}`,
           { signal: controller.signal },
         );
@@ -154,7 +155,7 @@ export default function TagSelector({ title, body, selectedTags, onChange, label
     if (name.length < 2) return;
 
     try {
-      const response = await fetch(`${ADMIN_API}/tags/create`, {
+      const response = await apiCall(`${ADMIN_API}/tags/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

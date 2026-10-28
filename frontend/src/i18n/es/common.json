@@ -38,9 +38,9 @@
   "pinned": "Fijado",
   "pinnedPost": "Post Fijado",
   "maintenance": {
-    "bannerTitle": "Modo de mantenimiento activo",
-    "bannerMessage": "Algunas funciones interactivas están temporalmente deshabilitadas mientras se restaura el backend.",
-    "lastChecked": "Última comprobación:"
+    "bannerTitle": "Algunas funciones no están disponibles temporalmente",
+    "bannerMessage": "La lectura y la navegación siguen disponibles. Inténtalo de nuevo más tarde.",
+    "lastChecked": "Estado comprobado:"
   },
   "language": {
     "switchTo": "Cambiar a {{language}}",

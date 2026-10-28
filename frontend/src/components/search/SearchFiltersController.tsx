@@ -1,4 +1,5 @@
 import SearchFilters from "./SearchFilters";
+import { apiCall } from "../../lib/api";
 import { filtersToUrlParams } from "../../lib/search-filters";
 import { getApiUrl } from "../../lib/env";
 import { calculateReadTime, formatDate, stripMarkdown, truncateText } from "../../lib/utils";
@@ -152,9 +153,8 @@ export default function SearchFiltersController({
             headers.set("Accept", "application/json");
             headers.set("X-Requested-With", "XMLHttpRequest");
 
-            const res = await fetch(apiUrl.toString(), { credentials: "same-origin", headers });
+            const res = await apiCall(apiUrl.toString(), { credentials: "same-origin", headers });
             if (!res.ok) {
-              console.error("Search API error", res.status, apiUrl.toString());
               return;
             }
             const contentType = res.headers.get("content-type") ?? "";

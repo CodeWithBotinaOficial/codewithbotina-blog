@@ -7,11 +7,23 @@ type BackendStatusEvent = "success" | "failure";
 
 type BackendStatusListener = (_event: BackendStatusEvent) => void;
 
-const BACKEND_URL = import.meta.env.PUBLIC_API_URL ?? "";
+const BACKEND_URL = import.meta.env.PUBLIC_API_URL || getApiUrl();
+
+class ServiceUnavailableError extends Error {
+  constructor() {
+    super("This feature is temporarily unavailable.");
+    this.name = "ServiceUnavailableError";
+  }
+}
 
 export function isBackendCall(url: string): boolean {
   const target = String(url ?? "");
-  return target.startsWith(BACKEND_URL) || target.startsWith("/api/");
+  const backendUrl = BACKEND_URL.replace(/\/+$/, "");
+  return (
+    target.startsWith("/api/") ||
+    (backendUrl !== "" &&
+      (target === backendUrl || target.startsWith(`${backendUrl}/`)))
+  );
 }
 
 export const backendStatusBus = {
@@ -42,7 +54,7 @@ export async function apiCall(
 
     if (response.status === 503 || response.status === 502) {
       backendStatusBus.emit("failure");
-      throw new Error("SERVICE_UNAVAILABLE");
+      throw new ServiceUnavailableError();
     }
 
     if (isBackendCall(url)) {
@@ -51,14 +63,13 @@ export async function apiCall(
 
     return response;
   } catch (error) {
-    if (error instanceof Error && error.message === "SERVICE_UNAVAILABLE") {
+    if (error instanceof ServiceUnavailableError) {
       throw error;
     }
 
     if (error instanceof TypeError && isBackendCall(url)) {
-      console.warn("[api] Network/CORS failure for backend call:", url);
       backendStatusBus.emit("failure");
-      throw new Error("SERVICE_UNAVAILABLE");
+      throw new ServiceUnavailableError();
     }
 
     throw error;

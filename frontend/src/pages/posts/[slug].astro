@@ -3,11 +3,11 @@ export const prerender = false;
 
 import { detectLanguage } from "../../lib/i18n";
 
-const { slug } = Astro.params;
-const language = detectLanguage(
+const redirectPath = `/${detectLanguage(
   Astro.cookies,
   Astro.request.headers.get("accept-language"),
-);
+)}/posts/${Astro.params.slug ?? ""}`;
 
-return Astro.redirect(`/${language}/posts/${slug}`, 302);
+void redirectPath;
+return Astro.redirect(redirectPath, 302);
 ---

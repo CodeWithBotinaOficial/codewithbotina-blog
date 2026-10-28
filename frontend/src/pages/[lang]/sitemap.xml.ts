@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { apiCall } from "../../lib/api";
 import { supabase } from "../../lib/supabase";
 import { getApiUrl, getSiteUrl } from "../../lib/env";
 import { DEFAULT_LANGUAGE, getRoutePath, isSupportedLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from "../../lib/i18n";
@@ -78,7 +79,7 @@ export const GET: APIRoute = async ({ params }) => {
     tags = tagData || [];
   } catch (_error) {
     try {
-      const response = await fetch(`${apiUrl}/api/tags`);
+      const response = await apiCall(`${apiUrl}/api/tags`);
       if (response.ok) {
         const payload = await response.json();
         tags = payload?.data?.tags ?? payload?.tags ?? [];

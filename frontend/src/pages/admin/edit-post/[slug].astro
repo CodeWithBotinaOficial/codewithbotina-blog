@@ -8,13 +8,16 @@ const langParam = Astro.url.searchParams.get("lang");
 const language = isSupportedLanguage(langParam ?? "")
   ? (langParam as SupportedLanguage)
   : detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language"));
-const resolvedLanguage = isSupportedLanguage(language ?? "")
-  ? language
-  : DEFAULT_LANGUAGE;
 
+void language;
+void DEFAULT_LANGUAGE;
 if (!slug) {
-  return Astro.redirect(`/${resolvedLanguage}/404`);
+  return Astro.redirect(
+    `/${isSupportedLanguage(language ?? "") ? language : DEFAULT_LANGUAGE}/404`,
+  );
 }
 
-return Astro.redirect(`/${resolvedLanguage}/admin/edit-post/${slug}`);
+return Astro.redirect(
+  `/${isSupportedLanguage(language ?? "") ? language : DEFAULT_LANGUAGE}/admin/edit-post/${slug}`,
+);
 ---

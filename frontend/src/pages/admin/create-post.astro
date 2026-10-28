@@ -7,9 +7,10 @@ const langParam = Astro.url.searchParams.get("lang");
 const language = isSupportedLanguage(langParam ?? "")
   ? (langParam as SupportedLanguage)
   : detectLanguage(Astro.cookies, Astro.request.headers.get("accept-language"));
-const resolvedLanguage = isSupportedLanguage(language ?? "")
-  ? language
-  : DEFAULT_LANGUAGE;
 
-return Astro.redirect(`/${resolvedLanguage}/admin/create-post`);
+void language;
+void DEFAULT_LANGUAGE;
+return Astro.redirect(
+  `/${isSupportedLanguage(language ?? "") ? language : DEFAULT_LANGUAGE}/admin/create-post`,
+);
 ---

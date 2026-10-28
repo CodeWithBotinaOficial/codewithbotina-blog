@@ -1,6 +1,7 @@
 ---
 import CommentList from "./CommentList";
 import CommentForm from "./CommentForm";
+import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
 
 const { postId, labels, dateLocale, currentLanguage = "en", hasTranslations = false } = Astro.props;
@@ -8,7 +9,7 @@ const apiUrl = getApiUrl();
 
 let initialComments = [];
 try {
-  const response = await fetch(`${apiUrl}/api/comments/${postId}`);
+  const response = await apiCall(`${apiUrl}/api/comments/${postId}`);
   if (response.ok) {
     const body = await response.json();
     initialComments = body?.data || [];

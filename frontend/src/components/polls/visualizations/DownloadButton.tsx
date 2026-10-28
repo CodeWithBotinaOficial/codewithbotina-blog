@@ -52,7 +52,7 @@ export default function DownloadButton({ elementRef, filename, type = 'chart', l
       if (type === 'list') {
         const listItems = clone.querySelectorAll<HTMLElement>('.top-list-item');
         listItems.forEach(item => {
-          item.style.wordWrap = 'break-word';
+          item.style.overflowWrap = 'break-word';
           item.style.whiteSpace = 'normal';
           item.style.overflow = 'visible';
         });

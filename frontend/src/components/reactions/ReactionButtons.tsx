@@ -66,6 +66,7 @@ export default function ReactionButtons({
   }, [authenticated, postId, user?.id]);
 
   const handleReaction = async (type: "like" | "dislike") => {
+    if (isMaintenanceMode) return;
     if (!authenticated || !user) {
       setMessage(`${copy.signIn} ${copy.signInSuffix}`.trim());
       return;
@@ -148,20 +149,17 @@ export default function ReactionButtons({
     return <p class="reaction-loading">{copy.loading}</p>;
   }
 
-  if (isMaintenanceMode) {
-    return (
-      <div class="reaction-buttons">
-        <p class="reaction-message">Maintenance mode is active. Reactions are temporarily unavailable.</p>
-      </div>
-    );
-  }
-
   return (
     <div class="reaction-buttons">
+      {isMaintenanceMode ? (
+        <p class="reaction-message" role="status">
+          This feature is temporarily unavailable.
+        </p>
+      ) : null}
       <button
         type="button"
         class={`reaction-button ${currentReaction === "like" ? "active" : ""}`}
-        disabled={isLoading}
+        disabled={isLoading || isMaintenanceMode}
         onClick={() => handleReaction("like")}
       >
         👍 <span>{likes}</span>
@@ -170,13 +168,13 @@ export default function ReactionButtons({
       <button
         type="button"
         class={`reaction-button ${currentReaction === "dislike" ? "active" : ""}`}
-        disabled={isLoading}
+        disabled={isLoading || isMaintenanceMode}
         onClick={() => handleReaction("dislike")}
       >
         👎 <span>{dislikes}</span>
       </button>
 
-      {!authenticated ? (
+      {!authenticated && !isMaintenanceMode ? (
         <p class="reaction-signin">
           <a href={`${getAuthRoute("/google")}?next=${encodeURIComponent(nextUrl)}`}>
             {copy.signIn}

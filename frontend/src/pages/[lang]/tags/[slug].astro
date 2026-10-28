@@ -6,6 +6,7 @@ import PostCard from "../../../components/PostCard.astro";
 import PaginationControls from "../../../components/pagination/PaginationControls";
 import SearchFiltersController from "../../../components/search/SearchFiltersController";
 import { supabase } from "../../../lib/supabase";
+import { apiCall } from "../../../lib/api";
 import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../../lib/i18n";
 import { filtersFromUrl } from "../../../lib/search-filters";
@@ -71,7 +72,7 @@ if (!tagResult.error && tagResult.data) {
       searchUrl.searchParams.set("limit", String(perPage));
       searchUrl.searchParams.set("offset", String(offset));
 
-      const res = await fetch(searchUrl.toString());
+      const res = await apiCall(searchUrl.toString());
       if (!res.ok) throw new Error("Failed to fetch tag search results");
       const payload = await res.json();
       const data = payload?.data ?? payload;
@@ -139,7 +140,7 @@ if (hasTagError) {
   try {
     const safePage = requestedPage > 0 ? requestedPage : 1;
     const offset = offsetFor(safePage, perPage);
-    const response = await fetch(
+    const response = await apiCall(
       `${apiUrl}/api/tags/${encodeURIComponent(slug ?? "")}?language=${encodeURIComponent(language)}&limit=${encodeURIComponent(String(perPage))}&offset=${encodeURIComponent(String(offset))}`,
     );
     if (response.ok) {
@@ -245,9 +246,11 @@ const paginationLabels = {
   <Fragment slot="head">
     {prevPath ? <link rel="prev" href={`${siteUrl}${prevPath}`} /> : null}
     {nextPath ? <link rel="next" href={`${siteUrl}${nextPath}`} /> : null}
-    <script type="application/ld+json">
-      {JSON.stringify(structuredData)}
-    </script>
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(structuredData)}
+    />
   </Fragment>
 
   <section class="container-responsive py-12">
