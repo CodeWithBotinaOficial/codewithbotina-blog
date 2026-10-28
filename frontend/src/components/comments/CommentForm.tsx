@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
 import { getAuthRoute } from "../../lib/auth-endpoints";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
 
 interface Props {
@@ -34,6 +35,7 @@ export default function CommentForm({ postId, labels }: Props) {
   };
 
   const { user, loading } = useSession();
+  const { isMaintenanceMode } = useBackendStatus();
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -84,6 +86,14 @@ export default function CommentForm({ postId, labels }: Props) {
 
   if (loading) {
     return <p class="comment-loading">{copy.loading}</p>;
+  }
+
+  if (isMaintenanceMode) {
+    return (
+      <p class="comment-error">
+        Maintenance mode is active. Commenting is temporarily unavailable.
+      </p>
+    );
   }
 
   if (!user) {

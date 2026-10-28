@@ -1,4 +1,5 @@
 import { useAuth } from "../../hooks/useAuth";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
 
 interface Props {
@@ -15,15 +16,20 @@ interface Props {
 export default function HeaderAuthControls({ labels, profileHref }: Props) {
   const { user, loading } = useSession();
   const { signIn, signOut } = useAuth();
+  const { isMaintenanceMode } = useBackendStatus();
 
   if (loading) {
     return <div class="auth-loading">{labels.loading}</div>;
   }
 
+  if (isMaintenanceMode && !user) {
+    return <div class="auth-controls"><span class="auth-disabled">Maintenance mode</span></div>;
+  }
+
   if (!user) {
     return (
       <div class="auth-controls">
-        <button class="btn-auth" type="button" onClick={signIn}>
+        <button class="btn-auth" type="button" onClick={signIn} disabled={isMaintenanceMode}>
           {labels.signIn}
         </button>
       </div>
@@ -54,7 +60,7 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
       >
         {user.full_name || user.email}
       </a>
-      <button class="btn-auth" type="button" onClick={signOut}>
+      <button class="btn-auth" type="button" onClick={signOut} disabled={isMaintenanceMode}>
         {labels.signOut}
       </button>
     </div>

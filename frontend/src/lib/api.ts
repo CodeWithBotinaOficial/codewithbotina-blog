@@ -3,6 +3,13 @@ import { getApiUrl } from "./env";
 type Json =
   Record<string, unknown> | unknown[] | string | number | boolean | null;
 
+function notifyBackendStatus(type: "success" | "failure") {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("cwb:backend-status", { detail: { type } }),
+  );
+}
+
 function joinUrl(base: string, path: string) {
   const b = String(base ?? "").replace(/\/$/, "");
   const p = String(path ?? "");
@@ -30,6 +37,10 @@ export async function apiFetch<T = Json>(
   });
 
   if (!res.ok) {
+    if (res.status === 503) {
+      notifyBackendStatus("failure");
+    }
+
     let message = `${res.status} ${res.statusText}`.trim();
     try {
       const body = await res.json();
@@ -41,6 +52,8 @@ export async function apiFetch<T = Json>(
     }
     throw new Error(message);
   }
+
+  notifyBackendStatus("success");
 
   // Some endpoints may return empty bodies.
   const text = await res.text();

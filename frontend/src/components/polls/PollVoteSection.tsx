@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { CheckCircle2, LogIn, Send, Trash2 } from "lucide-preact";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
 import { t, type SupportedLanguage } from "../../lib/i18n";
@@ -13,6 +14,7 @@ export default function PollVoteSection({
   pollLanguage,
 }: any) {
   const { user } = useSession();
+  const { isMaintenanceMode } = useBackendStatus();
   const { showToast } = useToast();
   const lang = (language ?? "en") as SupportedLanguage;
   const apiLanguage = pollLanguage ?? poll?.language ?? language ?? "en";
@@ -109,6 +111,14 @@ export default function PollVoteSection({
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (isMaintenanceMode) {
+    return (
+      <div className="poll-auth-required">
+        <div>Maintenance mode is active. Poll voting is temporarily unavailable.</div>
+      </div>
+    );
   }
 
   if (!user) {

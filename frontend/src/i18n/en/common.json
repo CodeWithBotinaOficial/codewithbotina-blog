@@ -37,6 +37,11 @@
   },
   "pinned": "Pinned",
   "pinnedPost": "Pinned Post",
+  "maintenance": {
+    "bannerTitle": "Maintenance mode active",
+    "bannerMessage": "Some interactive features are temporarily unavailable while the backend is being restored.",
+    "lastChecked": "Last checked:"
+  },
   "language": {
     "switchTo": "Switch to {{language}}",
     "current": "Language",

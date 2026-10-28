@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { getApiUrl } from "../../lib/env";
 import { getAuthRoute } from "../../lib/auth-endpoints";
+import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
 
 interface Props {
@@ -35,6 +36,7 @@ export default function ReactionButtons({
   };
 
   const { user, loading, isAuthenticated: sessionAuth } = useSession();
+  const { isMaintenanceMode } = useBackendStatus();
   const [likes, setLikes] = useState(initialLikes);
   const [dislikes, setDislikes] = useState(initialDislikes);
   const [currentReaction, setCurrentReaction] = useState(userReaction);
@@ -143,6 +145,14 @@ export default function ReactionButtons({
 
   if (loading) {
     return <p class="reaction-loading">{copy.loading}</p>;
+  }
+
+  if (isMaintenanceMode) {
+    return (
+      <div class="reaction-buttons">
+        <p class="reaction-message">Maintenance mode is active. Reactions are temporarily unavailable.</p>
+      </div>
+    );
   }
 
   return (

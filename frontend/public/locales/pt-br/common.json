@@ -35,6 +35,11 @@
     "updatedOn": "Atualizado em",
     "readTime": "{{minutes}} min de leitura"
   },
+  "maintenance": {
+    "bannerTitle": "Modo de manutenção ativo",
+    "bannerMessage": "Algumas funções interativas estão temporariamente indisponíveis enquanto o backend está sendo restaurado.",
+    "lastChecked": "Última verificação:"
+  },
   "language": {
     "switchTo": "Mudar para {{language}}",
     "current": "Idioma",

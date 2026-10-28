@@ -3,6 +3,8 @@ import Header from "./Header.astro";
 import Footer from "./Footer.astro";
 import SEO from "./SEO.astro";
 import CookieConsent from "./CookieConsent.tsx";
+import MaintenanceBanner from "./MaintenanceBanner.tsx";
+import { BackendStatusProvider } from "../context/BackendStatusContext";
 import "../styles/global.css";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, toHreflang, type SupportedLanguage } from "../lib/i18n";
 interface Props {
@@ -77,17 +79,20 @@ const googleSiteVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
     <slot name="head" />
   </head>
   <body class="min-h-screen flex flex-col">
-    {!hideChrome && (
-      <Header currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} />
-    )}
-    <main class="flex-1">
-      <slot />
-    </main>
-    {!hideChrome && (
-      <>
-        <Footer currentLanguage={currentLanguage} />
-        <CookieConsent language={currentLanguage} client:load />
-      </>
-    )}
+    <BackendStatusProvider client:load>
+      <MaintenanceBanner currentLanguage={currentLanguage} client:load />
+      {!hideChrome && (
+        <Header currentLanguage={currentLanguage} currentPath={currentPath} currentPostId={currentPostId} />
+      )}
+      <main class="flex-1">
+        <slot />
+      </main>
+      {!hideChrome && (
+        <>
+          <Footer currentLanguage={currentLanguage} />
+          <CookieConsent language={currentLanguage} client:load />
+        </>
+      )}
+    </BackendStatusProvider>
   </body>
 </html>
