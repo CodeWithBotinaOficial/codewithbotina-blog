@@ -57,6 +57,51 @@ Deno.test("Integration: GET /api/posts/:slug returns post with tags", async () =
   assertEquals(body.data.slug, "hello");
   assertEquals(body.data.body, "Content");
   assertEquals(body.data.tags.length, 1);
+  assertEquals(
+    res.headers.get("Cache-Control"),
+    "public, max-age=120, stale-while-revalidate=60",
+  );
+
+  restore();
+});
+
+Deno.test("Integration: GET /api/posts/:slug does not cache unpublished posts", async () => {
+  const supabaseAny = supabase as unknown as {
+    from: (...args: unknown[]) => unknown;
+  };
+  const queryBuilder = {
+    eq: () => queryBuilder,
+    maybeSingle: () =>
+      Promise.resolve({
+        data: {
+          id: "post-2",
+          titulo: "Draft",
+          slug: "draft",
+          body: "Draft content",
+          imagen_url: null,
+          fecha: new Date().toISOString(),
+          status: "draft",
+          language: "es",
+          post_tags: [],
+        },
+        error: null,
+      }),
+  };
+  stub(supabaseAny, "from", () => ({
+    select: () => queryBuilder,
+  }));
+
+  const req = new Request("http://localhost/api/posts/draft?language=es", {
+    method: "GET",
+    headers: { "Origin": "http://localhost:8000" },
+  });
+
+  const res = await handler.GET!(req, {
+    params: { slug: "draft" },
+  } as unknown as FreshContext);
+
+  assertEquals(res.status, 404);
+  assertEquals(res.headers.get("Cache-Control"), "no-store");
 
   restore();
 });
