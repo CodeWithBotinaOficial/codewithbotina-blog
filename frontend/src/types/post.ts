@@ -1,24 +1,38 @@
-export type Language = "es" | "en" | "pt-br";
+export type Language =
+  | "es"
+  | "en"
+  | "pt-br"
+  | "fr"
+  | "de"
+  | "pt"
+  | "ja"
+  | "zh";
 
-export interface Post {
+export interface PostListItem {
   id: string;
   titulo: string;
   slug: string;
-  body: string;
-  imagen_url?: string;
-  fecha: string;
-  tags?: string[];
-  excerpt?: string;
-  language?: Language;
+  imagen_url: string | null;
+  fecha: string | null;
+  language: Language;
   is_pinned?: boolean;
   status?: "draft" | "scheduled" | "published";
   scheduled_at?: string | null;
+  updated_at?: string | null;
 }
 
+export interface PostDetail extends PostListItem {
+  body: string | null;
+  tags?: string[];
+  excerpt?: string;
+}
+
+export type Post = PostDetail;
+
 export interface PostTranslations {
-  es?: Post;
-  en?: Post;
-  "pt-br"?: Post;
+  es?: PostDetail;
+  en?: PostDetail;
+  "pt-br"?: PostDetail;
 }
 
 export interface ContactFormData {

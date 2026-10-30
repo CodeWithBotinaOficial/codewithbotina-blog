@@ -55,6 +55,7 @@ Deno.test("Integration: GET /api/posts/:slug returns post with tags", async () =
   assertEquals(res.status, 200);
   assertEquals(body.success, true);
   assertEquals(body.data.slug, "hello");
+  assertEquals(body.data.body, "Content");
   assertEquals(body.data.tags.length, 1);
 
   restore();

@@ -10,7 +10,7 @@ import StructuredData from "../../components/StructuredData.astro";
 import { supabase } from "../../lib/supabase";
 import { apiCall } from "../../lib/api";
 import { getApiUrl, getSiteUrl } from "../../lib/env";
-import type { Post } from "../../types/post";
+import type { PostListItem } from "../../types/post";
 import { DEFAULT_LANGUAGE, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../lib/i18n";
 import {
   DEFAULT_PER_PAGE,
@@ -69,7 +69,7 @@ let countError: unknown = null;
 let error: unknown = null;
 let phase: string | null = null;
 
-let allPosts: Post[] = [];
+let allPosts: PostListItem[] = [];
 
 if (hasOtherParams) {
   const safeRequestedPage = Math.max(1, requestedPage);
@@ -106,7 +106,7 @@ if (hasOtherParams) {
     } else {
       const payload = await res.json();
       const data = payload?.data ?? payload;
-      allPosts = (data?.posts ?? []) as Post[];
+      allPosts = (data?.posts ?? []) as PostListItem[];
       totalPosts = (data?.total ?? 0) as number;
       phase = (data?.phase ?? null) as string | null;
     }
@@ -126,7 +126,7 @@ if (hasOtherParams) {
     if (backendResponse.ok) {
       const payload = await backendResponse.json();
       const data = payload?.data ?? payload;
-      const posts = (data?.posts ?? []) as Post[];
+      const posts = (data?.posts ?? []) as PostListItem[];
       totalPosts = (data?.total ?? posts.length) as number;
       allPosts = posts;
       error = null;
@@ -146,7 +146,7 @@ if (hasOtherParams) {
     const offset = offsetFor(requestedPage, perPage);
     const { data: posts, error: postsErr } = await supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status")
+      .select("id, titulo, slug, imagen_url, fecha, language, is_pinned, status, scheduled_at")
       .eq("language", language)
       .eq("status", "published")
       .order("is_pinned", { ascending: false })
@@ -154,7 +154,7 @@ if (hasOtherParams) {
       .range(offset, offset + perPage - 1);
 
     error = postsErr;
-    allPosts = (posts || []) as Post[];
+    allPosts = (posts || []) as PostListItem[];
   }
 }
 

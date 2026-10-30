@@ -20,7 +20,7 @@ import {
   totalPagesFor,
   type AllowedPerPage,
 } from "../../../lib/pagination";
-import type { Post } from "../../../types/post";
+import type { PostListItem } from "../../../types/post";
 
 const { slug, lang } = Astro.params;
 const language = isSupportedLanguage(lang ?? "") ? (lang as SupportedLanguage) : DEFAULT_LANGUAGE;
@@ -32,7 +32,7 @@ if (!lang || !isSupportedLanguage(lang)) {
 const apiUrl = getApiUrl();
 
 let tag: { id: string; name: string; slug: string; description?: string | null } | null = null;
-let posts: Post[] = [];
+let posts: PostListItem[] = [];
 let hasTagError = false;
 let hasPostsError = false;
 let totalPosts = 0;
@@ -77,7 +77,7 @@ if (!tagResult.error && tagResult.data) {
       const payload = await res.json();
       const data = payload?.data ?? payload;
       totalPosts = (data?.total ?? 0) as number;
-      posts = (data?.posts ?? []) as Post[];
+      posts = (data?.posts ?? []) as PostListItem[];
       searchPhase = (data?.phase ?? null) as string | null;
     } catch (_err) {
       hasPostsError = true;
@@ -112,7 +112,7 @@ if (!tagResult.error && tagResult.data) {
     const offset = offsetFor(currentPage, perPage);
     const { data: pagePosts, error: pageError } = await supabase
       .from("posts")
-      .select("id, titulo, slug, body, imagen_url, fecha, language, post_tags!inner(tag_id)")
+      .select("id, titulo, slug, imagen_url, fecha, language, is_pinned, status, scheduled_at, post_tags!inner(tag_id)")
       .eq("language", language)
       .eq("post_tags.tag_id", tag.id)
       .order("fecha", { ascending: false })
@@ -123,11 +123,13 @@ if (!tagResult.error && tagResult.data) {
         id: row.id,
         titulo: row.titulo,
         slug: row.slug,
-        body: row.body,
         imagen_url: row.imagen_url,
         fecha: row.fecha,
         language: row.language,
-      })) as Post[];
+        is_pinned: row.is_pinned,
+        status: row.status,
+        scheduled_at: row.scheduled_at,
+      })) as PostListItem[];
     } else {
       hasTagError = true;
     }
@@ -147,7 +149,7 @@ if (hasTagError) {
       const payload = await response.json();
       tag = payload?.data?.tag ?? payload?.tag ?? null;
       totalPosts = payload?.data?.total_posts ?? payload?.total_posts ?? 0;
-      posts = (payload?.data?.posts ?? payload?.posts ?? []) as Post[];
+      posts = (payload?.data?.posts ?? payload?.posts ?? []) as PostListItem[];
       hasTagError = !tag;
     } else {
       hasTagError = true;
