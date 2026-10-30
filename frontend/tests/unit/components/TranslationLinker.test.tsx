@@ -20,44 +20,48 @@ describe("TranslationLinker", () => {
   it("filters out same-language posts and enforces one-per-language", async () => {
     const onChangeSpy = vi.fn();
     let selected: any[] = [];
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => ({
-        data: {
-          posts: [
-            {
-              id: "en-1",
-              titulo: "English Post",
-              slug: "english-post",
-              language: "en",
-              fecha: "2026-01-01T00:00:00Z",
-            },
-            {
-              id: "es-1",
-              titulo: "Post en Español",
-              slug: "post-es",
-              language: "es",
-              fecha: "2026-01-02T00:00:00Z",
-            },
-            {
-              id: "es-2",
-              titulo: "Otro Post en Español",
-              slug: "otro-post-es",
-              language: "es",
-              fecha: "2026-01-03T00:00:00Z",
-            },
-            {
-              id: "fr-1",
-              titulo: "Post Français",
-              slug: "post-fr",
-              language: "fr",
-              fecha: "2026-01-04T00:00:00Z",
-            },
-          ],
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            posts: [
+              {
+                id: "en-1",
+                titulo: "English Post",
+                slug: "english-post",
+                language: "en",
+                fecha: "2026-01-01T00:00:00Z",
+              },
+              {
+                id: "es-1",
+                titulo: "Post en Español",
+                slug: "post-es",
+                language: "es",
+                fecha: "2026-01-02T00:00:00Z",
+              },
+              {
+                id: "es-2",
+                titulo: "Otro Post en Español",
+                slug: "otro-post-es",
+                language: "es",
+                fecha: "2026-01-03T00:00:00Z",
+              },
+              {
+                id: "fr-1",
+                titulo: "Post Français",
+                slug: "post-fr",
+                language: "fr",
+                fecha: "2026-01-04T00:00:00Z",
+              },
+            ],
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
         },
-      }),
-    });
+      ),
+    );
     vi.stubGlobal("fetch", fetchMock);
 
     const renderLinker = () =>

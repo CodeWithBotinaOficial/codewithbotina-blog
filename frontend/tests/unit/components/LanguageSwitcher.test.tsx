@@ -40,11 +40,12 @@ describe("LanguageSwitcher", () => {
   });
 
   it("resolves translated post by id before switching language", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ data: { slug: "hola-mundo" } }),
-    });
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: { slug: "hola-mundo" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
     vi.stubGlobal("fetch", fetchMock);
     Object.defineProperty(window, "location", {
       value: { href: "", pathname: "/es/posts/hola" },
@@ -70,11 +71,12 @@ describe("LanguageSwitcher", () => {
   });
 
   it("redirects to translation-aware 404 when translation is missing", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      json: async () => ({}),
-    });
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({}), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
     vi.stubGlobal("fetch", fetchMock);
     Object.defineProperty(window, "location", {
       value: { href: "", pathname: "/es/posts/hola" },

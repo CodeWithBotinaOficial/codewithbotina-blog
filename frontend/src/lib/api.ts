@@ -10,6 +10,9 @@ type BackendStatusListener = (_event: BackendStatusEvent) => void;
 
 const BACKEND_URL = import.meta.env.PUBLIC_API_URL || getApiUrl();
 
+// Share pending GETs; request-specific auth and abort options bypass sharing.
+const inFlightRequests = new Map<string, Promise<Response>>();
+
 class ServiceUnavailableError extends Error {
   constructor() {
     const documentLanguage =
@@ -59,31 +62,60 @@ export async function apiCall(
   url: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  try {
-    const response = await fetch(url, options);
+  const isGet = (options.method ?? "GET").toUpperCase() === "GET";
+  const headers = new Headers(options.headers);
+  const canDeduplicate = isGet &&
+    options.body == null &&
+    options.signal == null &&
+    !headers.has("Authorization");
 
-    if (response.status === 503 || response.status === 502) {
-      backendStatusBus.emit("failure");
-      throw new ServiceUnavailableError();
+  if (canDeduplicate) {
+    const inFlightRequest = inFlightRequests.get(url);
+    if (inFlightRequest) {
+      return inFlightRequest.then((response) => response.clone());
     }
+  }
 
-    if (isBackendCall(url)) {
-      backendStatusBus.emit("success");
-    }
+  const fetchPromise = (async () => {
+    try {
+      const response = await fetch(url, options);
 
-    return response;
-  } catch (error) {
-    if (error instanceof ServiceUnavailableError) {
+      if (response.status === 503 || response.status === 502) {
+        backendStatusBus.emit("failure");
+        throw new ServiceUnavailableError();
+      }
+
+      if (isBackendCall(url)) {
+        backendStatusBus.emit("success");
+      }
+
+      return response;
+    } catch (error) {
+      if (error instanceof ServiceUnavailableError) {
+        throw error;
+      }
+
+      if (error instanceof TypeError && isBackendCall(url)) {
+        backendStatusBus.emit("failure");
+        throw new ServiceUnavailableError();
+      }
+
       throw error;
     }
+  })();
 
-    if (error instanceof TypeError && isBackendCall(url)) {
-      backendStatusBus.emit("failure");
-      throw new ServiceUnavailableError();
-    }
-
-    throw error;
+  if (canDeduplicate) {
+    inFlightRequests.set(url, fetchPromise);
+    const clearInFlightRequest = () => {
+      if (inFlightRequests.get(url) === fetchPromise) {
+        inFlightRequests.delete(url);
+      }
+    };
+    void fetchPromise.then(clearInFlightRequest, clearInFlightRequest);
+    return fetchPromise.then((response) => response.clone());
   }
+
+  return fetchPromise;
 }
 
 function joinUrl(base: string, path: string) {

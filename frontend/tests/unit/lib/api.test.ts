@@ -54,3 +54,66 @@ describe("apiCall backend status detection", () => {
     );
   });
 });
+
+describe("apiCall in-flight request deduplication", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("shares concurrent GET requests and gives each caller a readable response", async () => {
+    let resolveFetch!: (_response: Response) => void;
+    vi.mocked(fetch).mockImplementation(
+      (_input, _init) =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    const requests = [
+      apiCall("https://api.example.com/api/tags"),
+      apiCall("https://api.example.com/api/tags"),
+      apiCall("https://api.example.com/api/tags"),
+    ];
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    resolveFetch(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    const responses = await Promise.all(requests);
+
+    expect(await Promise.all(responses.map((response) => response.json())))
+      .toEqual(
+        [{ ok: true }, { ok: true }, { ok: true }],
+      );
+  });
+
+  it("does not deduplicate POST requests", async () => {
+    vi.mocked(fetch).mockImplementation(async () =>
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    await Promise.all([
+      apiCall("https://api.example.com/api/reactions/1/like", {
+        method: "POST",
+      }),
+      apiCall("https://api.example.com/api/reactions/1/like", {
+        method: "POST",
+      }),
+    ]);
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("allows a new GET request after the previous request resolves", async () => {
+    vi.mocked(fetch).mockImplementation(async () =>
+      new Response(JSON.stringify({ ok: true }), { status: 200 })
+    );
+
+    await apiCall("https://api.example.com/api/tags");
+    await apiCall("https://api.example.com/api/tags");
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
