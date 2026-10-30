@@ -4,20 +4,22 @@ import Modal from "../ui/Modal";
 import SearchFilters from "./SearchFilters";
 import { apiCall } from "../../lib/api";
 import { getApiUrl } from "../../lib/env";
-import { DEFAULT_SEARCH_FILTERS } from "../../types/search";
+import { supabase } from "../../lib/supabase";
+import { DEFAULT_SEARCH_FILTERS, type SearchFilters as SearchFiltersType } from "../../types/search";
 import type { SupportedLanguage } from "../../lib/i18n";
 import { t } from "../../lib/i18n";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 
 interface Props {
   currentLanguage: SupportedLanguage;
+  isAdmin?: boolean;
 }
 
 type SearchResultPost = {
   id: string;
   titulo: string;
   slug: string;
-  body: string;
+  body: string | null;
   imagen_url: string | null;
   fecha: string | null;
   language: SupportedLanguage | string;
@@ -36,6 +38,98 @@ type SearchResponseData = {
 };
 
 const API_URL = getApiUrl().replace(/\/$/, "");
+
+const EMPTY_SEARCH_RESULTS: SearchResponseData = {
+  posts: [],
+  total: 0,
+  limit: 20,
+  offset: 0,
+};
+
+async function searchPublicPosts(
+  query: string,
+  language: SupportedLanguage,
+): Promise<SearchResultPost[]> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("id, titulo, slug, body, imagen_url, fecha, language")
+    .eq("status", "published")
+    .eq("language", language)
+    .or(`titulo.ilike.%${query}%,body.ilike.%${query}%`)
+    .order("fecha", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error("[search] Supabase client-side search error:", error);
+    throw new Error(error.message);
+  }
+
+  return data ?? [];
+}
+
+async function searchViaBackend(
+  filters: SearchFiltersType,
+): Promise<SearchResponseData> {
+  const params = new URLSearchParams();
+  const q = filters.search.trim();
+  if (q) params.set("q", q);
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+  if (filters.relevance && filters.relevance !== "most_recent") params.set("relevance", filters.relevance);
+  if (filters.sort && filters.sort !== "newest") params.set("sort", filters.sort);
+  if (filters.scope && filters.scope !== "title") params.set("scope", filters.scope);
+  if (filters.tags.length > 0) params.set("tags", filters.tags.join(","));
+
+  if (filters.languageMode === "all") {
+    params.set("languages", "all");
+  } else if (filters.languageMode === "selected" && filters.languages.length > 0) {
+    params.set("languages", filters.languages.join(","));
+  } else {
+    params.set("language", filters.uiLanguage);
+  }
+
+  params.set("limit", "20");
+  params.set("offset", "0");
+
+  const headers = new Headers();
+  headers.set("Accept", "application/json");
+  headers.set("X-Requested-With", "XMLHttpRequest");
+
+  const res = await apiCall(`${API_URL}/api/posts/search?${params.toString()}`, { credentials: "same-origin", headers });
+  if (!res.ok) throw new Error(`Search failed (${res.status})`);
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(`Expected JSON response but got: ${contentType}`);
+  }
+  let payload: any = null;
+  try {
+    payload = await res.json();
+  } catch (_err) {
+    throw new Error("Failed to parse JSON response from search API");
+  }
+  const data = (payload?.data ?? payload) as Partial<SearchResponseData>;
+
+  return {
+    posts: Array.isArray(data.posts) ? data.posts : [],
+    total: typeof data.total === "number" ? data.total : 0,
+    limit: typeof data.limit === "number" ? data.limit : 20,
+    offset: typeof data.offset === "number" ? data.offset : 0,
+    phase: data.phase,
+  };
+}
+
+export async function searchPosts(
+  filters: SearchFiltersType,
+  isAdmin: boolean,
+): Promise<SearchResponseData> {
+  const query = filters.search.trim();
+  if (query.length < 2) return EMPTY_SEARCH_RESULTS;
+
+  if (isAdmin) return searchViaBackend(filters);
+
+  const posts = await searchPublicPosts(query, filters.uiLanguage);
+  return { ...EMPTY_SEARCH_RESULTS, posts, total: posts.length };
+}
 
 function stripHtml(value: string): string {
   return String(value ?? "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
@@ -74,7 +168,7 @@ function formatDateShort(iso: string | null, locale: string): string {
   return d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default function GlobalSearchModal({ currentLanguage }: Props) {
+export default function GlobalSearchModal({ currentLanguage, isAdmin = false }: Props) {
   const { isMaintenanceMode } = useBackendStatus();
   const locale = currentLanguage === "es" ? "es-ES" : currentLanguage === "pt-br" ? "pt-BR" : "en-US";
   const [open, setOpen] = useState(false);
@@ -100,57 +194,21 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
   const runSearch = async (filters: ReturnType<typeof DEFAULT_SEARCH_FILTERS>) => {
     if (isMaintenanceMode) return;
     const requestId = ++requestIdRef.current;
+    const query = filters.search.trim();
+    if (query.length < 2) {
+      setResults(EMPTY_SEARCH_RESULTS);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const params = new URLSearchParams();
-      const q = filters.search.trim();
-      if (q) params.set("q", q);
-      if (filters.from) params.set("from", filters.from);
-      if (filters.to) params.set("to", filters.to);
-      if (filters.relevance && filters.relevance !== "most_recent") params.set("relevance", filters.relevance);
-      if (filters.sort && filters.sort !== "newest") params.set("sort", filters.sort);
-      if (filters.scope && filters.scope !== "title") params.set("scope", filters.scope);
-      if (filters.tags.length > 0) params.set("tags", filters.tags.join(","));
-
-      if (filters.languageMode === "all") {
-        params.set("languages", "all");
-      } else if (filters.languageMode === "selected" && filters.languages.length > 0) {
-        params.set("languages", filters.languages.join(","));
-      } else {
-        params.set("language", filters.uiLanguage);
-      }
-
-      params.set("limit", "20");
-      params.set("offset", "0");
-
-      const headers = new Headers();
-      headers.set("Accept", "application/json");
-      headers.set("X-Requested-With", "XMLHttpRequest");
-
-      const res = await apiCall(`${API_URL}/api/posts/search?${params.toString()}`, { credentials: "same-origin", headers });
-      if (!res.ok) throw new Error(`Search failed (${res.status})`);
-      const contentType = res.headers.get("content-type") ?? "";
-      if (!contentType.includes("application/json")) {
-        throw new Error(`Expected JSON response but got: ${contentType}`);
-      }
-      let payload: any = null;
-      try {
-        payload = await res.json();
-      } catch (_err) {
-        throw new Error("Failed to parse JSON response from search API");
-      }
-      const data = (payload?.data ?? payload) as Partial<SearchResponseData>;
-
+      const data = await searchPosts(filters, isAdmin);
       if (requestIdRef.current !== requestId) return;
-      setResults({
-        posts: Array.isArray(data.posts) ? data.posts : [],
-        total: typeof data.total === "number" ? data.total : 0,
-        limit: typeof data.limit === "number" ? data.limit : 20,
-        offset: typeof data.offset === "number" ? data.offset : 0,
-        phase: data.phase,
-      });
+      setResults(data);
     } catch (err) {
       if (requestIdRef.current !== requestId) return;
       setError(err instanceof Error ? err.message : "Search failed");
@@ -189,6 +247,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
             compact={false}
             autoApplySearch={true}
             defaultFiltersOpen={false}
+            showTagFilter={isAdmin}
             onSearch={(filters) => {
               runSearch(filters);
             }}
@@ -227,7 +286,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
               <div class="mt-4 grid grid-cols-1 gap-3">
                 {results.posts.map((post) => {
                   const href = `/${post.language}/posts/${post.slug}`;
-                  const excerpt = stripMarkdown(post.body).slice(0, 140);
+                  const excerpt = stripMarkdown(post.body ?? "").slice(0, 140);
                   const date = formatDateShort(post.fecha, locale);
                   return (
                     <a
@@ -246,7 +305,7 @@ export default function GlobalSearchModal({ currentLanguage }: Props) {
                       </div>
                       {excerpt ? (
                         <div class="mt-2 text-sm text-[var(--color-text-secondary)]">
-                          {excerpt}{stripHtml(post.body).length > 140 ? "…" : ""}
+                          {excerpt}{stripHtml(post.body ?? "").length > 140 ? "…" : ""}
                         </div>
                       ) : null}
                     </a>

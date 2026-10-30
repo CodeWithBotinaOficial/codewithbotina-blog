@@ -1,3 +1,5 @@
+// NOTE: This route is used only for admin search (draft/scheduled posts).
+// Public reader search uses Supabase client-side (frontend/src/components/search/GlobalSearchModal.tsx).
 import { Handlers } from "$fresh/server.ts";
 import { corsHeaders } from "../../../middleware/cors.ts";
 import { supabase } from "../../../lib/supabase.ts";
