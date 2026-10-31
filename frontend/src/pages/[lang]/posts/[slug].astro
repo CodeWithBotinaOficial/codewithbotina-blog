@@ -14,7 +14,7 @@ import { getApiUrl, getSiteUrl } from "../../../lib/env";
 import { formatDate, calculateReadTime, stripMarkdown, truncateText } from "../../../lib/utils";
 import { Calendar, Clock, ArrowLeft, Share2 } from "lucide-astro";
 import { renderMarkdownHtml } from "../../../lib/markdown";
-import type { Post } from "../../../types/post";
+import type { PostDetail } from "../../../types/post";
 import { DEFAULT_LANGUAGE, getLocalizedPath, isSupportedLanguage, SUPPORTED_LANGUAGES, t, type SupportedLanguage, toHreflang } from "../../../lib/i18n";
 import MarkdownEnhancer from "../../../components/markdown/MarkdownEnhancer";
 import { getMarkdownFeatureLabels } from "../../../lib/markdown-labels";
@@ -126,10 +126,11 @@ try {
   hasTranslations = false;
 }
 
-const currentPost = post as Post;
+const currentPost = post as PostDetail;
 const isPinned = Boolean((currentPost as any)?.is_pinned);
-const content = renderMarkdownHtml(currentPost.body);
-const readTime = calculateReadTime(currentPost.body);
+const postBody = currentPost.body ?? "";
+const content = renderMarkdownHtml(postBody);
+const readTime = calculateReadTime(postBody);
 const locale = language === "es" ? "es-ES" : language === "pt-br" ? "pt-BR" : "en-US";
 const siteUrl = getSiteUrl().replace(/\/$/, "");
 const canonicalUrl = `${siteUrl}/${language}/posts/${currentPost.slug}`;
@@ -216,7 +217,7 @@ const updatedAtRaw = (post as { updated_at?: string | null }).updated_at;
 const publishedAt = toIsoDate(currentPost.fecha);
 const updatedAt = toIsoDate(updatedAtRaw || currentPost.fecha);
 const metaDescription = buildDescription(
-  currentPost.excerpt || currentPost.body,
+  currentPost.excerpt || postBody,
   160,
   currentPost.titulo,
 );
@@ -340,7 +341,7 @@ const markdownLabels = getMarkdownFeatureLabels(language);
       <div class="flex items-center justify-center gap-4 text-sm text-[var(--color-text-tertiary)] mb-6">
         <span class="flex items-center gap-1">
           <Calendar size={16} />
-          {formatDate(currentPost.fecha, locale)}
+          {currentPost.fecha ? formatDate(currentPost.fecha, locale) : ""}
         </span>
         <span class="flex items-center gap-1">
           <Clock size={16} />

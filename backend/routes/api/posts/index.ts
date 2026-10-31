@@ -4,6 +4,7 @@ import { corsHeaders } from "../../../middleware/cors.ts";
 import { AppError, ValidationError } from "../../../utils/errors.ts";
 import { errorResponse, successResponse } from "../../../utils/responses.ts";
 import { optionalAuth } from "../../../middleware/auth.ts";
+import type { PostListItem } from "../../../types/post.types.ts";
 
 const SUPPORTED_LANGUAGES = new Set([
   "en",
@@ -18,6 +19,8 @@ const SUPPORTED_LANGUAGES = new Set([
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 const MAX_QUERY_LENGTH = 80;
+const POST_LIST_COLUMNS =
+  "id, titulo, slug, imagen_url, fecha, language, is_pinned, status, scheduled_at";
 
 export const handler: Handlers = {
   OPTIONS(req) {
@@ -89,9 +92,7 @@ export const handler: Handlers = {
 
       let query = supabase
         .from("posts")
-        .select(
-          "id, titulo, slug, body, imagen_url, fecha, language, is_pinned, status, scheduled_at",
-        )
+        .select(POST_LIST_COLUMNS)
         .order("is_pinned", { ascending: false })
         .order("scheduled_at", { ascending: false, nullsFirst: false })
         .order("fecha", { ascending: false });
@@ -117,10 +118,9 @@ export const handler: Handlers = {
         throw new AppError("Failed to fetch posts", 500);
       }
 
-      const posts = (data ?? []).map((post: Record<string, unknown>) => ({
+      const posts = (data ?? []).map((post: PostListItem) => ({
         ...post,
-        updated_at: (post as { updated_at?: string | null }).updated_at ??
-          post.fecha ?? null,
+        updated_at: post.updated_at ?? post.fecha ?? null,
       }));
 
       const response = successResponse(

@@ -1,3 +1,5 @@
+// NOTE: This route is used only for admin search (draft/scheduled posts).
+// Public reader search uses Supabase client-side (frontend/src/components/search/GlobalSearchModal.tsx).
 import type { HandlerContext, Handlers } from "$fresh/server.ts";
 import { handler as postsSearchHandler } from "./posts/search.ts";
 

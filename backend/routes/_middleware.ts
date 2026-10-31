@@ -1,4 +1,5 @@
 import { MiddlewareHandlerContext } from "$fresh/server.ts";
+import { applyCacheHeaders } from "../middleware/cache.ts";
 import { corsHeaders } from "../middleware/cors.ts";
 
 export async function handler(
@@ -17,5 +18,5 @@ export async function handler(
   const response = await ctx.next();
   const headers = corsHeaders(origin);
   headers.forEach((value, key) => response.headers.set(key, value));
-  return response;
+  return applyCacheHeaders(response, req, ctx.url);
 }

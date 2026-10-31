@@ -17,23 +17,28 @@ describe("StorageImageGallery", () => {
 
   it("loads images and lets admin apply one", async () => {
     const onUse = vi.fn();
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: {
-          images: [
-            {
-              name: "img-1.webp",
-              url: "https://example.com/img-1.webp",
-              size: 1234,
-              created_at: "2026-03-15T00:00:00Z",
-            },
-          ],
-          has_more: false,
-          next_offset: 48,
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            images: [
+              {
+                name: "img-1.webp",
+                url: "https://example.com/img-1.webp",
+                size: 1234,
+                created_at: "2026-03-15T00:00:00Z",
+              },
+            ],
+            has_more: false,
+            next_offset: 48,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
         },
-      }),
-    });
+      ),
+    );
     vi.stubGlobal("fetch", fetchMock);
 
     render(

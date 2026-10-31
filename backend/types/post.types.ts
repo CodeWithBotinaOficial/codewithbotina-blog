@@ -1,5 +1,28 @@
 export type PostStatus = "draft" | "published" | "scheduled";
 
+export interface PostListItem {
+  id: string;
+  titulo: string;
+  slug: string;
+  imagen_url: string | null;
+  fecha: string | null;
+  language: PostLanguage;
+  is_pinned: boolean;
+  status: PostStatus;
+  scheduled_at: string | null;
+  updated_at?: string | null;
+}
+
+export interface PostDetail extends PostListItem {
+  body: string | null;
+  tags: Array<{
+    id?: string;
+    name: string;
+    slug: string;
+    usage_count?: number;
+  }>;
+}
+
 export interface PostRecord {
   id: string;
   titulo: string;

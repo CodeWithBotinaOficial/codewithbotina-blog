@@ -5,6 +5,7 @@ import { restore, stub } from "https://deno.land/std@0.216.0/testing/mock.ts";
 import { FreshContext } from "$fresh/server.ts";
 
 Deno.test("Integration: GET /api/posts returns list with language filter", async () => {
+  let selectedColumns = "";
   const supabaseAny = supabase as unknown as {
     from: (...args: unknown[]) => unknown;
   };
@@ -18,18 +19,23 @@ Deno.test("Integration: GET /api/posts returns list with language filter", async
             id: "post-1",
             titulo: "Hello",
             slug: "hello",
-            body: "Content",
             imagen_url: null,
             fecha: new Date().toISOString(),
             updated_at: null,
             language: "es",
+            is_pinned: false,
+            status: "published",
+            scheduled_at: null,
           },
         ],
         error: null,
       }),
   };
   const _fromStub = stub(supabaseAny, "from", () => ({
-    select: () => queryBuilder,
+    select: (columns: string) => {
+      selectedColumns = columns;
+      return queryBuilder;
+    },
   }));
 
   const req = new Request("http://localhost/api/posts?language=es&limit=10", {
@@ -43,6 +49,26 @@ Deno.test("Integration: GET /api/posts returns list with language filter", async
   assertEquals(res.status, 200);
   assertEquals(body.success, true);
   assertEquals(body.data.posts.length, 1);
+  const firstPost = body.data.posts[0];
+  assertEquals("body" in firstPost, false);
+  assertEquals(firstPost.slug, "hello");
+  assertEquals(firstPost.titulo, "Hello");
+  for (
+    const field of [
+      "id",
+      "imagen_url",
+      "fecha",
+      "language",
+      "is_pinned",
+      "status",
+      "scheduled_at",
+    ]
+  ) {
+    assertEquals(field in firstPost, true);
+  }
+  assertEquals(selectedColumns.includes("body"), false);
+  assertEquals(selectedColumns.includes("titulo"), true);
+  assertEquals(selectedColumns.includes("slug"), true);
 
   restore();
 });
@@ -72,12 +98,13 @@ Deno.test("Integration: GET /api/posts returns total count for pagination", asyn
             id: "post-1",
             titulo: "Hello",
             slug: "hello",
-            body: "Content",
             imagen_url: null,
             fecha: new Date().toISOString(),
             updated_at: null,
             language: "es",
+            is_pinned: false,
             status: "published",
+            scheduled_at: null,
           },
         ],
         error: null,
@@ -105,6 +132,7 @@ Deno.test("Integration: GET /api/posts returns total count for pagination", asyn
   assertEquals(body.success, true);
   assertEquals(body.data.total, 42);
   assertEquals(body.data.posts.length, 1);
+  assertEquals("body" in body.data.posts[0], false);
 
   restore();
 });

@@ -88,8 +88,15 @@ export const handler: Handlers = {
 
       // If post is not published AND viewer is not admin → 404
       if (data.status !== "published" && !isAdmin) {
+        headers.set("Cache-Control", "no-store");
         throw new AppError("Post not found", 404);
       }
+      headers.set(
+        "Cache-Control",
+        data.status === "published"
+          ? "public, max-age=120, stale-while-revalidate=60"
+          : "no-store",
+      );
 
       const tags = Array.isArray(data.post_tags)
         ? data.post_tags
