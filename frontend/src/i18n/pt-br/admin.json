@@ -47,6 +47,25 @@
     "cancelSchedule": "Cancelar Agendamento",
     "scheduleSection": "Agendar Publicação"
   },
+  "postList": {
+    "publishingSoon": "Publicando...",
+    "countdownDays": "em {{count}} d",
+    "countdownHours": "em {{count}} h",
+    "countdownMinutes": "em {{count}} min",
+    "countdownDaysHours": "{{days}} d {{hours}} h",
+    "countdownHoursMinutes": "{{hours}} h {{minutes}} min",
+    "countdownMinutesSeconds": "{{minutes}} min {{seconds}} s",
+    "countdownSeconds": "{{count}} s",
+    "unknownDate": "Data desconhecida",
+    "publishedBadge": "Publicado",
+    "draftBadge": "Rascunho",
+    "toggleActions": "Alternar ações",
+    "view": "Visualizar",
+    "confirm": "Confirmar",
+    "scheduledHeading": "Agendados ({{count}})",
+    "publishedHeading": "Publicados ({{count}})",
+    "draftsHeading": "Rascunhos ({{count}})"
+  },
   "editor": {
     "accessChecking": "Verificando acesso de admin...",
     "titleLabel": "Titulo",
@@ -370,4 +389,3 @@
      "confirmUnschedule": "Tem certeza de que deseja cancelar este agendamento?"
    }
  }
-

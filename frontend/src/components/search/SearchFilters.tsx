@@ -418,7 +418,9 @@ export default function SearchFilters({
                       type="button"
                       class="inline-flex items-center gap-2 rounded-full bg-[var(--color-bg-subtle)] px-3 py-1 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-accent-light)]"
                       onClick={() => toggleSelectedTag(tag)}
-                      aria-label={`Remove ${tag.name}`}
+                      aria-label={t(uiLanguage, "search.removeTag", "common", {
+                        tag: tag.name,
+                      })}
                     >
                       <span>#{tag.name}</span>
                       <X className="h-3 w-3" />

@@ -116,7 +116,6 @@ export function BackendStatusProvider({ children }: { children: ComponentChildre
 
     const reportStartupResult = (event: "success" | "failure") => {
       backendStatusBus.emit(event);
-      if (event === "failure") backendStatusBus.emit(event);
     };
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 5000);

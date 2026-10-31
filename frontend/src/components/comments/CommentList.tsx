@@ -3,6 +3,7 @@ import { getApiUrl } from "../../lib/env";
 import { apiCall } from "../../lib/api";
 import { useBackendStatus } from "../../hooks/useBackendStatus";
 import { useSession } from "../../hooks/useSession";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, t } from "../../lib/i18n";
 import CommentItem from "./CommentItem";
 
 interface CommentUser {
@@ -95,21 +96,23 @@ export default function CommentList({
   labels,
   dateLocale,
 }: Props) {
+  const language = isSupportedLanguage(currentLanguage)
+    ? currentLanguage
+    : DEFAULT_LANGUAGE;
   const copy = labels ?? {
-    empty: "No comments yet. Be the first to comment.",
-    edit: "Edit",
-    delete: "Delete",
-    save: "Save",
-    saving: "Saving...",
-    cancel: "Cancel",
-    pin: "Pin",
-    unpin: "Unpin",
-    pinned: "Pinned",
-    anonymous: "Anonymous",
-    updateError: "Failed to update comment.",
-    unifiedNotice:
-      "Comments from all language versions of this post are shown here.",
-    fromTranslation: "Comment from {{language}} version",
+    empty: t(language, "commentsEmpty", "post"),
+    edit: t(language, "commentEdit", "post"),
+    delete: t(language, "commentDelete", "post"),
+    save: t(language, "commentSave", "post"),
+    saving: t(language, "commentSaving", "post"),
+    cancel: t(language, "commentCancel", "post"),
+    pin: t(language, "commentPin", "post"),
+    unpin: t(language, "commentUnpin", "post"),
+    pinned: t(language, "commentPinned", "post"),
+    anonymous: t(language, "commentAnonymous", "post"),
+    updateError: t(language, "commentUpdateError", "post"),
+    unifiedNotice: t(language, "commentUnifiedNotice", "post"),
+    fromTranslation: t(language, "commentFromTranslation", "post"),
   };
 
   const [comments, setComments] = useState<Comment[]>(initialComments || []);

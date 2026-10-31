@@ -9,6 +9,7 @@ interface Props {
     loading: string;
     openProfile: string;
     userAlt: string;
+    authUnavailable: string;
   };
   profileHref: string;
 }
@@ -26,10 +27,11 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
     return (
       <div class="auth-controls">
         <button
-          class="btn-auth"
           type="button"
           onClick={signIn}
           disabled={isMaintenanceMode}
+          class={isMaintenanceMode ? "btn-auth maintenance-disabled" : "btn-auth"}
+          title={isMaintenanceMode ? labels.authUnavailable : undefined}
         >
           {labels.signIn}
         </button>
@@ -62,10 +64,11 @@ export default function HeaderAuthControls({ labels, profileHref }: Props) {
         {user.full_name || user.email}
       </a>
       <button
-        class="btn-auth"
         type="button"
         onClick={signOut}
         disabled={isMaintenanceMode}
+        class={isMaintenanceMode ? "btn-auth maintenance-disabled" : "btn-auth"}
+        title={isMaintenanceMode ? labels.authUnavailable : undefined}
       >
         {labels.signOut}
       </button>

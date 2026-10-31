@@ -70,6 +70,12 @@
     @apply inline-flex shrink-0 items-center justify-center whitespace-nowrap bg-[var(--color-accent-primary)] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[var(--color-accent-hover)] transition-colors duration-200;
   }
 
+  .btn-auth:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+  }
+
   .auth-profile {
     @apply bg-white border border-[var(--color-border)] rounded-xl p-4;
   }
@@ -1543,6 +1549,19 @@
 
   .reaction-button.active {
     @apply bg-[var(--color-accent-light)] border-[var(--color-accent-primary)] text-[var(--color-accent-primary)];
+  }
+
+  .maintenance-disabled,
+  [data-maintenance="true"] {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(0.5);
+  }
+
+  .reaction-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.6);
   }
 
   .reaction-signin {

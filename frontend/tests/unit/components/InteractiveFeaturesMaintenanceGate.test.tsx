@@ -189,6 +189,7 @@ describe("interactive feature maintenance gates", () => {
         loading: "Loading",
         openProfile: "Open profile",
         userAlt: "User",
+        authUnavailable: "Sign-in is temporarily unavailable.",
       },
       profileHref: "/profile",
     };

@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, t } from "../../lib/i18n";
 import type { Comment } from "./CommentList";
 
 interface Props {
@@ -64,18 +65,21 @@ export default function CommentItem({
   labels,
   dateLocale,
 }: Props) {
+  const language = isSupportedLanguage(currentLanguage)
+    ? currentLanguage
+    : DEFAULT_LANGUAGE;
   const copy = labels ?? {
-    edit: "Edit",
-    delete: "Delete",
-    save: "Save",
-    saving: "Saving...",
-    cancel: "Cancel",
-    pin: "Pin",
-    unpin: "Unpin",
-    pinned: "Pinned",
-    anonymous: "Anonymous",
-    updateError: "Failed to update comment.",
-    fromTranslation: "Comment from {{language}} version",
+    edit: t(language, "commentEdit", "post"),
+    delete: t(language, "commentDelete", "post"),
+    save: t(language, "commentSave", "post"),
+    saving: t(language, "commentSaving", "post"),
+    cancel: t(language, "commentCancel", "post"),
+    pin: t(language, "commentPin", "post"),
+    unpin: t(language, "commentUnpin", "post"),
+    pinned: t(language, "commentPinned", "post"),
+    anonymous: t(language, "commentAnonymous", "post"),
+    updateError: t(language, "commentUpdateError", "post"),
+    fromTranslation: t(language, "commentFromTranslation", "post"),
   };
 
   const [isEditing, setIsEditing] = useState(false);

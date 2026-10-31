@@ -28,34 +28,53 @@ interface CountdownState {
 
 const ADMIN_API = getAdminRoute("");
 
-function ScheduledBadge({ scheduledAt }: { scheduledAt: string }) {
+function ScheduledBadge({
+  scheduledAt,
+  currentLanguage,
+}: {
+  scheduledAt: string;
+  currentLanguage: SupportedLanguage;
+}) {
   const date = new Date(scheduledAt);
   const now = new Date();
   const diffMs = date.getTime() - now.getTime();
   const diffH = Math.floor(diffMs / 3600000);
   const diffD = Math.floor(diffH / 24);
+  const locale = currentLanguage === "pt-br"
+    ? "pt-BR"
+    : currentLanguage === "es"
+    ? "es-ES"
+    : "en-US";
 
   const countdown = diffMs <= 0
-    ? "publishing soon"
-    : diffD >= 1 ? `in ${diffD}d`
-    : diffH >= 1 ? `in ${diffH}h`
-    : `in ${Math.max(1, Math.floor(diffMs / 60000))}m`;
+    ? t(currentLanguage, "postList.publishingSoon", "admin")
+    : diffD >= 1
+    ? t(currentLanguage, "postList.countdownDays", "admin", { count: diffD })
+    : diffH >= 1
+    ? t(currentLanguage, "postList.countdownHours", "admin", { count: diffH })
+    : t(currentLanguage, "postList.countdownMinutes", "admin", {
+      count: Math.max(1, Math.floor(diffMs / 60000)),
+    });
 
   return (
-    <span class="badge-scheduled" title={date.toLocaleString()}>
-      🕐 Scheduled · {countdown}
+    <span class="badge-scheduled" title={date.toLocaleString(locale)}>
+      🕐 {t(currentLanguage, "scheduling.scheduledBadge", "admin")} · {countdown}
     </span>
   );
 }
 
-function getCountdownValue(post: Post, now = new Date()): string | null {
+function getCountdownValue(
+  post: Post,
+  currentLanguage: SupportedLanguage,
+  now = new Date(),
+): string | null {
   if (post.status !== "scheduled" || !post.scheduled_at) return null;
 
   const scheduledDate = new Date(post.scheduled_at);
   const diffMs = scheduledDate.getTime() - now.getTime();
 
   if (diffMs <= 0) {
-    return "Publishing...";
+    return t(currentLanguage, "postList.publishingSoon", "admin");
   }
 
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -64,25 +83,34 @@ function getCountdownValue(post: Post, now = new Date()): string | null {
   const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
   if (days > 0) {
-    return `${days}d ${hours}h`;
+    return t(currentLanguage, "postList.countdownDaysHours", "admin", {
+      days,
+      hours,
+    });
   }
 
   if (hours > 0) {
-    return `${hours}h ${minutes}m`;
+    return t(currentLanguage, "postList.countdownHoursMinutes", "admin", {
+      hours,
+      minutes,
+    });
   }
 
   if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
+    return t(currentLanguage, "postList.countdownMinutesSeconds", "admin", {
+      minutes,
+      seconds,
+    });
   }
 
-  return `${seconds}s`;
+  return t(currentLanguage, "postList.countdownSeconds", "admin", { count: seconds });
 }
 
 export default function AdminPostsList({ posts, currentLanguage }: Props) {
   const [countdowns, setCountdowns] = useState<CountdownState>(() => {
     const initial: CountdownState = {};
     for (const post of posts) {
-      const value = getCountdownValue(post);
+      const value = getCountdownValue(post, currentLanguage);
       if (value) initial[post.id] = value;
     }
     return initial;
@@ -98,7 +126,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
       const newCountdowns: CountdownState = {};
 
       for (const post of posts) {
-        const value = getCountdownValue(post, now);
+        const value = getCountdownValue(post, currentLanguage, now);
         if (value) newCountdowns[post.id] = value;
       }
 
@@ -113,7 +141,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
         window.clearInterval(countdownRef.current);
       }
     };
-  }, [posts]);
+  }, [currentLanguage, posts]);
 
   const handleDeletePost = async (slug: string) => {
     if (isDeleting) return;
@@ -133,7 +161,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
       window.location.reload();
     } catch (error) {
       console.error("Error deleting post:", error);
-      alert("Failed to delete post. Please try again.");
+      alert(t(currentLanguage, "deleteError", "admin"));
     } finally {
       setIsDeleting(false);
       setDeleteConfirm(null);
@@ -141,7 +169,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
   };
 
   const formatDate = (dateString: string | undefined): string => {
-    if (!dateString) return "Unknown date";
+    if (!dateString) return t(currentLanguage, "postList.unknownDate", "admin");
 
     const date = new Date(dateString);
     const locale = currentLanguage === "pt-br" ? "pt-BR" : currentLanguage === "es" ? "es-ES" : "en-US";
@@ -172,7 +200,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
       return (
         <div class="inline-flex items-center gap-2 rounded-full bg-[var(--color-success)]/10 px-3 py-1.5 text-sm font-medium text-[var(--color-success)]">
           <Eye size={16} />
-          <span>Published</span>
+          <span>{t(currentLanguage, "postList.publishedBadge", "admin")}</span>
         </div>
       );
     }
@@ -180,7 +208,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
     return (
       <div class="inline-flex items-center gap-2 rounded-full bg-[var(--color-neutral)]/10 px-3 py-1.5 text-sm font-medium text-[var(--color-text-secondary)]">
         <AlertCircle size={16} />
-        <span>Draft</span>
+        <span>{t(currentLanguage, "postList.draftBadge", "admin")}</span>
       </div>
     );
   };
@@ -237,7 +265,10 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
               </div>
               <div class="flex flex-col items-end gap-2">
                 {post.status === "scheduled" && post.scheduled_at && (
-                  <ScheduledBadge scheduledAt={post.scheduled_at} />
+                  <ScheduledBadge
+                    scheduledAt={post.scheduled_at}
+                    currentLanguage={currentLanguage}
+                  />
                 )}
                 {getStatusBadge(post)}
               </div>
@@ -269,7 +300,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
             type="button"
             onClick={() => setExpandedPost(isExpanded ? null : post.id)}
             class="flex-shrink-0 p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition"
-            aria-label="Toggle actions"
+            aria-label={t(currentLanguage, "postList.toggleActions", "admin")}
           >
             <ChevronDown
               size={20}
@@ -286,7 +317,7 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-accent-primary)] hover:border-[var(--color-accent-primary)] transition text-sm font-medium"
             >
               <Eye size={16} />
-              View
+              {t(currentLanguage, "postList.view", "admin")}
             </a>
 
             <a
@@ -304,14 +335,16 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
                   disabled={isDeleting}
                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-error)] text-white hover:bg-[var(--color-error)]/90 transition text-sm font-medium disabled:opacity-50"
                 >
-                  {isDeleting ? "Deleting..." : "Confirm"}
+                  {isDeleting
+                    ? t(currentLanguage, "deleting", "admin")
+                    : t(currentLanguage, "postList.confirm", "admin")}
                 </button>
                 <button
                   onClick={() => setDeleteConfirm(null)}
                   disabled={isDeleting}
                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-text-primary)] transition text-sm font-medium disabled:opacity-50"
                 >
-                  Cancel
+                  {t(currentLanguage, "cancel", "admin")}
                 </button>
               </div>
             ) : (
@@ -337,7 +370,9 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
           <div class="flex items-center gap-3">
             <Clock size={20} class="text-[var(--color-warning)]" />
             <h2 class="text-xl font-semibold text-[var(--color-text-primary)]">
-              Scheduled ({groupedPosts.scheduled.length})
+              {t(currentLanguage, "postList.scheduledHeading", "admin", {
+                count: groupedPosts.scheduled.length,
+              })}
             </h2>
           </div>
           <div class="grid gap-4">
@@ -354,7 +389,9 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
           <div class="flex items-center gap-3">
             <Eye size={20} class="text-[var(--color-success)]" />
             <h2 class="text-xl font-semibold text-[var(--color-text-primary)]">
-              Published ({groupedPosts.published.length})
+              {t(currentLanguage, "postList.publishedHeading", "admin", {
+                count: groupedPosts.published.length,
+              })}
             </h2>
           </div>
           <div class="grid gap-4">
@@ -371,7 +408,9 @@ export default function AdminPostsList({ posts, currentLanguage }: Props) {
           <div class="flex items-center gap-3">
             <AlertCircle size={20} class="text-[var(--color-text-secondary)]" />
             <h2 class="text-xl font-semibold text-[var(--color-text-primary)]">
-              Drafts ({groupedPosts.draft.length})
+              {t(currentLanguage, "postList.draftsHeading", "admin", {
+                count: groupedPosts.draft.length,
+              })}
             </h2>
           </div>
           <div class="grid gap-4">

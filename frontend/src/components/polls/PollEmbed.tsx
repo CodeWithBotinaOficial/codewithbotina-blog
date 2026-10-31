@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { BarChart3, Clock, Edit3, Globe, Lock, Trash2, Unlock, Users } from "lucide-preact";
 import { useSession } from "../../hooks/useSession";
 import { useToast } from "../../hooks/useToast";
-import { SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
+import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, t, type SupportedLanguage } from "../../lib/i18n";
 import { getPollStatusName, getPollTypeName, getPollVoteCount } from "../../lib/poll-i18n";
 import { pollsApi } from "../../lib/api";
 import PollVoteSection from "./PollVoteSection";
@@ -139,12 +139,16 @@ export default function PollEmbed({ slug, language = 'en', pollLanguage }: Props
   };
 
   const getLanguageLabel = (l: string) => {
-    switch (l) {
-      case 'en': return '🇺🇸 English';
-      case 'es': return '🇪🇸 Español';
-      case 'pt-br': return '🇧🇷 Português';
-      default: return l.toUpperCase();
-    }
+    const supportedLanguage = SUPPORTED_LANGUAGES.find((supported) =>
+      supported === l
+    );
+    if (!supportedLanguage) return l.toUpperCase();
+    const flag = supportedLanguage === "en"
+      ? "🇺🇸"
+      : supportedLanguage === "es"
+      ? "🇪🇸"
+      : "🇧🇷";
+    return `${flag} ${LANGUAGE_NAMES[supportedLanguage]}`;
   };
 
   return (

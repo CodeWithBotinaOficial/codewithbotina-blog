@@ -27,7 +27,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "publish": "Publish",
-    "search": "Search"
+    "search": "Search",
+    "toggleMenu": "Toggle menu"
   },
   "time": {
     "publishedOn": "Published on",
@@ -35,6 +36,8 @@
     "readTime": "{{minutes}} min read"
   },
   "maintenance": {
+    "featureUnavailable": "This feature is temporarily unavailable.",
+    "authUnavailable": "Sign-in is temporarily unavailable while the backend is being restored.",
     "bannerTitle": "Maintenance mode active",
     "bannerMessage": "Some interactive features are temporarily unavailable while the backend is being restored.",
     "lastChecked": "Last checked:"
@@ -49,7 +52,20 @@
     "placeholder": "Search articles...",
     "showing": "Showing {{count}} articles",
     "noResults": "No articles found matching your search.",
+    "searching": "Searching...",
+    "resultsCount": "{{count}} results found",
+    "phase": "Phase",
+    "typeQuery": "Type a query (2+ characters) or adjust filters to search.",
+    "untitled": "Untitled",
+    "removeTag": "Remove {{tag}}",
+    "error": "Search failed. Please try again.",
     "clear": "Clear search filters"
+  },
+  "profile": {
+    "loading": "Loading profile...",
+    "notSignedIn": "You are not signed in.",
+    "avatarAlt": "User avatar",
+    "adminBadge": "Admin"
   },
   "errors": {
     "fetchPosts": "Error fetching posts. Please try again later.",
