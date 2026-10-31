@@ -185,7 +185,9 @@ export default function SearchFiltersController({
 
             // Render search results with the same structure/classes as PostCard.astro
             const itemsHtml = posts.map((p: any) => {
-              const title = escapeHtml(p.titulo || "Untitled");
+              const title = escapeHtml(
+                p.titulo || t(filters.uiLanguage, "search.untitled"),
+              );
               const slug = escapeHtml(p.slug || "");
               const language = escapeHtml(p.language || filters.uiLanguage);
               const hrefPost = `/${language}/posts/${slug}`;

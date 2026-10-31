@@ -27,7 +27,8 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "publish": "Publicar",
-    "search": "Buscar"
+    "search": "Buscar",
+    "toggleMenu": "Alternar menú"
   },
   "time": {
     "publishedOn": "Publicado el",
@@ -35,6 +36,8 @@
     "readTime": "{{minutes}} min de lectura"
   },
   "maintenance": {
+    "featureUnavailable": "Esta función no está disponible temporalmente.",
+    "authUnavailable": "El inicio de sesión no está disponible temporalmente mientras se restaura el servidor.",
     "bannerTitle": "Modo de mantenimiento activo",
     "bannerMessage": "Algunas funciones interactivas están temporalmente deshabilitadas mientras se restaura el backend.",
     "lastChecked": "Última comprobación:"
@@ -49,7 +52,20 @@
     "placeholder": "Buscar artículos...",
     "showing": "Mostrando {{count}} artículos",
     "noResults": "No se encontraron artículos que coincidan con tu búsqueda.",
+    "searching": "Buscando...",
+    "resultsCount": "{{count}} resultados encontrados",
+    "phase": "Fase",
+    "typeQuery": "Escribe una búsqueda (2 caracteres o más) o ajusta los filtros.",
+    "untitled": "Sin título",
+    "removeTag": "Eliminar {{tag}}",
+    "error": "No se pudo realizar la búsqueda. Inténtalo de nuevo.",
     "clear": "Limpiar filtros de búsqueda"
+  },
+  "profile": {
+    "loading": "Cargando perfil...",
+    "notSignedIn": "No has iniciado sesión.",
+    "avatarAlt": "Avatar del usuario",
+    "adminBadge": "Administrador"
   },
   "errors": {
     "fetchPosts": "Error al cargar publicaciones. Por favor intenta de nuevo.",

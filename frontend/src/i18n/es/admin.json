@@ -47,6 +47,25 @@
     "cancelSchedule": "Cancelar Programación",
     "scheduleSection": "Programar Publicación"
   },
+  "postList": {
+    "publishingSoon": "Publicando...",
+    "countdownDays": "en {{count}} d",
+    "countdownHours": "en {{count}} h",
+    "countdownMinutes": "en {{count}} min",
+    "countdownDaysHours": "{{days}} d {{hours}} h",
+    "countdownHoursMinutes": "{{hours}} h {{minutes}} min",
+    "countdownMinutesSeconds": "{{minutes}} min {{seconds}} s",
+    "countdownSeconds": "{{count}} s",
+    "unknownDate": "Fecha desconocida",
+    "publishedBadge": "Publicada",
+    "draftBadge": "Borrador",
+    "toggleActions": "Alternar acciones",
+    "view": "Ver",
+    "confirm": "Confirmar",
+    "scheduledHeading": "Programadas ({{count}})",
+    "publishedHeading": "Publicadas ({{count}})",
+    "draftsHeading": "Borradores ({{count}})"
+  },
   "editor": {
     "accessChecking": "Verificando acceso de administrador...",
     "titleLabel": "Título",
@@ -370,4 +389,3 @@
      "confirmUnschedule": "¿Estás seguro de que deseas cancelar esta programación?"
    }
  }
-

@@ -73,6 +73,13 @@ describe("CommentForm maintenance gate", () => {
     expect(container.textContent).toContain(
       t("pt-br", "maintenance.featureUnavailable"),
     );
+    const signInButton = container.querySelector("button.comment-signin-link") as HTMLButtonElement;
+    expect(signInButton).not.toBeNull();
+    expect(signInButton.disabled).toBe(true);
+    expect(signInButton.title).toBe(
+      t("pt-br", "maintenance.authUnavailable"),
+    );
+    expect(container.querySelector("a")).toBeNull();
   });
 
   it("shows only the maintenance notice for authenticated users", () => {

@@ -25,24 +25,24 @@ interface Props {
 const API_URL = getApiUrl();
 
 export default function CommentForm({ postId, labels, currentLanguage }: Props) {
-  const copy = labels ?? {
-    signIn: "Sign in",
-    signInSuffix: "to leave a comment.",
-    loading: "Loading session...",
-    placeholder: "Leave a comment...",
-    submit: "Post comment",
-    submitting: "Posting...",
-    authError: "You must be signed in to comment.",
-    postError: "Failed to post comment.",
-    postErrorRetry: "Failed to post comment. Please try again.",
-  };
-
   const { user, loading } = useSession();
   const { isMaintenanceMode } = useBackendStatus();
   const language = currentLanguage ??
     (typeof window === "undefined"
       ? "en"
       : getLanguageFromPath(window.location.pathname));
+  const copy = labels ?? {
+    signIn: t(language, "commentSignIn", "post"),
+    signInSuffix: t(language, "commentSignInSuffix", "post"),
+    loading: t(language, "commentLoading", "post"),
+    placeholder: t(language, "commentPlaceholder", "post"),
+    submit: t(language, "commentSubmit", "post"),
+    submitting: t(language, "commentSubmitting", "post"),
+    authError: t(language, "commentAuthError", "post"),
+    postError: t(language, "commentPostError", "post"),
+    postErrorRetry: t(language, "commentPostErrorRetry", "post"),
+  };
+
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -101,9 +101,20 @@ export default function CommentForm({ postId, labels, currentLanguage }: Props) 
     return (
       <div class="comment-signin">
         <p>{t(language, "maintenance.authRequiredToComment", "common")}</p>
-        <a class="comment-signin-link" href={authUrl}>
-          {t(language, "maintenance.signInToContinue", "common")}
-        </a>
+        {isMaintenanceMode ? (
+          <button
+            type="button"
+            class="comment-signin-link maintenance-disabled"
+            disabled
+            title={t(language, "maintenance.authUnavailable", "common")}
+          >
+            {t(language, "maintenance.signInToContinue", "common")}
+          </button>
+        ) : (
+          <a class="comment-signin-link" href={authUrl}>
+            {t(language, "maintenance.signInToContinue", "common")}
+          </a>
+        )}
         {isMaintenanceMode ? (
           <p class="comment-maintenance" role="status">
             {t(language, "maintenance.featureUnavailable", "common")}
@@ -125,7 +136,7 @@ export default function CommentForm({ postId, labels, currentLanguage }: Props) 
     <form class="comment-form" onSubmit={handleSubmit}>
       <img
         src={user.avatar_url || "/avatar-placeholder.png"}
-        alt="Your avatar"
+        alt={t(language, "profile.avatarAlt", "common")}
         class="comment-avatar"
         width={40}
         height={40}

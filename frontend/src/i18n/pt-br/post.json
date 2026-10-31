@@ -59,6 +59,8 @@
   "commentPostError": "Falha ao publicar o comentario.",
   "commentPostErrorRetry": "Falha ao publicar o comentario. Tente novamente.",
   "commentAuthError": "Voce precisa estar logado para comentar.",
+  "commentUnifiedNotice": "Os comentarios de todas as versoes deste post sao exibidos aqui.",
+  "commentFromTranslation": "Comentario da versao em {{language}}",
   "topics": "Topicos",
   "backToPosts": "Voltar para todos os posts",
   "diagram": {

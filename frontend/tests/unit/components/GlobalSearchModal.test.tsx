@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render } from "preact";
+import { act } from "preact/test-utils";
 import GlobalSearchModal, { searchPosts } from "../../../src/components/search/GlobalSearchModal";
 import { DEFAULT_SEARCH_FILTERS } from "../../../src/types/search";
+import { t } from "../../../src/lib/i18n";
 
 const mocks = vi.hoisted(() => {
   const query = {
@@ -56,6 +58,15 @@ describe("GlobalSearchModal", () => {
     render(null, container);
     document.body.removeChild(container);
   });
+
+  const openModal = async (language: "en" | "es" | "pt-br") => {
+    render(<GlobalSearchModal currentLanguage={language} />, container);
+    const openButton = container.querySelector("button[aria-label]") as HTMLButtonElement;
+    await act(async () => {
+      openButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  };
 
   it("opens and closes with Escape", async () => {
     render(<GlobalSearchModal currentLanguage="en" />, container);
@@ -124,5 +135,86 @@ describe("GlobalSearchModal", () => {
 
     expect(mocks.from).not.toHaveBeenCalled();
     expect(mocks.apiCall).not.toHaveBeenCalled();
+  });
+
+  it("shows localized empty and no-results states for a short query", async () => {
+    await openModal("es");
+    expect(document.body.textContent).toContain(t("es", "search.typeQuery"));
+    expect(document.body.textContent).not.toContain("Type a query");
+
+    const input = document.body.querySelector(
+      `input[placeholder="${t("es", "search.placeholder")}"]`,
+    ) as HTMLInputElement;
+    await act(async () => {
+      input.value = "a";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+    });
+    const applyButton = Array.from(document.body.querySelectorAll("button"))
+      .find((button) => button.textContent?.trim() === t("es", "search.apply"))!;
+    await act(async () => {
+      applyButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(document.body.textContent).toContain(t("es", "search.noResults"));
+    expect(document.body.textContent).not.toContain("No results.");
+    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.apiCall).not.toHaveBeenCalled();
+  });
+
+  it("shows localized no-results text after a public search returns no posts", async () => {
+    mocks.query.limit.mockResolvedValue({ data: [], error: null });
+    await openModal("pt-br");
+
+    const input = document.body.querySelector(
+      `input[placeholder="${t("pt-br", "search.placeholder")}"]`,
+    ) as HTMLInputElement;
+    await act(async () => {
+      input.value = "astro";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+    });
+    const applyButton = Array.from(document.body.querySelectorAll("button"))
+      .find((button) => button.textContent?.trim() === t("pt-br", "search.apply"))!;
+    await act(async () => {
+      applyButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(document.body.textContent).toContain(t("pt-br", "search.noResults"));
+    expect(document.body.textContent).not.toContain("No results.");
+  });
+
+  it("shows localized searching text while the request is pending", async () => {
+    let resolveSearch: ((_value: { data: []; error: null }) => void) | undefined;
+    mocks.query.limit.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSearch = resolve;
+      }),
+    );
+    await openModal("es");
+
+    const input = document.body.querySelector(
+      `input[placeholder="${t("es", "search.placeholder")}"]`,
+    ) as HTMLInputElement;
+    await act(async () => {
+      input.value = "astro";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await Promise.resolve();
+    });
+    const applyButton = Array.from(document.body.querySelectorAll("button"))
+      .find((button) => button.textContent?.trim() === t("es", "search.apply"))!;
+    await act(async () => {
+      applyButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(document.body.textContent).toContain(t("es", "search.searching"));
+    expect(document.body.textContent).not.toContain("Searching...");
+    await act(async () => {
+      resolveSearch?.({ data: [], error: null });
+      await Promise.resolve();
+    });
   });
 });

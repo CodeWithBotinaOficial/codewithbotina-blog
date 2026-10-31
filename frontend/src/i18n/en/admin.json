@@ -47,6 +47,25 @@
     "cancelSchedule": "Cancel Schedule",
     "scheduleSection": "Schedule Publication"
   },
+  "postList": {
+    "publishingSoon": "Publishing...",
+    "countdownDays": "in {{count}}d",
+    "countdownHours": "in {{count}}h",
+    "countdownMinutes": "in {{count}}m",
+    "countdownDaysHours": "{{days}}d {{hours}}h",
+    "countdownHoursMinutes": "{{hours}}h {{minutes}}m",
+    "countdownMinutesSeconds": "{{minutes}}m {{seconds}}s",
+    "countdownSeconds": "{{count}}s",
+    "unknownDate": "Unknown date",
+    "publishedBadge": "Published",
+    "draftBadge": "Draft",
+    "toggleActions": "Toggle actions",
+    "view": "View",
+    "confirm": "Confirm",
+    "scheduledHeading": "Scheduled ({{count}})",
+    "publishedHeading": "Published ({{count}})",
+    "draftsHeading": "Drafts ({{count}})"
+  },
   "editor": {
     "accessChecking": "Checking admin access...",
     "titleLabel": "Title",
@@ -370,4 +389,3 @@
      "confirmUnschedule": "Are you sure you want to cancel this schedule?"
    }
  }
-

@@ -71,7 +71,7 @@ describe("BackendStatusProvider", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it("activates maintenance immediately when startup health checks fail", async () => {
+  it("keeps the service online after one failed startup health check", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
@@ -81,8 +81,33 @@ describe("BackendStatusProvider", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
+    expect(statusElement().dataset.status).toBe("online");
+    expect(statusElement().dataset.failures).toBe("1");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("activates maintenance after a startup failure and a subsequent API failure", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        String(input).endsWith("/api/health")
+          ? Promise.reject(new TypeError("Failed to fetch"))
+          : Promise.resolve(new Response(null, { status: 200 })),
+      ),
+    );
+    await mount();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    window.localStorage.setItem("maintenance_alert_sent", String(Date.now()));
+    await act(async () => {
+      backendStatusBus.emit("failure");
+      await Promise.resolve();
+    });
+
     expect(statusElement().dataset.status).toBe("maintenance");
     expect(statusElement().dataset.failures).toBe("2");
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it("recovers when the health endpoint becomes healthy", async () => {
@@ -107,6 +132,10 @@ describe("BackendStatusProvider", () => {
     await mount();
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    await act(async () => {
+      backendStatusBus.emit("failure");
+      await Promise.resolve();
     });
     expect(statusElement().dataset.status).toBe("maintenance");
     expect(healthChecks).toBe(2);

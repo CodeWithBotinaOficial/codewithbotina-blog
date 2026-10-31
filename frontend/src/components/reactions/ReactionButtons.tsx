@@ -32,19 +32,19 @@ export default function ReactionButtons({
   currentLanguage,
   labels,
 }: Props) {
-  const copy = labels ?? {
-    signIn: "Sign in",
-    signInSuffix: "to react.",
-    loading: "Loading reactions...",
-    error: "Failed to update reaction. Please try again.",
-  };
-
   const { user, loading, isAuthenticated: sessionAuth } = useSession();
   const { isMaintenanceMode } = useBackendStatus();
   const language = currentLanguage ??
     (typeof window === "undefined"
       ? "en"
       : getLanguageFromPath(window.location.pathname));
+  const copy = labels ?? {
+    signIn: t(language, "reactions.signInToReact", "post"),
+    signInSuffix: t(language, "reactions.signInSuffix", "post"),
+    loading: t(language, "reactions.loading", "post"),
+    error: t(language, "reactions.error", "post"),
+  };
+
   const [likes, setLikes] = useState(initialLikes);
   const [dislikes, setDislikes] = useState(initialDislikes);
   const [currentReaction, setCurrentReaction] = useState(userReaction);
@@ -165,18 +165,24 @@ export default function ReactionButtons({
       ) : null}
       <button
         type="button"
-        class={`reaction-button ${currentReaction === "like" ? "active" : ""}`}
+        class={`reaction-button ${currentReaction === "like" ? "active" : ""} ${isMaintenanceMode ? "maintenance-disabled" : ""}`}
         disabled={isLoading || isMaintenanceMode}
         onClick={() => handleReaction("like")}
+        title={isMaintenanceMode
+          ? t(language, "maintenance.featureUnavailable", "common")
+          : undefined}
       >
         👍 <span>{likes}</span>
       </button>
 
       <button
         type="button"
-        class={`reaction-button ${currentReaction === "dislike" ? "active" : ""}`}
+        class={`reaction-button ${currentReaction === "dislike" ? "active" : ""} ${isMaintenanceMode ? "maintenance-disabled" : ""}`}
         disabled={isLoading || isMaintenanceMode}
         onClick={() => handleReaction("dislike")}
+        title={isMaintenanceMode
+          ? t(language, "maintenance.featureUnavailable", "common")
+          : undefined}
       >
         👎 <span>{dislikes}</span>
       </button>

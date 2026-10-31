@@ -211,7 +211,8 @@ export default function GlobalSearchModal({ currentLanguage, isAdmin = false }: 
       setResults(data);
     } catch (err) {
       if (requestIdRef.current !== requestId) return;
-      setError(err instanceof Error ? err.message : "Search failed");
+      console.error("[search] Search request failed:", err);
+      setError(t(currentLanguage, "search.error"));
       setResults(null);
     } finally {
       if (requestIdRef.current === requestId) setLoading(false);
@@ -260,15 +261,19 @@ export default function GlobalSearchModal({ currentLanguage, isAdmin = false }: 
               </div>
               {results ? (
                 <div class="text-xs text-[var(--color-text-tertiary)]">
-                  {results.total} result{results.total === 1 ? "" : "s"}
-                  {results.phase ? ` • phase: ${results.phase}` : ""}
+                  {t(currentLanguage, "search.resultsCount", "common", {
+                    count: results.total,
+                  })}
+                  {results.phase
+                    ? ` • ${t(currentLanguage, "search.phase")}: ${results.phase}`
+                    : ""}
                 </div>
               ) : null}
             </div>
 
             {loading ? (
               <div class="mt-4 text-sm text-[var(--color-text-secondary)]">
-                Searching…
+                {t(currentLanguage, "search.searching")}
               </div>
             ) : error ? (
               <div class="mt-4 text-sm text-[var(--color-error)]">
@@ -276,11 +281,11 @@ export default function GlobalSearchModal({ currentLanguage, isAdmin = false }: 
               </div>
             ) : !results ? (
               <div class="mt-4 text-sm text-[var(--color-text-secondary)]">
-                Type a query (2+ characters) or adjust filters to search.
+                {t(currentLanguage, "search.typeQuery")}
               </div>
             ) : results.posts.length === 0 ? (
               <div class="mt-4 text-sm text-[var(--color-text-secondary)]">
-                No results.
+                {t(currentLanguage, "search.noResults")}
               </div>
             ) : (
               <div class="mt-4 grid grid-cols-1 gap-3">
